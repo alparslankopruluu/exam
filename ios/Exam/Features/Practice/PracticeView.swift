@@ -3,6 +3,10 @@ import SwiftUI
 struct PracticeView: View {
     let setup: StudySetup
 
+    private var pack: ExamContentPack? {
+        ContentPackRepository.load(packId: setup.exam.syllabusPackId)
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
@@ -58,18 +62,47 @@ struct PracticeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .padding(.top, 22)
 
+                if let pack, !pack.units.isEmpty {
+                    Text("Your exam")
+                        .font(.system(size: 18, weight: .bold))
+                        .padding(.top, 22)
+
+                    VStack(spacing: 8) {
+                        ForEach(pack.units.prefix(4)) { unit in
+                            practiceRow(
+                                "book.fill",
+                                unit.title,
+                                detail(for: unit),
+                                ExamPalette.primary
+                            )
+                        }
+                    }
+                    .padding(.top, 9)
+                }
+
                 VStack(spacing: 9) {
                     practiceRow("timer", "Mock Exam", "Use the official-style blueprint", ExamPalette.purple)
                     practiceRow("arrow.clockwise", "Mistakes", "Review patterns that cost you points", ExamPalette.coral)
                     practiceRow("rectangle.stack.fill", "Flashcards", "Spaced repetition due today", ExamPalette.mint)
                     practiceRow("sparkles", "Create Practice", "Topic, note, PDF or pasted text", ExamPalette.amber)
                 }
-                .padding(.top, 22)
+                .padding(.top, 14)
                 .padding(.bottom, 20)
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)
         }
+    }
+
+    private func detail(for unit: ContentUnit) -> String {
+        var parts: [String] = []
+        if let questionCount = unit.questionCount {
+            parts.append("\(questionCount) questions")
+        }
+        if let durationMinutes = unit.durationMinutes {
+            parts.append("\(durationMinutes) min")
+        }
+        return parts.isEmpty ? "Exam-specific practice" : parts.joined(separator: " · ")
     }
 
     private func practiceRow(_ symbol: String, _ title: String, _ subtitle: String, _ accent: Color) -> some View {

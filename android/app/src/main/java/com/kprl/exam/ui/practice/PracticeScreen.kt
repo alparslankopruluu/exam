@@ -8,20 +8,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kprl.exam.content.ContentPackRepository
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.ui.theme.ExamColors
 
 @Composable
 fun PracticeScreen(setup: StudySetup, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val pack = remember(setup.exam.syllabusPackId) {
+        ContentPackRepository.load(context, setup.exam.syllabusPackId)
+    }
+
     Column(
         modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)
     ) {
@@ -62,7 +69,23 @@ fun PracticeScreen(setup: StudySetup, modifier: Modifier = Modifier) {
             }
         }
 
-        Spacer(Modifier.height(22.dp))
+        if (!pack?.units.isNullOrEmpty()) {
+            Spacer(Modifier.height(22.dp))
+            Text("Your exam", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(9.dp))
+            pack!!.units.take(4).forEach { unit ->
+                val detail = buildString {
+                    unit.questionCount?.let { append("$it questions") }
+                    if (unit.questionCount != null && unit.durationMinutes != null) append(" · ")
+                    unit.durationMinutes?.let { append("$it min") }
+                    if (isEmpty()) append("Exam-specific practice")
+                }
+                PracticeRow(Icons.Rounded.MenuBook, unit.title, detail, ExamColors.Primary)
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+
+        Spacer(Modifier.height(14.dp))
         PracticeRow(Icons.Rounded.Timer, "Mock Exam", "Use the official-style blueprint", ExamColors.Purple)
         Spacer(Modifier.height(9.dp))
         PracticeRow(Icons.Rounded.Refresh, "Mistakes", "Review patterns that cost you points", ExamColors.Coral)
