@@ -39,6 +39,14 @@ enum StudySetupStore {
         UserDefaults.standard.set(seen, forKey: "study.onboardingPaywallSeen")
     }
 
+    static func notificationPrompted() -> Bool {
+        UserDefaults.standard.bool(forKey: "study.notificationPrompted")
+    }
+
+    static func setNotificationPrompted(_ prompted: Bool) {
+        UserDefaults.standard.set(prompted, forKey: "study.notificationPrompted")
+    }
+
     static func clear() {
         [
             "study.country",
@@ -47,7 +55,8 @@ enum StudySetupStore {
             "study.goal",
             "study.dailyMinutes",
             "study.diagnosticPercent",
-            "study.onboardingPaywallSeen"
+            "study.onboardingPaywallSeen",
+            "study.notificationPrompted"
         ].forEach(UserDefaults.standard.removeObject(forKey:))
     }
 }
