@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AITutorView: View {
     let setup: StudySetup
+    var onVoiceTutor: () -> Void = {}
 
     var body: some View {
         VStack(spacing: 0) {
@@ -31,7 +32,7 @@ struct AITutorView: View {
                         tutorRow("doc.viewfinder", "Solve a question", "Take a photo or upload", ExamPalette.primary)
                         tutorRow("lightbulb.fill", "Explain a concept", "Simple, visual or from zero", ExamPalette.amber)
                         tutorRow("folder.fill", "Study my notes", "Ask questions about your materials", ExamPalette.mint)
-                        tutorRow("waveform", "Talk to tutor", "Practice with voice", ExamPalette.purple)
+                        tutorRow("waveform", "Talk to tutor", "Interactive voice · Premium", ExamPalette.purple, action: onVoiceTutor)
                     }
                     .padding(.top, 12)
                 }
@@ -77,8 +78,14 @@ struct AITutorView: View {
         }
     }
 
-    private func tutorRow(_ symbol: String, _ title: String, _ subtitle: String, _ accent: Color) -> some View {
-        Button {} label: {
+    private func tutorRow(
+        _ symbol: String,
+        _ title: String,
+        _ subtitle: String,
+        _ accent: Color,
+        action: @escaping () -> Void = {}
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: symbol)
                     .foregroundStyle(accent)

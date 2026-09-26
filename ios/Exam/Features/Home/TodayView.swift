@@ -19,8 +19,28 @@ private enum ExamTab: String, CaseIterable, Hashable {
 struct TodayView: View {
     let setup: StudySetup
     @State private var selectedTab: ExamTab = .today
+    @State private var premiumPlacement: String?
 
     var body: some View {
+        Group {
+            if let premiumPlacement {
+                PremiumPaywallView(
+                    setup: setup,
+                    placement: premiumPlacement,
+                    onClose: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            self.premiumPlacement = nil
+                        }
+                    }
+                )
+            } else {
+                appShell
+            }
+        }
+        .background(ExamPalette.background.ignoresSafeArea())
+    }
+
+    private var appShell: some View {
         VStack(spacing: 0) {
             Group {
                 switch selectedTab {
@@ -29,7 +49,14 @@ struct TodayView: View {
                 case .practice:
                     PracticeView(setup: setup)
                 case .tutor:
-                    AITutorView(setup: setup)
+                    AITutorView(
+                        setup: setup,
+                        onVoiceTutor: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                                premiumPlacement = "voice_tutor"
+                            }
+                        }
+                    )
                 case .library:
                     LibraryView()
                 }
@@ -38,7 +65,6 @@ struct TodayView: View {
 
             bottomBar
         }
-        .background(ExamPalette.background.ignoresSafeArea())
     }
 
     private var todayContent: some View {
