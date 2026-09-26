@@ -1,0 +1,98 @@
+package com.kprl.exam.ui.components
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.kprl.exam.ui.theme.ExamColors
+
+@Composable
+fun ExamPrimaryButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.fillMaxWidth().height(56.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = ExamColors.Primary,
+            contentColor = Color.White,
+            disabledContainerColor = ExamColors.Border,
+            disabledContentColor = ExamColors.TextSecondary
+        ),
+        elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp)
+    ) {
+        Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+fun ExamSelectionCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    accent: Color,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val border = animateColorAsState(if (selected) ExamColors.Primary else ExamColors.Border, label = "border")
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        color = ExamColors.Surface,
+        border = BorderStroke(if (selected) 1.5.dp else 1.dp, border.value),
+        shadowElevation = if (selected) 3.dp else 0.dp
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(46.dp).background(accent.copy(alpha = .12f), RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = accent, modifier = Modifier.size(23.dp))
+            }
+            Spacer(Modifier.width(13.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                Text(subtitle, color = ExamColors.TextSecondary, fontSize = 12.sp)
+            }
+            Text(
+                if (selected) "✓" else "",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .size(22.dp)
+                    .background(if (selected) ExamColors.Primary else ExamColors.Background, RoundedCornerShape(50))
+                    .wrapContentSize(Alignment.Center)
+            )
+        }
+    }
+}
+
+@Composable
+fun ExamStatPill(value: String, label: String, icon: ImageVector, accent: Color, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        color = ExamColors.Surface,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, ExamColors.Border)
+    ) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(7.dp))
+            Column {
+                Text(value, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text(label, fontSize = 10.sp, color = ExamColors.TextSecondary)
+            }
+        }
+    }
+}

@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+# Android
+android/.gradle/
+android/local.properties
+android/**/build/
+*.iml
+# iOS / Xcode
+ios/DerivedData/
+ios/*.xcodeproj/xcuserdata/
+ios/**/*.xcuserstate
+ios/.build/
+# Secrets
+*.keystore
+*.jks
+GoogleService-Info.plist
+google-services.json
+.env
