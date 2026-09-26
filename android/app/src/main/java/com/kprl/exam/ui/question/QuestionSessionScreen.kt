@@ -33,7 +33,8 @@ fun QuestionSessionScreen(
     setup: StudySetup,
     onClose: () -> Unit,
     questionsOverride: List<StudyQuestion>? = null,
-    sessionType: String = "quick_practice"
+    sessionType: String = "quick_practice",
+    onSessionCompleted: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
@@ -224,6 +225,7 @@ fun QuestionSessionScreen(
                             durationSeconds = ((completedAt - sessionStartedAt) / 1000L).toInt()
                         )
                         earnedXp = (after.xp - before.xp).coerceAtLeast(0)
+                        onSessionCompleted?.invoke()
                         completed = true
                     } else {
                         index++

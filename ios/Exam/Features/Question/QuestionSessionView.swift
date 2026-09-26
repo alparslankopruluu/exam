@@ -6,6 +6,7 @@ struct QuestionSessionView: View {
     let onClose: () -> Void
     var questionsOverride: [StudyQuestion]? = nil
     var sessionType: String = "quick_practice"
+    var onSessionCompleted: (() -> Void)? = nil
 
     @Environment(\.modelContext) private var modelContext
     @State private var sessionStartedAt = Date()
@@ -107,6 +108,7 @@ struct QuestionSessionView: View {
                             durationSeconds: max(0, Int(completedAt.timeIntervalSince(sessionStartedAt)))
                         )
                         earnedXP = max(0, after.xp - before.xp)
+                        onSessionCompleted?()
                         completed = true
                     } else {
                         index += 1
