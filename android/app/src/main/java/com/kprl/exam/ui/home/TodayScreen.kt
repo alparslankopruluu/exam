@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.ui.components.ExamStatPill
 import com.kprl.exam.ui.library.LibraryScreen
+import com.kprl.exam.ui.paywall.PremiumPaywallScreen
 import com.kprl.exam.ui.practice.PracticeScreen
 import com.kprl.exam.ui.theme.ExamColors
 import com.kprl.exam.ui.tutor.AITutorScreen
@@ -30,6 +31,17 @@ private data class NavItem(val label: String, val icon: ImageVector)
 @Composable
 fun TodayScreen(setup: StudySetup) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var premiumPlacement by remember { mutableStateOf<String?>(null) }
+
+    if (premiumPlacement != null) {
+        PremiumPaywallScreen(
+            setup = setup,
+            placement = premiumPlacement!!,
+            onClose = { premiumPlacement = null }
+        )
+        return
+    }
+
     val nav = listOf(
         NavItem("Today", Icons.Rounded.Home),
         NavItem("Practice", Icons.Rounded.EditNote),
@@ -61,7 +73,11 @@ fun TodayScreen(setup: StudySetup) {
         when (selectedTab) {
             0 -> TodayContent(setup, Modifier.padding(padding))
             1 -> PracticeScreen(setup, Modifier.padding(padding))
-            2 -> AITutorScreen(setup, Modifier.padding(padding))
+            2 -> AITutorScreen(
+                setup = setup,
+                modifier = Modifier.padding(padding),
+                onVoiceTutor = { premiumPlacement = "voice_tutor" }
+            )
             else -> LibraryScreen(Modifier.padding(padding))
         }
     }

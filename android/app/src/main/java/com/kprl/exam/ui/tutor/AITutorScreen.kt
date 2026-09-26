@@ -20,7 +20,11 @@ import com.kprl.exam.data.StudySetup
 import com.kprl.exam.ui.theme.ExamColors
 
 @Composable
-fun AITutorScreen(setup: StudySetup, modifier: Modifier = Modifier) {
+fun AITutorScreen(
+    setup: StudySetup,
+    modifier: Modifier = Modifier,
+    onVoiceTutor: () -> Unit = {}
+) {
     Column(
         modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)
     ) {
@@ -47,7 +51,7 @@ fun AITutorScreen(setup: StudySetup, modifier: Modifier = Modifier) {
         Spacer(Modifier.height(9.dp))
         TutorAction(Icons.Rounded.FolderOpen, "Study my notes", "Ask questions about your materials", ExamColors.Mint)
         Spacer(Modifier.height(9.dp))
-        TutorAction(Icons.Rounded.GraphicEq, "Talk to tutor", "Practice with voice", ExamColors.Purple)
+        TutorAction(Icons.Rounded.GraphicEq, "Talk to tutor", "Interactive voice · Premium", ExamColors.Purple, onVoiceTutor)
 
         Spacer(Modifier.weight(1f))
         Surface(
@@ -71,9 +75,15 @@ fun AITutorScreen(setup: StudySetup, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun TutorAction(icon: ImageVector, title: String, subtitle: String, accent: Color) {
+private fun TutorAction(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    accent: Color,
+    onClick: () -> Unit = {}
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable {},
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         color = ExamColors.Surface,
         shape = RoundedCornerShape(18.dp),
         border = BorderStroke(1.dp, ExamColors.Border)
