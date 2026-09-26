@@ -21,6 +21,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import com.kprl.exam.billing.GooglePlayBillingService
+import com.kprl.exam.analytics.AnalyticsEvents
+import com.kprl.exam.analytics.AnalyticsParams
+import com.kprl.exam.platform.AppServices
 import com.kprl.exam.billing.StoreOfferPresentation
 import com.kprl.exam.billing.StorePlanPresentation
 import com.kprl.exam.data.StudySetup
@@ -50,6 +53,17 @@ fun PremiumPaywallScreen(
 
     val selectedPlan = if (annualSelected) offer.annual else offer.monthly
 
+    LaunchedEffect(placement) {
+        AppServices.analytics.event(
+            AnalyticsEvents.PAYWALL_VIEWED,
+            mapOf(
+                AnalyticsParams.PLACEMENT to placement,
+                AnalyticsParams.EXAM_ID to setup.exam.id,
+                AnalyticsParams.CONTENT_PACK_ID to setup.exam.syllabusPackId
+            )
+        )
+    }
+
     Column(
         Modifier.fillMaxSize()
             .background(ExamColors.Background)
@@ -59,7 +73,13 @@ fun PremiumPaywallScreen(
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = onClose) {
+            IconButton(onClick = {
+                AppServices.analytics.event(
+                    AnalyticsEvents.PAYWALL_CLOSED,
+                    mapOf(AnalyticsParams.PLACEMENT to placement)
+                )
+                onClose()
+            }) {
                 Icon(Icons.Rounded.Close, contentDescription = "Close", tint = ExamColors.TextSecondary)
             }
         }
@@ -116,9 +136,21 @@ fun PremiumPaywallScreen(
         Benefit(Icons.Rounded.Insights, "Advanced progress", "See mastery and mistake patterns over time.")
 
         Spacer(Modifier.height(18.dp))
-        PlanCard(offer.annual, annualSelected) { annualSelected = true }
+        PlanCard(offer.annual, annualSelected) {
+            annualSelected = true
+            AppServices.analytics.event(
+                AnalyticsEvents.PLAN_SELECTED,
+                mapOf(AnalyticsParams.PRODUCT_ID to offer.annual.productId)
+            )
+        }
         Spacer(Modifier.height(9.dp))
-        PlanCard(offer.monthly, !annualSelected) { annualSelected = false }
+        PlanCard(offer.monthly, !annualSelected) {
+            annualSelected = false
+            AppServices.analytics.event(
+                AnalyticsEvents.PLAN_SELECTED,
+                mapOf(AnalyticsParams.PRODUCT_ID to offer.monthly.productId)
+            )
+        }
 
         Spacer(Modifier.weight(1f))
         Button(
@@ -132,8 +164,25 @@ fun PremiumPaywallScreen(
                 purchaseError = null
                 billing.purchase(host, selectedPlan.productId) { success, message ->
                     purchasing = false
-                    if (success) onClose()
-                    else if (message != "cancelled") purchaseError = message ?: "Purchase failed."
+                    if (success) {
+                        AppServices.analytics.event(
+                            AnalyticsEvents.PURCHASE_COMPLETED,
+                            mapOf(
+                                AnalyticsParams.PLACEMENT to placement,
+                                AnalyticsParams.PRODUCT_ID to selectedPlan.productId
+                            )
+                        )
+                        onClose()
+                    } else if (message != "cancelled") {
+                        purchaseError = message ?: "Purchase failed."
+                        AppServices.analytics.event(
+                            AnalyticsEvents.PURCHASE_FAILED,
+                            mapOf(
+                                AnalyticsParams.PLACEMENT to placement,
+                                AnalyticsParams.PRODUCT_ID to selectedPlan.productId
+                            )
+                        )
+                    }
                 }
             },
             enabled = selectedPlan.localizedPrice != null && !purchasing,
