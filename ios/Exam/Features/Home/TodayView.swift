@@ -239,11 +239,19 @@ struct TodayView: View {
                                     premiumPlacement = "voice_tutor"
                                 }
                             }
+                        },
+                        onStudyNotes: {
+                            selectedTab = .library
                         }
                     )
 
                 case .library:
-                    LibraryView()
+                    LibraryView(
+                        setup: setup,
+                        onStartPractice: { questions in
+                            openSession(type: "material_practice", questions: questions)
+                        }
+                    )
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
