@@ -4,6 +4,7 @@ import PhotosUI
 struct AITutorView: View {
     let setup: StudySetup
     var onVoiceTutor: () -> Void = {}
+    var onStudyNotes: () -> Void = {}
 
     @State private var prompt = ""
     @State private var answer: String?
@@ -61,7 +62,8 @@ struct AITutorView: View {
                             "folder.fill",
                             "Study my notes",
                             "Ask questions from indexed Library materials",
-                            ExamPalette.mint
+                            ExamPalette.mint,
+                            action: onStudyNotes
                         )
 
                         tutorRow(
