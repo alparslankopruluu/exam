@@ -1,0 +1,23 @@
+name: Exam
+options:
+  bundleIdPrefix: com.kprl
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+targets:
+  Exam:
+    type: application
+    platform: iOS
+    sources:
+      - Exam
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam
+        PRODUCT_NAME: exam
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: exam
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
