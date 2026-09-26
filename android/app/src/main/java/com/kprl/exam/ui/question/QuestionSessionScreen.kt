@@ -14,11 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.domain.SampleQuestionFactory
+import com.kprl.exam.platform.persistence.LearningDatabase
+import com.kprl.exam.platform.persistence.LearningRepository
 import com.kprl.exam.ui.theme.ExamColors
 
 @Composable
@@ -26,7 +29,11 @@ fun QuestionSessionScreen(
     setup: StudySetup,
     onClose: () -> Unit
 ) {
+    val context = LocalContext.current
+    val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
     val questions = remember(setup.exam.id) { SampleQuestionFactory.forSetup(setup) }
+    val sessionStartedAt = remember { System.currentTimeMillis() }
+    var questionStartedAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var index by remember { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<Int?>(null) }
     var correctCount by remember { mutableIntStateOf(0) }
@@ -89,8 +96,21 @@ fun QuestionSessionScreen(
                 modifier = Modifier.fillMaxWidth()
                     .padding(vertical = 5.dp)
                     .clickable(enabled = selected == null) {
+                        val answeredAt = System.currentTimeMillis()
+                        val correct = optionIndex == question.correctIndex
                         selected = optionIndex
-                        if (optionIndex == question.correctIndex) correctCount++
+                        if (correct) correctCount++
+
+                        repository.recordAnswer(
+                            examId = setup.exam.id,
+                            skillId = setup.exam.id + ":" + question.topic.lowercase().replace(" ", "_"),
+                            questionId = question.id,
+                            correct = correct,
+                            responseTimeMs = answeredAt - questionStartedAt,
+                            selectedAnswer = option,
+                            correctAnswer = question.options[question.correctIndex],
+                            errorType = if (correct) "none" else "concept"
+                        )
                     },
                 shape = RoundedCornerShape(18.dp),
                 color = background,
@@ -136,10 +156,20 @@ fun QuestionSessionScreen(
             Button(
                 onClick = {
                     if (index == questions.lastIndex) {
+                        val completedAt = System.currentTimeMillis()
+                        repository.saveSession(
+                            examId = setup.exam.id,
+                            sessionType = "quick_practice",
+                            startedAt = sessionStartedAt,
+                            completedAt = completedAt,
+                            correctCount = correctCount,
+                            totalCount = questions.size
+                        )
                         completed = true
                     } else {
                         index++
                         selected = null
+                        questionStartedAt = System.currentTimeMillis()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
