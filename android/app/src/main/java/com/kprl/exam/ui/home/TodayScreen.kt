@@ -53,7 +53,8 @@ private enum class ToolRoute {
     FOCUS,
     PROGRESS,
     CREDITS,
-    PROFILE
+    PROFILE,
+    MEDIA
 }
 
 @Composable
@@ -194,6 +195,12 @@ fun TodayScreen(
                     }
                 )
 
+                ToolRoute.MEDIA -> MediaLabScreen(
+                    setup = setup,
+                    onClose = { toolRoute = null },
+                    onNeedCredits = { toolRoute = ToolRoute.CREDITS }
+                )
+
                 ToolRoute.PROFILE -> ProfileSettingsScreen(
                     setup = setup,
                     onClose = { toolRoute = null },
@@ -289,7 +296,8 @@ fun TodayScreen(
                         premiumPlacement = "voice_tutor"
                     }
                 },
-                onStudyNotes = { selectedTab = 3 }
+                onStudyNotes = { selectedTab = 3 },
+                onMediaLab = { toolRoute = ToolRoute.MEDIA }
             )
 
             else -> LibraryScreen(
