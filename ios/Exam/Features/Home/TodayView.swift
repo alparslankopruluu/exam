@@ -21,6 +21,8 @@ struct TodayView: View {
     @State private var selectedTab: ExamTab = .today
     @State private var premiumPlacement: String?
     @State private var quickPracticeOpen = false
+    @State private var voiceTutorOpen = false
+    @State private var entitlement = EntitlementSnapshot.empty
 
     private var copy: LocalizedCopy {
         LocalizedCopy.load(languageCode: setup.languageCode)
@@ -47,11 +49,25 @@ struct TodayView: View {
                         }
                     }
                 )
+            } else if voiceTutorOpen {
+                VoiceTutorView(
+                    setup: setup,
+                    onClose: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            voiceTutorOpen = false
+                        }
+                    }
+                )
             } else {
                 appShell
             }
         }
         .background(ExamPalette.background.ignoresSafeArea())
+        .task(id: premiumPlacement) {
+            if premiumPlacement == nil {
+                entitlement = await EntitlementService().fetch()
+            }
+        }
     }
 
     private var appShell: some View {
@@ -74,7 +90,11 @@ struct TodayView: View {
                         setup: setup,
                         onVoiceTutor: {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                                premiumPlacement = "voice_tutor"
+                                if entitlement.premium {
+                                    voiceTutorOpen = true
+                                } else {
+                                    premiumPlacement = "voice_tutor"
+                                }
                             }
                         }
                     )
