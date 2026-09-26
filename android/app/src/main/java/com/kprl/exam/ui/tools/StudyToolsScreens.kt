@@ -78,7 +78,8 @@ private fun parseGeneratedQuestions(payload: Map<*, *>): List<StudyQuestion> {
 fun MockExamScreen(
     setup: StudySetup,
     onClose: () -> Unit,
-    onStart: (List<StudyQuestion>) -> Unit
+    onStart: (List<StudyQuestion>) -> Unit,
+    onPaywall: (String) -> Unit = {}
 ) {
     val gateway = remember { AIGatewayClient() }
     var loading by remember { mutableStateOf(false) }
@@ -147,9 +148,13 @@ fun MockExamScreen(
                             )
                         }
                         is GatewayResult.Error -> {
-                            error = result.message
-                            val fallback = SampleQuestionFactory.forSetup(setup)
-                            onStart(List(questionCount) { i -> fallback[i % fallback.size].copy(id = "mock_$i") })
+                            if (result.message.contains("Daily AI limit", ignoreCase = true)) {
+                                onPaywall("ai_limit")
+                            } else {
+                                error = result.message
+                                val fallback = SampleQuestionFactory.forSetup(setup)
+                                onStart(List(questionCount) { i -> fallback[i % fallback.size].copy(id = "mock_$i") })
+                            }
                         }
                     }
                 }
@@ -316,7 +321,8 @@ fun FlashcardsScreen(setup: StudySetup, onClose: () -> Unit) {
 fun CreatePracticeScreen(
     setup: StudySetup,
     onClose: () -> Unit,
-    onStart: (List<StudyQuestion>) -> Unit
+    onStart: (List<StudyQuestion>) -> Unit,
+    onPaywall: (String) -> Unit = {}
 ) {
     val gateway = remember { AIGatewayClient() }
     var topic by remember { mutableStateOf("") }
@@ -361,7 +367,10 @@ fun CreatePracticeScreen(
                             if (questions.isNotEmpty()) onStart(questions)
                             else error = "The generated set was invalid. Try a more specific topic."
                         }
-                        is GatewayResult.Error -> error = result.message
+                        is GatewayResult.Error -> {
+                            if (result.message.contains("Daily AI limit", ignoreCase = true)) onPaywall("ai_limit")
+                            else error = result.message
+                        }
                     }
                 }
             },
