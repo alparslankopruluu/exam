@@ -813,3 +813,176 @@ private extension Comparable {
         min(max(self, range.lowerBound), range.upperBound)
     }
 }
+
+
+struct MediaLabView: View {
+    let setup: StudySetup
+    let onClose: () -> Void
+    let onNeedCredits: () -> Void
+
+    @State private var prompt = ""
+    @State private var status: String?
+    @State private var assetURL: URL?
+    @State private var error: String?
+    @State private var submitting = false
+    @State private var generatedKind = "image_explainer"
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ToolHeader("Visual Explanation", "\(setup.exam.shortName) · credit-based AI media", onClose: onClose)
+
+            TextField(
+                "What should the visual explain?",
+                text: $prompt,
+                axis: .vertical
+            )
+            .lineLimit(4...7)
+            .padding(14)
+            .examCard(radius: 18)
+            .padding(.top, 18)
+
+            HStack(spacing: 9) {
+                mediaButton(
+                    title: "Image · 1",
+                    symbol: "photo.fill",
+                    kind: "image_explainer",
+                    enabled: AppServices.shared.flags.snapshot.imageExplanationsEnabled
+                )
+                mediaButton(
+                    title: "Video · 5",
+                    symbol: "film.fill",
+                    kind: "video_explainer",
+                    enabled: AppServices.shared.flags.snapshot.videoExplanationsEnabled
+                )
+            }
+            .padding(.top, 12)
+
+            if let status {
+                HStack(spacing: 10) {
+                    if assetURL == nil {
+                        ProgressView()
+                    }
+                    Text(status.replacingOccurrences(of: "_", with: " "))
+                        .font(.system(size: 12, weight: .semibold))
+                    Spacer()
+                }
+                .padding(13)
+                .examCard(radius: 16)
+                .padding(.top, 14)
+            }
+
+            if let error {
+                Text(error)
+                    .font(.system(size: 12))
+                    .foregroundStyle(ExamPalette.coral)
+                    .padding(.top, 10)
+            }
+
+            if let assetURL {
+                VStack(alignment: .leading, spacing: 10) {
+                    if generatedKind == "image_explainer" {
+                        AsyncImage(url: assetURL) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            case .failure:
+                                EmptyView()
+                            default:
+                                ProgressView()
+                                    .frame(maxWidth: .infinity, minHeight: 120)
+                            }
+                        }
+                    }
+
+                    Label("Media ready", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(ExamPalette.mint)
+
+                    Link(destination: assetURL) {
+                        Text("Open generated asset")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(ExamPalette.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    }
+                }
+                .padding(16)
+                .examCard(radius: 20)
+                .padding(.top, 18)
+            }
+
+            Spacer()
+
+            Text("Image/video generation is optional and spends credits because its provider cost is materially higher than normal tutoring.")
+                .font(.system(size: 11))
+                .foregroundStyle(ExamPalette.textSecondary)
+                .padding(.bottom, 12)
+        }
+        .padding(.horizontal, 20)
+        .background(ExamPalette.background.ignoresSafeArea())
+    }
+
+    private func mediaButton(
+        title: String,
+        symbol: String,
+        kind: String,
+        enabled: Bool
+    ) -> some View {
+        Button {
+            submit(kind: kind)
+        } label: {
+            Label(title, systemImage: symbol)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 46)
+                .background(kind == "video_explainer" ? ExamPalette.purple : ExamPalette.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || submitting || !enabled)
+        .opacity(enabled ? 1 : 0.45)
+    }
+
+    private func submit(kind: String) {
+        let value = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty, !submitting else { return }
+
+        submitting = true
+        generatedKind = kind
+        assetURL = nil
+        error = nil
+        status = "submitting"
+
+        Task { @MainActor in
+            do {
+                let job = try await AIGatewayClient().generateMedia(kind: kind, prompt: value)
+                status = "queued · \(job.creditCost) credits"
+
+                for _ in 0..<120 {
+                    try? await Task.sleep(for: .seconds(2))
+                    let update = try await AIGatewayClient().mediaStatus(requestId: job.requestId)
+                    status = update.status
+                    if let url = update.assetURL {
+                        assetURL = url
+                        break
+                    }
+                    if update.status == "completed" {
+                        break
+                    }
+                }
+            } catch {
+                self.error = error.localizedDescription
+                if error.localizedDescription.localizedCaseInsensitiveContains("credit") {
+                    onNeedCredits()
+                }
+            }
+            submitting = false
+        }
+    }
+}
