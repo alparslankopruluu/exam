@@ -48,6 +48,13 @@ final class StoreKitBillingService {
         }
     }
 
+    func loadCreditPrice() async -> String? {
+        if products[ProductId.creditsSmall] == nil {
+            _ = await loadOffer()
+        }
+        return products[ProductId.creditsSmall]?.displayPrice
+    }
+
     func purchase(productId: String) async -> Bool {
         if products[productId] == nil {
             _ = await loadOffer()

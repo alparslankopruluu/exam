@@ -76,6 +76,27 @@ class GooglePlayBillingService(
         }
     }
 
+    fun loadCreditPrice(onLoaded: (String?) -> Unit) {
+        val cached = productDetails[ProductIds.AI_CREDITS_SMALL]
+        if (cached != null) {
+            onLoaded(cached.oneTimePurchaseOfferDetailsList?.firstOrNull()?.formattedPrice)
+            return
+        }
+
+        queryProducts(
+            BillingClient.ProductType.INAPP,
+            listOf(ProductIds.AI_CREDITS_SMALL)
+        ) { products ->
+            products.forEach { productDetails[it.productId] = it }
+            onLoaded(
+                products.firstOrNull()
+                    ?.oneTimePurchaseOfferDetailsList
+                    ?.firstOrNull()
+                    ?.formattedPrice
+            )
+        }
+    }
+
     fun purchase(
         activity: Activity,
         productId: String,
