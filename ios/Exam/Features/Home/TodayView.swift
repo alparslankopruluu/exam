@@ -43,6 +43,7 @@ struct TodayView: View {
     @State private var sessionOpen = false
     @State private var sessionQuestions: [StudyQuestion]?
     @State private var sessionType = "quick_practice"
+    @State private var sessionTimeLimit: Int?
     @State private var dashboardRefresh = 0
     @State private var entitlement = EntitlementSnapshot.empty
 
@@ -80,6 +81,7 @@ struct TodayView: View {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
                             sessionOpen = false
                             sessionQuestions = nil
+                            sessionTimeLimit = nil
                             dashboardRefresh += 1
                         }
                     },
@@ -97,8 +99,10 @@ struct TodayView: View {
                     },
                     onPaywall: { placement in
                         sessionOpen = false
+                        sessionTimeLimit = nil
                         premiumPlacement = placement
-                    }
+                    },
+                    timeLimitSeconds: sessionTimeLimit
                 )
             } else if voiceTutorOpen {
                 VoiceTutorView(
@@ -134,7 +138,11 @@ struct TodayView: View {
                 onClose: { toolRoute = nil },
                 onStart: { questions in
                     toolRoute = nil
-                    openSession(type: "mock_exam", questions: questions)
+                    openSession(
+                        type: "mock_exam",
+                        questions: questions,
+                        timeLimitSeconds: questions.count * 90
+                    )
                 },
                 onPaywall: { placement in
                     toolRoute = nil
@@ -567,10 +575,12 @@ struct TodayView: View {
 
     private func openSession(
         type: String,
-        questions: [StudyQuestion]? = nil
+        questions: [StudyQuestion]? = nil,
+        timeLimitSeconds: Int? = nil
     ) {
         sessionType = type
         sessionQuestions = questions
+        sessionTimeLimit = timeLimitSeconds
         sessionOpen = true
     }
 
