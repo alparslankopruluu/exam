@@ -187,6 +187,20 @@ class AIGatewayClient {
         }
     }
 
+    fun transcribeAudio(
+        storagePath: String,
+        onResult: (GatewayResult<String>) -> Unit
+    ) {
+        call("transcribeAudio", mapOf("storagePath" to storagePath)) { result ->
+            when (result) {
+                is GatewayResult.Success -> onResult(
+                    GatewayResult.Success(result.value["text"] as? String ?: "")
+                )
+                is GatewayResult.Error -> onResult(result)
+            }
+        }
+    }
+
     fun synthesizeSpeech(
         text: String,
         onResult: (GatewayResult<String>) -> Unit
