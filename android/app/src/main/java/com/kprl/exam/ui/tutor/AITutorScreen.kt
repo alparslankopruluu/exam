@@ -33,7 +33,8 @@ import java.io.ByteArrayOutputStream
 fun AITutorScreen(
     setup: StudySetup,
     modifier: Modifier = Modifier,
-    onVoiceTutor: () -> Unit = {}
+    onVoiceTutor: () -> Unit = {},
+    onStudyNotes: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val gateway = remember { AIGatewayClient() }
@@ -151,7 +152,8 @@ fun AITutorScreen(
             Icons.Rounded.FolderOpen,
             "Study my notes",
             "Ask questions from indexed Library materials",
-            ExamColors.Mint
+            ExamColors.Mint,
+            onStudyNotes
         )
 
         Spacer(Modifier.height(9.dp))
