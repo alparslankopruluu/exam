@@ -31,6 +31,14 @@ enum StudySetupStore {
         )
     }
 
+    static func onboardingPaywallSeen() -> Bool {
+        UserDefaults.standard.bool(forKey: "study.onboardingPaywallSeen")
+    }
+
+    static func setOnboardingPaywallSeen(_ seen: Bool) {
+        UserDefaults.standard.set(seen, forKey: "study.onboardingPaywallSeen")
+    }
+
     static func clear() {
         [
             "study.country",
@@ -38,7 +46,8 @@ enum StudySetupStore {
             "study.language",
             "study.goal",
             "study.dailyMinutes",
-            "study.diagnosticPercent"
+            "study.diagnosticPercent",
+            "study.onboardingPaywallSeen"
         ].forEach(UserDefaults.standard.removeObject(forKey:))
     }
 }
