@@ -288,10 +288,17 @@ fun TodayScreen(
                     } else {
                         premiumPlacement = "voice_tutor"
                     }
-                }
+                },
+                onStudyNotes = { selectedTab = 3 }
             )
 
-            else -> LibraryScreen(Modifier.padding(padding))
+            else -> LibraryScreen(
+                setup = setup,
+                modifier = Modifier.padding(padding),
+                onStartPractice = { questions ->
+                    openSession("material_practice", questions)
+                }
+            )
         }
     }
 }
