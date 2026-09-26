@@ -132,6 +132,19 @@ final class AIGatewayClient {
         return data["text"] as? String ?? ""
     }
 
+    func generateMaterialPractice(
+        materialId: String,
+        language: String,
+        count: Int = 5
+    ) async throws -> [[String: Any]] {
+        let data = try await call("generateMaterialPractice", payload: [
+            "materialId": materialId,
+            "language": language,
+            "count": count
+        ])
+        return data["questions"] as? [[String: Any]] ?? []
+    }
+
     func generateMedia(kind: String, prompt: String) async throws -> MediaJob {
         let data = try await call("mediaGenerate", payload: [
             "kind": kind,
