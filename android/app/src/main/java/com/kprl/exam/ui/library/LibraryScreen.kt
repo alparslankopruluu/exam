@@ -40,7 +40,8 @@ private data class CloudMaterial(
 fun LibraryScreen(
     setup: StudySetup,
     modifier: Modifier = Modifier,
-    onStartPractice: (List<StudyQuestion>) -> Unit = {}
+    onStartPractice: (List<StudyQuestion>) -> Unit = {},
+    onPaywall: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val uploader = remember { LibraryUploadService(context.applicationContext) }
@@ -102,7 +103,13 @@ fun LibraryScreen(
                 is GatewayResult.Success -> {
                     refreshKey++
                 }
-                is GatewayResult.Error -> error = result.message
+                is GatewayResult.Error -> {
+                    when {
+                        result.message.contains("material limit", ignoreCase = true) -> onPaywall("document_limit")
+                        result.message.contains("Daily AI limit", ignoreCase = true) -> onPaywall("ai_limit")
+                        else -> error = result.message
+                    }
+                }
             }
         }
     }
@@ -131,7 +138,10 @@ fun LibraryScreen(
                                 onStartPractice(questions)
                             }
                         }
-                        is GatewayResult.Error -> error = result.message
+                        is GatewayResult.Error -> {
+                            if (result.message.contains("Daily AI limit", ignoreCase = true)) onPaywall("ai_limit")
+                            else error = result.message
+                        }
                     }
                 }
             },
@@ -278,7 +288,8 @@ private fun MaterialChatScreen(
     onBack: () -> Unit,
     onQuiz: (Int) -> Unit,
     globalLoading: Boolean,
-    globalError: String?
+    globalError: String?,
+    onPaywall: (String) -> Unit
 ) {
     var question by remember(material.id) { mutableStateOf("") }
     var answer by remember(material.id) { mutableStateOf<String?>(null) }
@@ -377,7 +388,12 @@ private fun MaterialChatScreen(
                             asking = false
                             answer = when (result) {
                                 is GatewayResult.Success -> result.value
-                                is GatewayResult.Error -> result.message
+                                is GatewayResult.Error -> {
+                                    if (result.message.contains("Daily AI limit", ignoreCase = true)) {
+                                        onPaywall("ai_limit")
+                                        ""
+                                    } else result.message
+                                }
                             }
                         }
                     },
