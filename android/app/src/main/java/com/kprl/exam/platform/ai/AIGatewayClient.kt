@@ -10,7 +10,7 @@ sealed class GatewayResult<out T> {
 }
 
 data class MediaJob(val requestId: String, val creditCost: Int)
-data class MediaJobStatus(val status: String, val data: Any?)
+data class MediaJobStatus(val status: String, val assetUrl: String?, val data: Any?)
 
 class AIGatewayClient {
     private fun available(): Boolean =
@@ -195,6 +195,7 @@ class AIGatewayClient {
                     GatewayResult.Success(
                         MediaJobStatus(
                             status = result.value["status"] as? String ?: "unknown",
+                            assetUrl = result.value["assetUrl"] as? String,
                             data = result.value["data"]
                         )
                     )
