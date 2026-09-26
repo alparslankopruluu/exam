@@ -349,6 +349,61 @@ export const askMaterial = onCall(
   }
 );
 
+export const generateMaterialPractice = onCall(
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
+  async request => {
+    const uid = requireUid(request);
+    await consumeStandardAiQuota(uid);
+
+    const data = request.data as any;
+    const materialId = asString(data.materialId, "materialId", 200);
+    const count = Math.min(Math.max(Number(data.count ?? 5), 1), 20);
+    const language = typeof data.language === "string" ? data.language : "en";
+    const materialRef = db.doc(`users/${uid}/materials/${materialId}`);
+
+    const material = await materialRef.get();
+    if (!material.exists) {
+      throw new HttpsError("not-found", "Material not found.");
+    }
+
+    const chunks = await materialRef.collection("chunks").orderBy("index").limit(16).get();
+    const context = chunks.docs.map(doc => String(doc.data().text ?? "")).join("\n\n");
+
+    if (!context.trim()) {
+      throw new HttpsError("failed-precondition", "Material has no indexed content.");
+    }
+
+    const answer = await openAIResponse({
+      apiKey: OPENAI_API_KEY.value(),
+      model: OPENAI_TEXT_MODEL.value(),
+      input: [
+        {
+          role: "developer",
+          content: [{
+            type: "input_text",
+            text: [
+              `Coach language: ${language}`,
+              "Create study questions using ONLY the supplied material.",
+              "Do not introduce facts that are not supported by the material.",
+              "Output VALID JSON ONLY:",
+              '{"questions":[{"id":"string","topic":"string","prompt":"string","options":["a","b","c","d"],"correctIndex":0,"explanation":"string","difficulty":"easy|medium|hard"}]}'
+            ].join("\n")
+          }]
+        },
+        {
+          role: "user",
+          content: [{
+            type: "input_text",
+            text: `Create ${count} questions from this material:\n\n${context.slice(0, 50_000)}`
+          }]
+        }
+      ]
+    });
+
+    return parseJsonObject(answer);
+  }
+);
+
 export const mediaGenerate = onCall(
   { secrets: [FAL_KEY], timeoutSeconds: 60, memory: "512MiB" },
   async request => {
