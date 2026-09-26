@@ -1,4 +1,4 @@
-name: Native CI
+name: Full Stack CI
 
 on:
   push:
@@ -43,3 +43,20 @@ jobs:
           -destination 'generic/platform=iOS Simulator'
           CODE_SIGNING_ALLOWED=NO
           build
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/functions/package.json
+      - name: Install backend dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type-check and build Functions
+        run: npm run build
