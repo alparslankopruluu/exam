@@ -26,7 +26,12 @@ import com.kprl.exam.ui.theme.ExamColors
 fun PracticeScreen(
     setup: StudySetup,
     modifier: Modifier = Modifier,
-    onQuickPractice: () -> Unit = {}
+    onQuickPractice: () -> Unit = {},
+    onMockExam: () -> Unit = {},
+    onMistakes: () -> Unit = {},
+    onFlashcards: () -> Unit = {},
+    onCreatePractice: () -> Unit = {},
+    onFocus: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val pack = remember(setup.exam.syllabusPackId) {
@@ -84,26 +89,28 @@ fun PracticeScreen(
                     unit.durationMinutes?.let { append("$it min") }
                     if (isEmpty()) append("Exam-specific practice")
                 }
-                PracticeRow(Icons.Rounded.MenuBook, unit.title, detail, ExamColors.Primary)
+                PracticeRow(Icons.Rounded.MenuBook, unit.title, detail, ExamColors.Primary, onQuickPractice)
                 Spacer(Modifier.height(8.dp))
             }
         }
 
         Spacer(Modifier.height(14.dp))
-        PracticeRow(Icons.Rounded.Timer, "Mock Exam", "Use the official-style blueprint", ExamColors.Purple)
+        PracticeRow(Icons.Rounded.Timer, "Mock Exam", "Use the official-style blueprint", ExamColors.Purple, onMockExam)
         Spacer(Modifier.height(9.dp))
-        PracticeRow(Icons.Rounded.Refresh, "Mistakes", "Review patterns that cost you points", ExamColors.Coral)
+        PracticeRow(Icons.Rounded.Refresh, "Mistakes", "Review patterns that cost you points", ExamColors.Coral, onMistakes)
         Spacer(Modifier.height(9.dp))
-        PracticeRow(Icons.Rounded.Style, "Flashcards", "Spaced repetition due today", ExamColors.Mint)
+        PracticeRow(Icons.Rounded.Style, "Flashcards", "Spaced repetition due today", ExamColors.Mint, onFlashcards)
         Spacer(Modifier.height(9.dp))
-        PracticeRow(Icons.Rounded.AutoAwesome, "Create Practice", "Topic, note, PDF or pasted text", ExamColors.Amber)
+        PracticeRow(Icons.Rounded.AutoAwesome, "Create Practice", "Topic, note, PDF or pasted text", ExamColors.Amber, onCreatePractice)
+        Spacer(Modifier.height(9.dp))
+        PracticeRow(Icons.Rounded.CenterFocusStrong, "Focus", "Pomodoro with completion reminder", ExamColors.Primary, onFocus)
     }
 }
 
 @Composable
-private fun PracticeRow(icon: ImageVector, title: String, subtitle: String, accent: Color) {
+private fun PracticeRow(icon: ImageVector, title: String, subtitle: String, accent: Color, onClick: () -> Unit = {}) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable {},
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         color = ExamColors.Surface,
         shape = RoundedCornerShape(18.dp),
         border = BorderStroke(1.dp, ExamColors.Border)

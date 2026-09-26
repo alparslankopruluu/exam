@@ -3,6 +3,11 @@ import SwiftUI
 struct PracticeView: View {
     let setup: StudySetup
     var onQuickPractice: () -> Void = {}
+    var onMockExam: () -> Void = {}
+    var onMistakes: () -> Void = {}
+    var onFlashcards: () -> Void = {}
+    var onCreatePractice: () -> Void = {}
+    var onFocus: () -> Void = {}
 
     private var pack: ExamContentPack? {
         ContentPackRepository.load(packId: setup.exam.syllabusPackId)
@@ -74,7 +79,8 @@ struct PracticeView: View {
                                 "book.fill",
                                 unit.title,
                                 detail(for: unit),
-                                ExamPalette.primary
+                                ExamPalette.primary,
+                                onQuickPractice
                             )
                         }
                     }
@@ -82,10 +88,11 @@ struct PracticeView: View {
                 }
 
                 VStack(spacing: 9) {
-                    practiceRow("timer", "Mock Exam", "Use the official-style blueprint", ExamPalette.purple)
-                    practiceRow("arrow.clockwise", "Mistakes", "Review patterns that cost you points", ExamPalette.coral)
-                    practiceRow("rectangle.stack.fill", "Flashcards", "Spaced repetition due today", ExamPalette.mint)
-                    practiceRow("sparkles", "Create Practice", "Topic, note, PDF or pasted text", ExamPalette.amber)
+                    practiceRow("timer", "Mock Exam", "Use the official-style blueprint", ExamPalette.purple, onMockExam)
+                    practiceRow("arrow.clockwise", "Mistakes", "Review patterns that cost you points", ExamPalette.coral, onMistakes)
+                    practiceRow("rectangle.stack.fill", "Flashcards", "Spaced repetition due today", ExamPalette.mint, onFlashcards)
+                    practiceRow("sparkles", "Create Practice", "Topic, note, PDF or pasted text", ExamPalette.amber, onCreatePractice)
+                    practiceRow("scope", "Focus", "Pomodoro with completion reminder", ExamPalette.primary, onFocus)
                 }
                 .padding(.top, 14)
                 .padding(.bottom, 20)
@@ -106,8 +113,14 @@ struct PracticeView: View {
         return parts.isEmpty ? "Exam-specific practice" : parts.joined(separator: " · ")
     }
 
-    private func practiceRow(_ symbol: String, _ title: String, _ subtitle: String, _ accent: Color) -> some View {
-        Button {} label: {
+    private func practiceRow(
+        _ symbol: String,
+        _ title: String,
+        _ subtitle: String,
+        _ accent: Color,
+        _ action: @escaping () -> Void = {}
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: symbol)
                     .foregroundStyle(accent)
