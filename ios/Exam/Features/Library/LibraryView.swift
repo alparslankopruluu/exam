@@ -14,6 +14,7 @@ private struct CloudMaterial: Identifiable, Hashable, Sendable {
 struct LibraryView: View {
     let setup: StudySetup
     var onStartPractice: ([StudyQuestion]) -> Void = { _ in }
+    var onPaywall: (String) -> Void = { _ in }
 
     @State private var importerPresented = false
     @State private var loading = false
@@ -29,7 +30,8 @@ struct LibraryView: View {
                     setup: setup,
                     material: selected,
                     onBack: { self.selected = nil },
-                    onStartPractice: onStartPractice
+                    onStartPractice: onStartPractice,
+                    onPaywall: onPaywall
                 )
             } else {
                 libraryList
@@ -50,7 +52,14 @@ struct LibraryView: View {
                         _ = try await LibraryUploadService().uploadAndIndex(url: url)
                         loadMaterials()
                     } catch {
-                        self.error = error.localizedDescription
+                        let message = error.localizedDescription
+                        if message.localizedCaseInsensitiveContains("material limit") {
+                            onPaywall("document_limit")
+                        } else if message.localizedCaseInsensitiveContains("Daily AI limit") {
+                            onPaywall("ai_limit")
+                        } else {
+                            self.error = message
+                        }
                     }
                     loading = false
                 }
@@ -199,6 +208,7 @@ private struct MaterialChatView: View {
     let material: CloudMaterial
     let onBack: () -> Void
     let onStartPractice: ([StudyQuestion]) -> Void
+    let onPaywall: (String) -> Void
 
     @State private var question = ""
     @State private var answer: String?
@@ -321,7 +331,12 @@ private struct MaterialChatView: View {
                         onStartPractice(questions)
                     }
                 } catch {
-                    self.error = error.localizedDescription
+                    let message = error.localizedDescription
+                    if message.localizedCaseInsensitiveContains("Daily AI limit") {
+                        onPaywall("ai_limit")
+                    } else {
+                        self.error = message
+                    }
                 }
                 generating = false
             }
