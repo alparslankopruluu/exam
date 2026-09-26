@@ -26,6 +26,7 @@ struct MediaJob: Hashable {
 
 struct MediaJobStatus {
     let status: String
+    let assetURL: URL?
     let data: Any?
 }
 
@@ -165,6 +166,7 @@ final class AIGatewayClient {
         ])
         return MediaJobStatus(
             status: data["status"] as? String ?? "unknown",
+            assetURL: (data["assetUrl"] as? String).flatMap(URL.init(string:)),
             data: data["data"]
         )
     }
