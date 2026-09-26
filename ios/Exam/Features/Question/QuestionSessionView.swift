@@ -4,6 +4,8 @@ import SwiftData
 struct QuestionSessionView: View {
     let setup: StudySetup
     let onClose: () -> Void
+    var questionsOverride: [StudyQuestion]? = nil
+    var sessionType: String = "quick_practice"
 
     @Environment(\.modelContext) private var modelContext
     @State private var sessionStartedAt = Date()
@@ -12,9 +14,16 @@ struct QuestionSessionView: View {
     @State private var selected: Int?
     @State private var correctCount = 0
     @State private var completed = false
+    @State private var earnedXP = 0
+    @State private var simplerExplanation: String?
+    @State private var tutorAnswer: String?
+    @State private var helperLoading = false
 
     private var questions: [StudyQuestion] {
-        SampleQuestionFactory.questions(for: setup)
+        if let questionsOverride, !questionsOverride.isEmpty {
+            return questionsOverride
+        }
+        return SampleQuestionFactory.questions(for: setup)
     }
 
     var body: some View {
@@ -85,16 +94,25 @@ struct QuestionSessionView: View {
                         let completedAt = Date()
                         try? LearningStore(context: modelContext).saveSession(
                             examId: setup.exam.id,
-                            sessionType: "quick_practice",
+                            sessionType: sessionType,
                             startedAt: sessionStartedAt,
                             completedAt: completedAt,
                             correctCount: correctCount,
                             totalCount: questions.count
                         )
+                        let before = UserProgressStore().snapshot()
+                        let after = UserProgressStore().recordSession(
+                            correct: correctCount,
+                            total: questions.count,
+                            durationSeconds: max(0, Int(completedAt.timeIntervalSince(sessionStartedAt)))
+                        )
+                        earnedXP = max(0, after.xp - before.xp)
                         completed = true
                     } else {
                         index += 1
                         selected = nil
+                        simplerExplanation = nil
+                        tutorAnswer = nil
                         questionStartedAt = Date()
                     }
                 } label: {
@@ -190,15 +208,55 @@ struct QuestionSessionView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(selected == question.correctIndex ? "Nice work." : "Almost — here's what matters.")
                 .font(.system(size: 16, weight: .bold))
-            Text(question.explanation)
+            Text(simplerExplanation ?? question.explanation)
                 .font(.system(size: 13))
                 .foregroundStyle(ExamPalette.textSecondary)
                 .lineSpacing(3)
                 .padding(.top, 6)
 
+            if let tutorAnswer {
+                Text("AI Tutor")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(ExamPalette.purple)
+                    .padding(.top, 10)
+                Text(tutorAnswer)
+                    .font(.system(size: 12))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .lineSpacing(3)
+                    .padding(.top, 3)
+            }
+
+            if helperLoading {
+                ProgressView()
+                    .padding(.top, 10)
+            }
+
             HStack(spacing: 8) {
-                feedbackChip("Explain simpler")
-                feedbackChip("Ask tutor")
+                Button {
+                    simplerExplanation = "Think of it in one step: identify what the question asks, isolate the key relationship, then check the answer against the original statement."
+                } label: {
+                    feedbackChip("Explain simpler")
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    guard !helperLoading else { return }
+                    helperLoading = true
+                    Task { @MainActor in
+                        do {
+                            tutorAnswer = try await AIGatewayClient().askTutor(
+                                setup: setup,
+                                message: "Explain this question and why the correct answer is '\(question.options[question.correctIndex])': \(question.prompt)"
+                            )
+                        } catch {
+                            tutorAnswer = error.localizedDescription
+                        }
+                        helperLoading = false
+                    }
+                } label: {
+                    feedbackChip("Ask tutor")
+                }
+                .buttonStyle(.plain)
             }
             .padding(.top, 12)
         }
@@ -240,7 +298,7 @@ struct QuestionSessionView: View {
                 Spacer()
                 completionStat("\(questions.count - correctCount)", "Review")
                 Spacer()
-                completionStat("+80", "XP")
+                completionStat("+\(earnedXP)", "XP")
             }
             .padding(18)
             .examCard(radius: 22)

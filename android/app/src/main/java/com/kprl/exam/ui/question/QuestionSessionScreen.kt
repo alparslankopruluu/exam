@@ -20,30 +20,45 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.domain.SampleQuestionFactory
+import com.kprl.exam.domain.StudyQuestion
+import com.kprl.exam.platform.ai.AIGatewayClient
+import com.kprl.exam.platform.ai.GatewayResult
 import com.kprl.exam.platform.persistence.LearningDatabase
 import com.kprl.exam.platform.persistence.LearningRepository
+import com.kprl.exam.platform.persistence.UserProgressStore
 import com.kprl.exam.ui.theme.ExamColors
 
 @Composable
 fun QuestionSessionScreen(
     setup: StudySetup,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    questionsOverride: List<StudyQuestion>? = null,
+    sessionType: String = "quick_practice"
 ) {
     val context = LocalContext.current
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
-    val questions = remember(setup.exam.id) { SampleQuestionFactory.forSetup(setup) }
+    val progressStore = remember { UserProgressStore(context.applicationContext) }
+    val aiGateway = remember { AIGatewayClient() }
+    val questions = remember(setup.exam.id, questionsOverride) {
+        questionsOverride?.takeIf { it.isNotEmpty() } ?: SampleQuestionFactory.forSetup(setup)
+    }
     val sessionStartedAt = remember { System.currentTimeMillis() }
     var questionStartedAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var index by remember { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<Int?>(null) }
     var correctCount by remember { mutableIntStateOf(0) }
     var completed by remember { mutableStateOf(false) }
+    var earnedXp by remember { mutableIntStateOf(0) }
+    var simplerExplanation by remember { mutableStateOf<String?>(null) }
+    var tutorAnswer by remember { mutableStateOf<String?>(null) }
+    var helperLoading by remember { mutableStateOf(false) }
 
     if (completed) {
         SessionCompleteScreen(
             examName = setup.exam.shortName,
             correct = correctCount,
             total = questions.size,
+            earnedXp = earnedXp,
             onDone = onClose
         )
         return
@@ -143,11 +158,48 @@ fun QuestionSessionScreen(
                         fontSize = 16.sp
                     )
                     Spacer(Modifier.height(6.dp))
-                    Text(question.explanation, color = ExamColors.TextSecondary, fontSize = 13.sp, lineHeight = 19.sp)
+                    Text(
+                        simplerExplanation ?: question.explanation,
+                        color = ExamColors.TextSecondary,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp
+                    )
+                    tutorAnswer?.let {
+                        Spacer(Modifier.height(10.dp))
+                        Text("AI Tutor", color = ExamColors.Purple, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Text(it, color = ExamColors.TextSecondary, fontSize = 12.sp, lineHeight = 18.sp)
+                    }
+                    if (helperLoading) {
+                        Spacer(Modifier.height(10.dp))
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        AssistChip(onClick = {}, label = { Text("Explain simpler") })
-                        AssistChip(onClick = {}, label = { Text("Ask tutor") })
+                        AssistChip(
+                            onClick = {
+                                simplerExplanation =
+                                    "Think of it in one step: identify what the question asks, isolate the key relationship, then check the answer against the original statement."
+                            },
+                            label = { Text("Explain simpler") }
+                        )
+                        AssistChip(
+                            onClick = {
+                                if (!helperLoading) {
+                                    helperLoading = true
+                                    aiGateway.askTutor(
+                                        setup,
+                                        "Explain this question and why the correct answer is '${question.options[question.correctIndex]}': ${question.prompt}"
+                                    ) { result ->
+                                        helperLoading = false
+                                        when (result) {
+                                            is GatewayResult.Success -> tutorAnswer = result.value
+                                            is GatewayResult.Error -> tutorAnswer = result.message
+                                        }
+                                    }
+                                }
+                            },
+                            label = { Text("Ask tutor") }
+                        )
                     }
                 }
             }
@@ -159,16 +211,25 @@ fun QuestionSessionScreen(
                         val completedAt = System.currentTimeMillis()
                         repository.saveSession(
                             examId = setup.exam.id,
-                            sessionType = "quick_practice",
+                            sessionType = sessionType,
                             startedAt = sessionStartedAt,
                             completedAt = completedAt,
                             correctCount = correctCount,
                             totalCount = questions.size
                         )
+                        val before = progressStore.snapshot()
+                        val after = progressStore.recordSession(
+                            correct = correctCount,
+                            total = questions.size,
+                            durationSeconds = ((completedAt - sessionStartedAt) / 1000L).toInt()
+                        )
+                        earnedXp = (after.xp - before.xp).coerceAtLeast(0)
                         completed = true
                     } else {
                         index++
                         selected = null
+                        simplerExplanation = null
+                        tutorAnswer = null
                         questionStartedAt = System.currentTimeMillis()
                     }
                 },
@@ -185,7 +246,7 @@ fun QuestionSessionScreen(
 }
 
 @Composable
-private fun SessionCompleteScreen(examName: String, correct: Int, total: Int, onDone: () -> Unit) {
+private fun SessionCompleteScreen(examName: String, correct: Int, total: Int, earnedXp: Int, onDone: () -> Unit) {
     Column(
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(24.dp),
@@ -207,7 +268,7 @@ private fun SessionCompleteScreen(examName: String, correct: Int, total: Int, on
             Row(Modifier.fillMaxWidth().padding(18.dp), horizontalArrangement = Arrangement.SpaceAround) {
                 Stat("$correct", "Correct")
                 Stat("${total - correct}", "Review")
-                Stat("+80", "XP")
+                Stat("+$earnedXp", "XP")
             }
         }
         Spacer(Modifier.height(24.dp))
