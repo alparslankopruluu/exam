@@ -150,6 +150,23 @@ class AIGatewayClient {
         }
     }
 
+    fun generateMaterialPractice(
+        materialId: String,
+        language: String,
+        count: Int = 5,
+        onResult: (GatewayResult<Map<*, *>>) -> Unit
+    ) {
+        call(
+            "generateMaterialPractice",
+            mapOf(
+                "materialId" to materialId,
+                "language" to language,
+                "count" to count
+            ),
+            onResult
+        )
+    }
+
     fun generateMedia(
         kind: String,
         prompt: String,
