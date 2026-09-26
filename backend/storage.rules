@@ -3,9 +3,19 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /users/{uid}/materials/{allPaths=**} {
-      allow read, write: if request.auth != null
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
         && request.auth.uid == uid
+        && request.resource != null
         && request.resource.size < 50 * 1024 * 1024;
+    }
+
+    match /users/{uid}/voice/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource != null
+        && request.resource.size < 20 * 1024 * 1024;
     }
 
     match /users/{uid}/generated/{allPaths=**} {
