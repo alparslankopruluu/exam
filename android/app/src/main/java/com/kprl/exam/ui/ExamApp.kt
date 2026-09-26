@@ -2,6 +2,7 @@ package com.kprl.exam.ui
 
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.kprl.exam.data.StudySetup
 import com.kprl.exam.ui.home.TodayScreen
 import com.kprl.exam.ui.onboarding.OnboardingScreen
 import com.kprl.exam.ui.theme.ExamTheme
@@ -10,7 +11,15 @@ import com.kprl.exam.ui.theme.ExamTheme
 fun ExamApp() {
     ExamTheme {
         var onboardingComplete by rememberSaveable { mutableStateOf(false) }
-        if (onboardingComplete) TodayScreen()
-        else OnboardingScreen { onboardingComplete = true }
+        var setup by remember { mutableStateOf<StudySetup?>(null) }
+
+        if (onboardingComplete && setup != null) {
+            TodayScreen(setup = setup!!)
+        } else {
+            OnboardingScreen { result ->
+                setup = result
+                onboardingComplete = true
+            }
+        }
     }
 }

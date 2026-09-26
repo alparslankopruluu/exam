@@ -18,13 +18,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kprl.exam.data.StudySetup
 import com.kprl.exam.ui.components.ExamStatPill
 import com.kprl.exam.ui.theme.ExamColors
 
 private data class NavItem(val label: String, val icon: ImageVector)
 
 @Composable
-fun TodayScreen() {
+fun TodayScreen(setup: StudySetup) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val nav = listOf(
         NavItem("Today", Icons.Rounded.Home),
@@ -54,13 +55,13 @@ fun TodayScreen() {
             }
         }
     ) { padding ->
-        if (selectedTab == 0) TodayContent(Modifier.padding(padding))
+        if (selectedTab == 0) TodayContent(setup, Modifier.padding(padding))
         else Placeholder(nav[selectedTab], Modifier.padding(padding))
     }
 }
 
 @Composable
-private fun TodayContent(modifier: Modifier) {
+private fun TodayContent(setup: StudySetup, modifier: Modifier) {
     Column(modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -76,12 +77,12 @@ private fun TodayContent(modifier: Modifier) {
         Spacer(Modifier.height(20.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
             ExamStatPill("7", "day streak", Icons.Rounded.LocalFireDepartment, ExamColors.Amber, Modifier.weight(1f))
-            ExamStatPill("238", "days to YKS", Icons.Rounded.CalendarMonth, ExamColors.Mint, Modifier.weight(1f))
+            ExamStatPill(setup.exam.shortName, "active exam", Icons.Rounded.School, ExamColors.Mint, Modifier.weight(1f))
             ExamStatPill("61", "mastery", Icons.Rounded.Insights, ExamColors.Purple, Modifier.weight(1f))
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("TODAY'S PLAN", color = ExamColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text("TODAY'S ${setup.exam.shortName.uppercase()} PLAN", color = ExamColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(9.dp))
 
         Column(
@@ -90,14 +91,14 @@ private fun TodayContent(modifier: Modifier) {
         ) {
             Row {
                 Box(Modifier.size(42.dp).background(Color.White.copy(alpha = .16f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Functions, null, tint = Color.White)
+                    Icon(Icons.Rounded.AutoStories, null, tint = Color.White)
                 }
                 Spacer(Modifier.weight(1f))
                 Text("+80 XP", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp, modifier = Modifier.background(Color.White.copy(alpha = .16f), RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 6.dp))
             }
             Spacer(Modifier.height(24.dp))
-            Text("Functions", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            Text("Learn + Practice", color = Color.White.copy(alpha = .82f), fontSize = 14.sp)
+            Text("Core practice", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(setup.exam.title, color = Color.White.copy(alpha = .82f), fontSize = 14.sp)
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Schedule, null, tint = Color.White.copy(alpha = .9f), modifier = Modifier.size(18.dp))
@@ -117,7 +118,7 @@ private fun TodayContent(modifier: Modifier) {
         Spacer(Modifier.height(24.dp))
         Text("Next up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(10.dp))
-        NextRow(Icons.Rounded.ChangeHistory, "Geometry questions", "5 questions", ExamColors.Purple)
+        NextRow(Icons.Rounded.FactCheck, "Exam-style questions", "5 questions", ExamColors.Purple)
         Spacer(Modifier.height(8.dp))
         NextRow(Icons.Rounded.Refresh, "Review mistakes", "3 mistakes", ExamColors.Coral)
         Spacer(Modifier.height(18.dp))
