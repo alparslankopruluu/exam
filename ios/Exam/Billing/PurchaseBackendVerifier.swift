@@ -2,6 +2,7 @@ import Foundation
 import FirebaseCore
 import FirebaseFunctions
 
+@MainActor
 final class PurchaseBackendVerifier {
     static let shared = PurchaseBackendVerifier()
 
