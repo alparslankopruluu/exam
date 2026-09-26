@@ -26,6 +26,7 @@ private enum ToolRoute {
     case progress
     case credits
     case profile
+    case media
 }
 
 struct TodayView: View {
@@ -183,6 +184,13 @@ struct TodayView: View {
                 }
             )
 
+        case .media:
+            MediaLabView(
+                setup: setup,
+                onClose: { toolRoute = nil },
+                onNeedCredits: { toolRoute = .credits }
+            )
+
         case .profile:
             ProfileSettingsView(
                 setup: setup,
@@ -242,6 +250,9 @@ struct TodayView: View {
                         },
                         onStudyNotes: {
                             selectedTab = .library
+                        },
+                        onMediaLab: {
+                            toolRoute = .media
                         }
                     )
 
