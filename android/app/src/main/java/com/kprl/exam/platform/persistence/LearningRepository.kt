@@ -142,6 +142,30 @@ class LearningRepository(private val database: LearningDatabase) {
         return result
     }
 
+    fun saveSession(
+        examId: String,
+        sessionType: String,
+        startedAt: Long,
+        completedAt: Long,
+        correctCount: Int,
+        totalCount: Int
+    ) {
+        database.writableDatabase.insert(
+            "study_sessions",
+            null,
+            ContentValues().apply {
+                put("id", UUID.randomUUID().toString())
+                put("exam_id", examId)
+                put("session_type", sessionType)
+                put("started_at", startedAt)
+                put("completed_at", completedAt)
+                put("correct_count", correctCount)
+                put("total_count", totalCount)
+                put("duration_seconds", ((completedAt - startedAt) / 1000L).coerceAtLeast(0L))
+            }
+        )
+    }
+
     fun savePlan(dayKey: String, tasks: List<PlanTask>) {
         val db = database.writableDatabase
         db.delete("daily_plan", "day_key = ?", arrayOf(dayKey))
