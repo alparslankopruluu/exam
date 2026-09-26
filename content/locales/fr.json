@@ -1,0 +1,21 @@
+{
+  "today": "Aujourd’hui",
+  "practice": "Pratique",
+  "ai_tutor": "Tuteur IA",
+  "library": "Bibliothèque",
+  "good_evening": "Bonsoir",
+  "ready_small_win": "Prêt pour un petit progrès ? 👋",
+  "day_streak": "jours de série",
+  "active_exam": "examen actif",
+  "mastery": "maîtrise",
+  "todays_plan": "Ton plan {exam} du jour",
+  "core_practice": "Pratique essentielle",
+  "continue": "Continuer",
+  "next_up": "Ensuite",
+  "exam_style_questions": "Questions type examen",
+  "questions_count": "{count} questions",
+  "review_mistakes": "Revoir les erreurs",
+  "mistakes_count": "{count} erreurs",
+  "ask_tutor": "Demander au tuteur",
+  "explain_scan_practice": "Expliquer, scanner ou pratiquer"
+}

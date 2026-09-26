@@ -1,0 +1,21 @@
+{
+  "today": "आज",
+  "practice": "अभ्यास",
+  "ai_tutor": "AI ट्यूटर",
+  "library": "लाइब्रेरी",
+  "good_evening": "शुभ संध्या",
+  "ready_small_win": "एक छोटी जीत के लिए तैयार? 👋",
+  "day_streak": "दिन की स्ट्रीक",
+  "active_exam": "सक्रिय परीक्षा",
+  "mastery": "मास्टरी",
+  "todays_plan": "आज का {exam} प्लान",
+  "core_practice": "मुख्य अभ्यास",
+  "continue": "जारी रखें",
+  "next_up": "अगला",
+  "exam_style_questions": "परीक्षा शैली के प्रश्न",
+  "questions_count": "{count} प्रश्न",
+  "review_mistakes": "गलतियाँ दोहराएँ",
+  "mistakes_count": "{count} गलतियाँ",
+  "ask_tutor": "ट्यूटर से पूछें",
+  "explain_scan_practice": "समझें, स्कैन करें या अभ्यास करें"
+}

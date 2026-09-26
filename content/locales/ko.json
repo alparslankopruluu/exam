@@ -1,0 +1,21 @@
+{
+  "today": "오늘",
+  "practice": "연습",
+  "ai_tutor": "AI 튜터",
+  "library": "라이브러리",
+  "good_evening": "좋은 저녁이에요",
+  "ready_small_win": "작은 성취를 만들어 볼까요? 👋",
+  "day_streak": "연속 학습",
+  "active_exam": "선택 시험",
+  "mastery": "숙련도",
+  "todays_plan": "오늘의 {exam} 학습 계획",
+  "core_practice": "핵심 연습",
+  "continue": "계속",
+  "next_up": "다음 학습",
+  "exam_style_questions": "시험 유형 문제",
+  "questions_count": "{count}문제",
+  "review_mistakes": "오답 복습",
+  "mistakes_count": "오답 {count}개",
+  "ask_tutor": "튜터에게 질문",
+  "explain_scan_practice": "설명, 스캔 또는 연습"
+}

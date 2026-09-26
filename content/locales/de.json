@@ -1,0 +1,21 @@
+{
+  "today": "Heute",
+  "practice": "Üben",
+  "ai_tutor": "KI-Tutor",
+  "library": "Bibliothek",
+  "good_evening": "Guten Abend",
+  "ready_small_win": "Bereit für einen kleinen Fortschritt? 👋",
+  "day_streak": "Tage in Folge",
+  "active_exam": "aktive Prüfung",
+  "mastery": "Beherrschung",
+  "todays_plan": "Dein {exam}-Plan für heute",
+  "core_practice": "Kernübung",
+  "continue": "Weiter",
+  "next_up": "Als Nächstes",
+  "exam_style_questions": "Prüfungsnahe Fragen",
+  "questions_count": "{count} Fragen",
+  "review_mistakes": "Fehler wiederholen",
+  "mistakes_count": "{count} Fehler",
+  "ask_tutor": "Tutor fragen",
+  "explain_scan_practice": "Erklären, scannen oder üben"
+}

@@ -1,0 +1,21 @@
+{
+  "today": "今日",
+  "practice": "練習",
+  "ai_tutor": "AIチューター",
+  "library": "ライブラリ",
+  "good_evening": "こんばんは",
+  "ready_small_win": "小さな前進を始めよう 👋",
+  "day_streak": "連続学習",
+  "active_exam": "選択中の試験",
+  "mastery": "習熟度",
+  "todays_plan": "今日の{exam}学習プラン",
+  "core_practice": "基礎練習",
+  "continue": "続ける",
+  "next_up": "次にやること",
+  "exam_style_questions": "試験形式の問題",
+  "questions_count": "{count}問",
+  "review_mistakes": "間違いを復習",
+  "mistakes_count": "{count}件の間違い",
+  "ask_tutor": "チューターに質問",
+  "explain_scan_practice": "説明・スキャン・練習"
+}

@@ -1,0 +1,21 @@
+{
+  "today": "Bugün",
+  "practice": "Pratik",
+  "ai_tutor": "AI Öğretmen",
+  "library": "Kütüphane",
+  "good_evening": "İyi akşamlar",
+  "ready_small_win": "Küçük bir ilerlemeye hazır mısın? 👋",
+  "day_streak": "günlük seri",
+  "active_exam": "aktif sınav",
+  "mastery": "hakimiyet",
+  "todays_plan": "Bugünkü {exam} planın",
+  "core_practice": "Temel pratik",
+  "continue": "Devam et",
+  "next_up": "Sırada",
+  "exam_style_questions": "Sınav tarzı sorular",
+  "questions_count": "{count} soru",
+  "review_mistakes": "Yanlışları gözden geçir",
+  "mistakes_count": "{count} yanlış",
+  "ask_tutor": "Öğretmenine sor",
+  "explain_scan_practice": "Açıklat, tara veya pratik yap"
+}
