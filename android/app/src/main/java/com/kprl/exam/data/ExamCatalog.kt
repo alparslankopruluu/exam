@@ -27,7 +27,10 @@ data class CountryDefinition(
 data class StudySetup(
     val country: CountryDefinition,
     val exam: ExamDefinition,
-    val languageCode: String
+    val languageCode: String,
+    val goalKey: String = "improve",
+    val dailyMinutes: Int = 20,
+    val diagnosticPercent: Int = 50
 )
 
 object ExamCatalog {
@@ -94,4 +97,8 @@ object ExamCatalog {
     }
 
     fun languageCode(): String = Locale.getDefault().language.ifBlank { "en" }
+
+    fun findExam(id: String): ExamDefinition? = exams.firstOrNull { it.id == id }
+
+    fun findCountry(code: String): CountryDefinition? = countries.firstOrNull { it.code == code }
 }

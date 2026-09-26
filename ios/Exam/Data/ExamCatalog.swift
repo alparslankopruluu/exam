@@ -38,6 +38,25 @@ struct StudySetup: Hashable {
     let country: CountryDefinition
     let exam: ExamDefinition
     let languageCode: String
+    let goalKey: String
+    let dailyMinutes: Int
+    let diagnosticPercent: Int
+
+    init(
+        country: CountryDefinition,
+        exam: ExamDefinition,
+        languageCode: String,
+        goalKey: String = "improve",
+        dailyMinutes: Int = 20,
+        diagnosticPercent: Int = 50
+    ) {
+        self.country = country
+        self.exam = exam
+        self.languageCode = languageCode
+        self.goalKey = goalKey
+        self.dailyMinutes = dailyMinutes
+        self.diagnosticPercent = diagnosticPercent
+    }
 }
 
 enum ExamCatalog {
@@ -95,6 +114,14 @@ enum ExamCatalog {
 
     static var languageCode: String {
         Locale.current.language.languageCode?.identifier ?? "en"
+    }
+
+    static func exam(id: String) -> ExamDefinition? {
+        allExams.first { $0.id == id }
+    }
+
+    static func country(code: String) -> CountryDefinition? {
+        countries.first { $0.code == code }
     }
 
     static func exams(for country: CountryDefinition) -> [ExamDefinition] {
