@@ -73,6 +73,17 @@ struct OnboardingView: View {
                 enabled: canContinue
             ) {
                 if step == totalSteps - 1, let examIndex {
+                    AppServices.shared.analytics.event(
+                        AnalyticsEvent.planGenerated,
+                        params: [
+                            AnalyticsParam.countryCode: country.code,
+                            AnalyticsParam.examId: exams[examIndex].id,
+                            AnalyticsParam.contentPackId: exams[examIndex].syllabusPackId,
+                            AnalyticsParam.languageCode: ExamCatalog.languageCode
+                        ]
+                    )
+                    AppServices.shared.analytics.userProperty("exam_id", value: exams[examIndex].id)
+                    AppServices.shared.analytics.userProperty("country_code", value: country.code)
                     onComplete(
                         StudySetup(
                             country: country,
@@ -90,6 +101,33 @@ struct OnboardingView: View {
             .padding(.bottom, 12)
         }
         .background(ExamPalette.background.ignoresSafeArea())
+        .onAppear {
+            AppServices.shared.analytics.event(AnalyticsEvent.onboardingStarted)
+        }
+        .onChange(of: step) { _, newStep in
+            if newStep == 4 {
+                AppServices.shared.analytics.event(
+                    AnalyticsEvent.diagnosticStarted,
+                    params: currentAnalyticsContext()
+                )
+            } else if newStep == 5 {
+                AppServices.shared.analytics.event(
+                    AnalyticsEvent.diagnosticCompleted,
+                    params: currentAnalyticsContext()
+                )
+            }
+        }
+    }
+
+    private func currentAnalyticsContext() -> [String: Any] {
+        var params: [String: Any] = [
+            AnalyticsParam.countryCode: country.code
+        ]
+        if let examIndex, exams.indices.contains(examIndex) {
+            params[AnalyticsParam.examId] = exams[examIndex].id
+            params[AnalyticsParam.contentPackId] = exams[examIndex].syllabusPackId
+        }
+        return params
     }
 
     private var header: some View {
@@ -142,6 +180,10 @@ struct OnboardingView: View {
                             withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) {
                                 countryIndex = index
                                 examIndex = nil
+                                AppServices.shared.analytics.event(
+                                    AnalyticsEvent.countrySelected,
+                                    params: [AnalyticsParam.countryCode: item.code]
+                                )
                             }
                         } label: {
                             HStack(spacing: 10) {
@@ -197,6 +239,14 @@ struct OnboardingView: View {
                         ) {
                             withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) {
                                 examIndex = index
+                                AppServices.shared.analytics.event(
+                                    AnalyticsEvent.examSelected,
+                                    params: [
+                                        AnalyticsParam.countryCode: country.code,
+                                        AnalyticsParam.examId: exam.id,
+                                        AnalyticsParam.contentPackId: exam.syllabusPackId
+                                    ]
+                                )
                             }
                         }
                     }
