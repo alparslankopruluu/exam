@@ -12,7 +12,8 @@ import {
   OPENAI_EMBED_MODEL,
   OPENAI_TEXT_MODEL,
   OPENAI_TTS_MODEL,
-  OPENAI_TTS_VOICE
+  OPENAI_TTS_VOICE,
+  FREE_MATERIALS_LIMIT
 } from "./config.js";
 import { asString, requireUid } from "./auth.js";
 import {
@@ -22,7 +23,7 @@ import {
   openAIResponse,
   parseJsonObject
 } from "./openai.js";
-import { consumeCredits, consumeStandardAiQuota } from "./usage.js";
+import { consumeCredits, consumeStandardAiQuota, isPremium } from "./usage.js";
 
 const db = getFirestore();
 const bucket = getStorage().bucket();
@@ -243,6 +244,22 @@ export const indexMaterial = onCall(
 
     const data = request.data as any;
     const materialId = typeof data.materialId === "string" ? data.materialId : randomUUID();
+
+    if (!(await isPremium(uid))) {
+      const existingMaterial = await db.doc(`users/${uid}/materials/${materialId}`).get();
+      if (!existingMaterial.exists) {
+        const materialCount = await db.collection(`users/${uid}/materials`).count().get();
+        const maxMaterials = Math.max(1, Number(FREE_MATERIALS_LIMIT.value()) || 3);
+        if (materialCount.data().count >= maxMaterials) {
+          throw new HttpsError(
+            "resource-exhausted",
+            "Free material limit reached.",
+            { reason: "free_material_limit", max: maxMaterials }
+          );
+        }
+      }
+    }
+
     const title = typeof data.title === "string" ? data.title.slice(0, 200) : "Study material";
     const mimeType = typeof data.mimeType === "string" ? data.mimeType : "text/plain";
     const storagePath = typeof data.storagePath === "string" ? data.storagePath : undefined;
