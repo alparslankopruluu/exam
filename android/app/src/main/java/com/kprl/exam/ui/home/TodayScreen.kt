@@ -20,7 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.ui.components.ExamStatPill
+import com.kprl.exam.ui.library.LibraryScreen
+import com.kprl.exam.ui.practice.PracticeScreen
 import com.kprl.exam.ui.theme.ExamColors
+import com.kprl.exam.ui.tutor.AITutorScreen
 
 private data class NavItem(val label: String, val icon: ImageVector)
 
@@ -55,8 +58,12 @@ fun TodayScreen(setup: StudySetup) {
             }
         }
     ) { padding ->
-        if (selectedTab == 0) TodayContent(setup, Modifier.padding(padding))
-        else Placeholder(nav[selectedTab], Modifier.padding(padding))
+        when (selectedTab) {
+            0 -> TodayContent(setup, Modifier.padding(padding))
+            1 -> PracticeScreen(setup, Modifier.padding(padding))
+            2 -> AITutorScreen(setup, Modifier.padding(padding))
+            else -> LibraryScreen(Modifier.padding(padding))
+        }
     }
 }
 
@@ -140,17 +147,5 @@ private fun NextRow(icon: ImageVector, title: String, subtitle: String, accent: 
             }
             Icon(Icons.Rounded.ChevronRight, null, tint = ExamColors.TextSecondary)
         }
-    }
-}
-
-@Composable
-private fun Placeholder(item: NavItem, modifier: Modifier) {
-    Column(modifier.fillMaxSize().statusBarsPadding().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Box(Modifier.size(76.dp).background(ExamColors.SoftBlue, RoundedCornerShape(24.dp)), contentAlignment = Alignment.Center) {
-            Icon(item.icon, null, tint = ExamColors.Primary, modifier = Modifier.size(34.dp))
-        }
-        Spacer(Modifier.height(16.dp))
-        Text(item.label, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text("Ready for the next feature slice.", color = ExamColors.TextSecondary, fontSize = 13.sp)
     }
 }
