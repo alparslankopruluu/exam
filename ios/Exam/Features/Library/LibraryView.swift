@@ -1,113 +1,40 @@
 import SwiftUI
 import UniformTypeIdentifiers
+@preconcurrency import FirebaseCore
+@preconcurrency import FirebaseAuth
+@preconcurrency import FirebaseFirestore
+
+private struct CloudMaterial: Identifiable, Hashable, Sendable {
+    let id: String
+    let title: String
+    let mimeType: String
+    let summary: String
+}
 
 struct LibraryView: View {
+    let setup: StudySetup
+    var onStartPractice: ([StudyQuestion]) -> Void = { _ in }
+
     @State private var importerPresented = false
     @State private var loading = false
-    @State private var latestTitle: String?
-    @State private var latestSummary: String?
+    @State private var listLoading = false
+    @State private var materials: [CloudMaterial] = []
+    @State private var selected: CloudMaterial?
     @State private var error: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Library")
-                .font(.system(size: 28, weight: .bold))
-            Text("Turn your own material into something you can study.")
-                .font(.system(size: 13))
-                .foregroundStyle(ExamPalette.textSecondary)
-                .padding(.top, 3)
-
-            Button {
-                importerPresented = true
-            } label: {
-                HStack(spacing: 8) {
-                    if loading {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Image(systemName: "plus")
-                    }
-                    Text(loading ? "Uploading & indexing…" : "Add material")
-                }
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(ExamPalette.primary)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        Group {
+            if let selected {
+                MaterialChatView(
+                    setup: setup,
+                    material: selected,
+                    onBack: { self.selected = nil },
+                    onStartPractice: onStartPractice
+                )
+            } else {
+                libraryList
             }
-            .buttonStyle(.plain)
-            .disabled(loading)
-            .padding(.top, 20)
-
-            if let error {
-                Text(error)
-                    .font(.system(size: 12))
-                    .foregroundStyle(ExamPalette.coral)
-                    .padding(.top, 10)
-            }
-
-            if let latestTitle {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(ExamPalette.mint)
-                        Text(latestTitle)
-                            .font(.system(size: 15, weight: .semibold))
-                    }
-
-                    if let latestSummary, !latestSummary.isEmpty {
-                        Text(latestSummary)
-                            .font(.system(size: 12))
-                            .foregroundStyle(ExamPalette.textSecondary)
-                            .lineLimit(5)
-                    }
-
-                    Text("Indexed · ready for summary, quiz, flashcards and Q&A")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(ExamPalette.mint)
-                }
-                .padding(15)
-                .examCard(radius: 18)
-                .padding(.top, 18)
-            }
-
-            VStack(spacing: 0) {
-                Image(systemName: "folder.fill")
-                    .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(ExamPalette.primary)
-                    .frame(width: 68, height: 68)
-                    .background(ExamPalette.softBlue)
-                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-
-                Text("Your study material lives here")
-                    .font(.system(size: 18, weight: .bold))
-                    .padding(.top, 16)
-
-                Text("PDFs, photos, pasted text, audio and video become searchable study context, summaries and practice sets.")
-                    .font(.system(size: 13))
-                    .foregroundStyle(ExamPalette.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-                    .padding(.top, 6)
-
-                HStack(spacing: 8) {
-                    formatChip("PDF")
-                    formatChip("Photo")
-                    formatChip("Audio")
-                    formatChip("Video")
-                }
-                .padding(.top, 18)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(24)
-            .examCard(radius: 24)
-            .padding(.top, 24)
-
-            Spacer()
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
         .fileImporter(
             isPresented: $importerPresented,
             allowedContentTypes: [.pdf, .image, .audio, .movie, .plainText],
@@ -118,34 +45,320 @@ struct LibraryView: View {
                 guard let url = urls.first else { return }
                 loading = true
                 error = nil
-
                 Task { @MainActor in
                     do {
-                        let uploaded = try await LibraryUploadService().uploadAndIndex(url: url)
-                        latestTitle = uploaded.title
-                        latestSummary = uploaded.summary
+                        _ = try await LibraryUploadService().uploadAndIndex(url: url)
+                        loadMaterials()
                     } catch {
                         self.error = error.localizedDescription
                     }
                     loading = false
                 }
-
             case .failure(let error):
                 self.error = error.localizedDescription
             }
         }
+        .onAppear(perform: loadMaterials)
     }
 
-    private func formatChip(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(ExamPalette.textSecondary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(ExamPalette.background)
-            .clipShape(Capsule())
-            .overlay {
-                Capsule().stroke(ExamPalette.border, lineWidth: 1)
+    private var libraryList: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Library")
+                .font(.system(size: 28, weight: .bold))
+            Text("Your PDFs, photos, audio, video and notes become searchable study context.")
+                .font(.system(size: 13))
+                .foregroundStyle(ExamPalette.textSecondary)
+                .padding(.top, 3)
+
+            Button {
+                importerPresented = true
+            } label: {
+                HStack(spacing: 8) {
+                    if loading { ProgressView().tint(.white) }
+                    else { Image(systemName: "plus") }
+                    Text(loading ? "Uploading & indexing…" : "Add material")
+                }
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(ExamPalette.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
             }
+            .buttonStyle(.plain)
+            .disabled(loading)
+            .padding(.top, 18)
+
+            if let error {
+                Text(error)
+                    .font(.system(size: 12))
+                    .foregroundStyle(ExamPalette.coral)
+                    .padding(.top, 8)
+            }
+
+            if listLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 24)
+            } else if materials.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "folder.fill")
+                        .font(.system(size: 34))
+                        .foregroundStyle(ExamPalette.primary)
+                    Text("No indexed materials yet")
+                        .font(.system(size: 18, weight: .bold))
+                    Text("Upload a file and exam will summarize it, answer from it and build quizzes from it.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(ExamPalette.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(24)
+                .examCard(radius: 24)
+                .padding(.top, 20)
+            } else {
+                Text("Your materials")
+                    .font(.system(size: 18, weight: .bold))
+                    .padding(.top, 20)
+
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 9) {
+                        ForEach(materials) { material in
+                            Button {
+                                selected = material
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: icon(for: material.mimeType))
+                                        .foregroundStyle(ExamPalette.primary)
+                                        .frame(width: 34)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(material.title)
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundStyle(ExamPalette.textPrimary)
+                                        Text(material.summary.isEmpty ? "Indexed and ready for Q&A" : material.summary)
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(ExamPalette.textSecondary)
+                                            .lineLimit(2)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(ExamPalette.textSecondary)
+                                }
+                                .padding(14)
+                                .examCard(radius: 18)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+    }
+
+    private func loadMaterials() {
+        guard FirebaseApp.app() != nil, let uid = Auth.auth().currentUser?.uid else { return }
+        listLoading = true
+        Firestore.firestore()
+            .collection("users")
+            .document(uid)
+            .collection("materials")
+            .getDocuments { snapshot, error in
+                let rows: [CloudMaterial] = snapshot?.documents.map { doc in
+                    let data = doc.data()
+                    return CloudMaterial(
+                        id: doc.documentID,
+                        title: data["title"] as? String ?? "Study material",
+                        mimeType: data["mimeType"] as? String ?? "application/octet-stream",
+                        summary: data["summary"] as? String ?? ""
+                    )
+                }.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending } ?? []
+
+                DispatchQueue.main.async {
+                    self.materials = rows
+                    self.listLoading = false
+                    if let error { self.error = error.localizedDescription }
+                }
+            }
+    }
+
+    private func icon(for mime: String) -> String {
+        if mime.hasPrefix("audio") { return "waveform" }
+        if mime.hasPrefix("video") { return "film.fill" }
+        if mime.hasPrefix("image") { return "photo.fill" }
+        return "doc.fill"
+    }
+}
+
+private struct MaterialChatView: View {
+    let setup: StudySetup
+    let material: CloudMaterial
+    let onBack: () -> Void
+    let onStartPractice: ([StudyQuestion]) -> Void
+
+    @State private var question = ""
+    @State private var answer: String?
+    @State private var asking = false
+    @State private var generating = false
+    @State private var error: String?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
+                        .foregroundStyle(ExamPalette.textPrimary)
+                        .frame(width: 40, height: 40)
+                }
+                .buttonStyle(.plain)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(material.title)
+                        .font(.system(size: 20, weight: .bold))
+                    Text("Answers are grounded in this material")
+                        .font(.system(size: 11))
+                        .foregroundStyle(ExamPalette.mint)
+                }
+                Spacer()
+            }
+
+            if !material.summary.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Summary").font(.system(size: 14, weight: .bold))
+                    Text(material.summary)
+                        .font(.system(size: 12))
+                        .foregroundStyle(ExamPalette.textSecondary)
+                        .lineLimit(8)
+                }
+                .padding(14)
+                .examCard(radius: 18)
+                .padding(.top, 10)
+            }
+
+            HStack(spacing: 8) {
+                quizButton(title: "Quiz me", count: 5)
+                quizButton(title: "10 questions", count: 10)
+            }
+            .padding(.top, 12)
+
+            if let error {
+                Text(error)
+                    .font(.system(size: 12))
+                    .foregroundStyle(ExamPalette.coral)
+                    .padding(.top, 8)
+            }
+
+            if let answer {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("AI Tutor")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(ExamPalette.purple)
+                    Text(answer)
+                        .font(.system(size: 13))
+                        .lineSpacing(3)
+                }
+                .padding(14)
+                .examCard(radius: 18)
+                .padding(.top, 14)
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                TextField("Ask this material…", text: $question, axis: .vertical)
+                    .lineLimit(1...4)
+                Button {
+                    ask()
+                } label: {
+                    if asking { ProgressView() }
+                    else { Image(systemName: "arrow.up.circle.fill").font(.system(size: 28)) }
+                }
+                .buttonStyle(.plain)
+                .disabled(question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || asking)
+            }
+            .padding(12)
+            .examCard(radius: 18)
+            .padding(.bottom, 12)
+        }
+        .padding(.horizontal, 20)
+        .background(ExamPalette.background.ignoresSafeArea())
+    }
+
+    private func quizButton(title: String, count: Int) -> some View {
+        Button {
+            generating = true
+            error = nil
+            Task { @MainActor in
+                do {
+                    let rows = try await AIGatewayClient().generateMaterialPractice(
+                        materialId: material.id,
+                        language: setup.languageCode,
+                        count: count
+                    )
+                    let questions = rows.compactMap { row -> StudyQuestion? in
+                        guard
+                            let prompt = row["prompt"] as? String,
+                            let options = row["options"] as? [String],
+                            let correct = row["correctIndex"] as? Int,
+                            options.indices.contains(correct)
+                        else { return nil }
+                        return StudyQuestion(
+                            id: row["id"] as? String ?? "material_\(prompt.hashValue)",
+                            topic: row["topic"] as? String ?? "Material",
+                            prompt: prompt,
+                            options: options,
+                            correctIndex: correct,
+                            explanation: row["explanation"] as? String ?? "Based on your study material."
+                        )
+                    }
+                    if questions.isEmpty {
+                        error = "Could not create a valid quiz from this material."
+                    } else {
+                        onStartPractice(questions)
+                    }
+                } catch {
+                    self.error = error.localizedDescription
+                }
+                generating = false
+            }
+        } label: {
+            HStack {
+                if generating { ProgressView() }
+                else { Image(systemName: "questionmark.circle.fill") }
+                Text(title)
+            }
+            .font(.system(size: 13, weight: .semibold))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 11)
+            .background(ExamPalette.softBlue)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(generating)
+    }
+
+    private func ask() {
+        let value = question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return }
+        asking = true
+        error = nil
+
+        Task { @MainActor in
+            do {
+                answer = try await AIGatewayClient().askMaterial(
+                    materialId: material.id,
+                    question: value,
+                    language: setup.languageCode
+                )
+                question = ""
+            } catch {
+                self.error = error.localizedDescription
+            }
+            asking = false
+        }
     }
 }
