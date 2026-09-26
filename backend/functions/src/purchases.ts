@@ -19,6 +19,7 @@ const db = getFirestore();
 type VerifiedPurchase = {
   verified: boolean;
   externalId: string;
+  storeOriginalId: string;
   expiresAt?: Date;
 };
 
@@ -31,7 +32,9 @@ async function grantVerifiedPurchase(
   platform: string,
   productId: string,
   externalId: string,
-  expiresAt?: Date
+  storeOriginalId: string,
+  expiresAt?: Date,
+  metadata: Record<string, unknown> = {}
 ): Promise<void> {
   const ledgerRef = db.doc(`purchaseLedger/${ledgerId(platform, externalId)}`);
 
@@ -52,7 +55,9 @@ async function grantVerifiedPurchase(
         platform,
         productId,
         externalIdHash: ledgerRef.id,
+        storeOriginalId,
         consumable: true,
+        ...metadata,
         verifiedAt: FieldValue.serverTimestamp()
       });
     });
@@ -75,7 +80,9 @@ async function grantVerifiedPurchase(
       platform,
       productId,
       externalIdHash: ledgerRef.id,
+      storeOriginalId,
       consumable: false,
+      ...metadata,
       expiresAt: expiresAt ? Timestamp.fromDate(expiresAt) : null,
       verifiedAt: FieldValue.serverTimestamp()
     }, { merge: true });
@@ -117,6 +124,7 @@ async function verifyGoogle(data: any): Promise<VerifiedPurchase> {
     return {
       verified: productMatches && active && expiry > Date.now(),
       externalId: purchaseToken,
+      storeOriginalId: purchaseToken,
       expiresAt: expiry > 0 ? new Date(expiry) : undefined
     };
   }
@@ -129,7 +137,8 @@ async function verifyGoogle(data: any): Promise<VerifiedPurchase> {
 
   return {
     verified: Number(response.data.purchaseState ?? 1) === 0,
-    externalId: purchaseToken
+    externalId: purchaseToken,
+    storeOriginalId: purchaseToken
   };
 }
 
@@ -153,7 +162,7 @@ async function verifyApple(data: any): Promise<VerifiedPurchase> {
   const response = await client.getTransactionInfo(transactionId);
   const signedTransaction = response.signedTransactionInfo;
   if (!signedTransaction) {
-    return { verified: false, externalId: transactionId };
+    return { verified: false, externalId: transactionId, storeOriginalId: transactionId };
   }
 
   const rootsJson = JSON.parse(APPLE_ROOT_CERTS_B64_JSON.value()) as string[];
@@ -171,6 +180,7 @@ async function verifyApple(data: any): Promise<VerifiedPurchase> {
   const transaction = await verifier.verifyAndDecodeTransaction(signedTransaction);
   const actualProductId = String(transaction.productId ?? "");
   const actualTransactionId = String(transaction.transactionId ?? transactionId);
+  const originalTransactionId = String(transaction.originalTransactionId ?? actualTransactionId);
   const expiresAt = transaction.expiresDate
     ? new Date(Number(transaction.expiresDate))
     : undefined;
@@ -181,6 +191,7 @@ async function verifyApple(data: any): Promise<VerifiedPurchase> {
       !transaction.revocationDate &&
       (!expiresAt || expiresAt.getTime() > Date.now()),
     externalId: actualTransactionId,
+    storeOriginalId: originalTransactionId,
     expiresAt
   };
 }
@@ -218,7 +229,11 @@ export const verifyStorePurchase = onCall(
         platform,
         productId,
         result.externalId,
-        result.expiresAt
+        result.storeOriginalId,
+        result.expiresAt,
+        platform === "google"
+          ? { packageName: String(data.packageName ?? "") }
+          : {}
       );
     }
 
