@@ -7,6 +7,7 @@ struct QuestionSessionView: View {
     var questionsOverride: [StudyQuestion]? = nil
     var sessionType: String = "quick_practice"
     var onSessionCompleted: (() -> Void)? = nil
+    var onPaywall: (String) -> Void = { _ in }
 
     @Environment(\.modelContext) private var modelContext
     @State private var sessionStartedAt = Date()
@@ -251,7 +252,12 @@ struct QuestionSessionView: View {
                                 message: "Explain this question and why the correct answer is '\(question.options[question.correctIndex])': \(question.prompt)"
                             )
                         } catch {
-                            tutorAnswer = error.localizedDescription
+                            let message = error.localizedDescription
+                            if message.localizedCaseInsensitiveContains("Daily AI limit") {
+                                onPaywall("ai_limit")
+                            } else {
+                                tutorAnswer = message
+                            }
                         }
                         helperLoading = false
                     }
