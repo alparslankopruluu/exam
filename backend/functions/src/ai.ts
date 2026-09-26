@@ -414,6 +414,39 @@ export const mediaStatus = onCall(
   }
 );
 
+
+export const transcribeAudio = onCall(
+  { secrets: [FAL_KEY], timeoutSeconds: 180, memory: "1GiB" },
+  async request => {
+    const uid = requireUid(request);
+    await consumeStandardAiQuota(uid);
+
+    const data = request.data as any;
+    const storagePath = asString(data.storagePath, "storagePath", 1_000);
+
+    if (!storagePath.startsWith(`users/${uid}/voice/`)) {
+      throw new HttpsError("permission-denied", "Invalid voice recording path.");
+    }
+
+    const url = await storageUrl(storagePath);
+
+    fal.config({ credentials: FAL_KEY.value() });
+    const result = await fal.subscribe(FAL_STT_MODEL.value(), {
+      input: { audio_url: url },
+      logs: false
+    });
+
+    const response: any = result.data;
+    const text = String(response?.text ?? response?.transcript ?? "").trim();
+
+    if (!text) {
+      throw new HttpsError("failed-precondition", "No speech could be transcribed.");
+    }
+
+    return { text };
+  }
+);
+
 export const synthesizeSpeech = onCall(
   { secrets: [OPENAI_API_KEY], timeoutSeconds: 120, memory: "1GiB" },
   async request => {
