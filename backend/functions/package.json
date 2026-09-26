@@ -1,0 +1,23 @@
+{
+  "name": "exam-functions",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "deploy": "firebase deploy --only functions",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@apple/app-store-server-library": "3.1.0",
+    "@fal-ai/client": "1.10.1",
+    "firebase-admin": "14.1.0",
+    "firebase-functions": "7.4.0",
+    "googleapis": "182.0.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
+}
