@@ -42,6 +42,13 @@ class StudySetupStore(context: Context) {
         prefs.edit().putBoolean("onboarding_paywall_seen", seen).apply()
     }
 
+    fun isNotificationPrompted(): Boolean =
+        prefs.getBoolean("notification_prompted", false)
+
+    fun setNotificationPrompted(prompted: Boolean) {
+        prefs.edit().putBoolean("notification_prompted", prompted).apply()
+    }
+
     fun clear() {
         prefs.edit().clear().apply()
     }
