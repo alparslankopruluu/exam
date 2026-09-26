@@ -6,6 +6,7 @@ struct AITutorView: View {
     var onVoiceTutor: () -> Void = {}
     var onStudyNotes: () -> Void = {}
     var onMediaLab: () -> Void = {}
+    var onPaywall: (String) -> Void = { _ in }
 
     @State private var prompt = ""
     @State private var answer: String?
@@ -201,7 +202,12 @@ struct AITutorView: View {
                 )
                 prompt = ""
             } catch {
-                self.error = error.localizedDescription
+                let message = error.localizedDescription
+                if message.localizedCaseInsensitiveContains("Daily AI limit") {
+                    onPaywall("ai_limit")
+                } else {
+                    self.error = message
+                }
             }
             loading = false
         }
@@ -231,7 +237,12 @@ struct AITutorView: View {
                     imageDataURL: dataURL
                 )
             } catch {
-                self.error = error.localizedDescription
+                let message = error.localizedDescription
+                if message.localizedCaseInsensitiveContains("Daily AI limit") {
+                    onPaywall("ai_limit")
+                } else {
+                    self.error = message
+                }
             }
 
             loading = false
