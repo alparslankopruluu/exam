@@ -135,8 +135,12 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
                     )
                 }
                 3 -> ChoiceStep("How much time can you study daily?", "Choose something realistic. Consistency wins.", timeChoices(), selected[current]) { selected[current] = it }
-                4 -> DiagnosticStep(selected[current]) { selected[current] = it }
-                else -> PlanReadyStep(exams[examIndex])
+                4 -> DiagnosticStep(exams[examIndex]) { score -> selected[current] = score }
+                else -> PlanReadyStep(
+                    exam = exams[examIndex],
+                    diagnosticPercent = selected[4] ?: 50,
+                    dailyMinutes = dailyMinutesFor(selected[3] ?: 1)
+                )
             }
         }
 
@@ -160,7 +164,10 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
                     StudySetup(
                         country = country,
                         exam = exams[examIndex],
-                        languageCode = ExamCatalog.languageCode()
+                        languageCode = ExamCatalog.languageCode(),
+                        goalKey = goalKeyFor(selected[2] ?: 2),
+                        dailyMinutes = dailyMinutesFor(selected[3] ?: 1),
+                        diagnosticPercent = selected[4] ?: 50
                     )
                 )
             } else step++
@@ -250,36 +257,121 @@ private fun ChoiceStep(title: String, subtitle: String, choices: List<Choice>, s
 }
 
 @Composable
-private fun DiagnosticStep(selectedIndex: Int?, onSelected: (Int) -> Unit) {
+private fun DiagnosticStep(exam: ExamDefinition, onCompleted: (Int) -> Unit) {
+    val questions = remember(exam.id) { diagnosticQuestions(exam) }
+    var index by remember(exam.id) { mutableIntStateOf(0) }
+    var selectedIndex by remember(exam.id) { mutableStateOf<Int?>(null) }
+    var correctCount by remember(exam.id) { mutableIntStateOf(0) }
+    var finished by remember(exam.id) { mutableStateOf(false) }
+
+    val question = questions[index]
+
     Column {
         Spacer(Modifier.height(28.dp))
         Text("Let's find your starting point.", fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Text("This sample will be replaced by an exam-specific diagnostic blueprint.", color = ExamColors.TextSecondary)
-        Spacer(Modifier.height(28.dp))
-        Surface(color = ExamColors.Surface, shape = RoundedCornerShape(22.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
+        Text(
+            "A short ${exam.shortName} diagnostic adapts your first week. It won't affect any official score.",
+            color = ExamColors.TextSecondary
+        )
+        Spacer(Modifier.height(18.dp))
+
+        LinearProgressIndicator(
+            progress = { (index + if (selectedIndex != null || finished) 1 else 0).toFloat() / questions.size.toFloat() },
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(50)),
+            color = ExamColors.Primary,
+            trackColor = ExamColors.Border
+        )
+
+        Spacer(Modifier.height(18.dp))
+        Surface(
+            color = ExamColors.Surface,
+            shape = RoundedCornerShape(22.dp),
+            border = BorderStroke(1.dp, ExamColors.Border)
+        ) {
             Column(Modifier.padding(20.dp)) {
-                Text("DIAGNOSTIC · SAMPLE", color = ExamColors.Primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(16.dp))
-                Text("f(x) = 2x + 4", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
-                Text("If f(x) = 10, what is x?", fontSize = 16.sp)
+                Text(
+                    if (finished) "DIAGNOSTIC COMPLETE" else "QUESTION ${index + 1} OF ${questions.size}",
+                    color = ExamColors.Primary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(Modifier.height(14.dp))
-                listOf("2", "3", "4", "5").forEachIndexed { index, answer ->
-                    val correct = selectedIndex != null && index == 1
-                    val chosen = selectedIndex == index
-                    Surface(
-                        onClick = { onSelected(index) },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                        color = if (correct) ExamColors.SoftMint else if (chosen) ExamColors.SoftBlue else ExamColors.Background,
-                        shape = RoundedCornerShape(15.dp),
-                        border = BorderStroke(1.dp, if (correct) ExamColors.Mint else if (chosen) ExamColors.Primary else ExamColors.Border)
-                    ) {
-                        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(('A'.code + index).toChar().toString(), color = ExamColors.TextSecondary, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.width(14.dp))
-                            Text(answer, fontWeight = FontWeight.Medium)
-                            Spacer(Modifier.weight(1f))
-                            if (correct) Icon(Icons.Rounded.CheckCircle, null, tint = ExamColors.Mint)
+
+                if (finished) {
+                    val score = (correctCount * 100 / questions.size).coerceIn(0, 100)
+                    Text("$score%", fontSize = 42.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        when {
+                            score >= 80 -> "Strong starting point. We'll begin with harder mixed practice."
+                            score >= 55 -> "Good base. We'll balance review with exam-style practice."
+                            else -> "We'll rebuild the highest-impact foundations first."
+                        },
+                        color = ExamColors.TextSecondary,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp
+                    )
+                } else {
+                    Text(question.prompt, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(14.dp))
+
+                    question.options.forEachIndexed { optionIndex, answer ->
+                        val chosen = selectedIndex == optionIndex
+                        val correct = selectedIndex != null && optionIndex == question.correctIndex
+                        val wrongChosen = chosen && optionIndex != question.correctIndex
+
+                        Surface(
+                            onClick = {
+                                if (selectedIndex == null) {
+                                    selectedIndex = optionIndex
+                                    if (optionIndex == question.correctIndex) correctCount++
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                            color = when {
+                                correct -> ExamColors.SoftMint
+                                wrongChosen -> ExamColors.SoftCoral
+                                else -> ExamColors.Background
+                            },
+                            shape = RoundedCornerShape(15.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                when {
+                                    correct -> ExamColors.Mint
+                                    wrongChosen -> ExamColors.Coral
+                                    else -> ExamColors.Border
+                                }
+                            )
+                        ) {
+                            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(('A'.code + optionIndex).toChar().toString(), color = ExamColors.TextSecondary, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.width(14.dp))
+                                Text(answer, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                                if (correct) Icon(Icons.Rounded.CheckCircle, null, tint = ExamColors.Mint)
+                                if (wrongChosen) Icon(Icons.Rounded.Cancel, null, tint = ExamColors.Coral)
+                            }
+                        }
+                    }
+
+                    if (selectedIndex != null) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(question.explanation, color = ExamColors.TextSecondary, fontSize = 12.sp)
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = {
+                                if (index == questions.lastIndex) {
+                                    finished = true
+                                    onCompleted((correctCount * 100 / questions.size).coerceIn(0, 100))
+                                } else {
+                                    index++
+                                    selectedIndex = null
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
+                        ) {
+                            Text(if (index == questions.lastIndex) "See my level" else "Next question")
                         }
                     }
                 }
@@ -288,13 +380,95 @@ private fun DiagnosticStep(selectedIndex: Int?, onSelected: (Int) -> Unit) {
     }
 }
 
+private data class DiagnosticQuestion(
+    val prompt: String,
+    val options: List<String>,
+    val correctIndex: Int,
+    val explanation: String
+)
+
+private fun diagnosticQuestions(exam: ExamDefinition): List<DiagnosticQuestion> {
+    val common = listOf(
+        DiagnosticQuestion(
+            "If 3x + 6 = 21, what is x?",
+            listOf("3", "5", "7", "9"),
+            1,
+            "Subtract 6, then divide 15 by 3."
+        ),
+        DiagnosticQuestion(
+            "Which value is equivalent to 3/5?",
+            listOf("0.3", "0.5", "0.6", "1.5"),
+            2,
+            "3 divided by 5 equals 0.6."
+        ),
+        DiagnosticQuestion(
+            "A claim is best supported by evidence that is…",
+            listOf("Relevant and verifiable", "Long", "Emotional", "Repeated"),
+            0,
+            "Strong evidence directly supports the claim and can be checked."
+        ),
+        DiagnosticQuestion(
+            "A quantity rises from 80 to 100. What is the percentage increase?",
+            listOf("10%", "20%", "25%", "80%"),
+            2,
+            "The increase is 20; 20/80 = 25%."
+        ),
+        DiagnosticQuestion(
+            "Which strategy is best when two answer choices look plausible?",
+            listOf("Guess immediately", "Re-read the exact requirement", "Choose the longest", "Skip every time"),
+            1,
+            "Returning to the precise requirement helps eliminate attractive distractors."
+        )
+    )
+
+    return when (exam.category) {
+        ExamCategory.LANGUAGE -> listOf(
+            DiagnosticQuestion(
+                "Choose the grammatically correct sentence.",
+                listOf("She have finished.", "She has finished.", "She finishing.", "She finish yesterday."),
+                1,
+                "Present perfect uses has/have + past participle."
+            ),
+            DiagnosticQuestion(
+                "The word 'concise' most nearly means…",
+                listOf("brief and clear", "uncertain", "very old", "unrelated"),
+                0,
+                "Concise means expressing much in few words."
+            ),
+            common[2], common[4],
+            DiagnosticQuestion(
+                "Which transition signals contrast?",
+                listOf("Therefore", "However", "For example", "Similarly"),
+                1,
+                "However introduces a contrast."
+            )
+        )
+        else -> common
+    }
+}
+
+private fun goalKeyFor(index: Int): String = when (index) {
+    0 -> "top_score"
+    1 -> "target_score"
+    3 -> "pass"
+    4 -> "explore"
+    else -> "improve"
+}
+
+private fun dailyMinutesFor(index: Int): Int = when (index) {
+    0 -> 10
+    2 -> 30
+    3 -> 45
+    else -> 20
+}
+
 @Composable
-private fun PlanReadyStep(exam: ExamDefinition) {
+private fun PlanReadyStep(exam: ExamDefinition, diagnosticPercent: Int, dailyMinutes: Int) {
     Column {
         Spacer(Modifier.height(28.dp))
         Text("Your ${exam.shortName} week is ready.", fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Text("The plan will use the ${exam.syllabusPackId} content pack and adapt as you improve.", color = ExamColors.TextSecondary)
+        Text("Starting level $diagnosticPercent% · $dailyMinutes min/day. The plan adapts as your mastery changes.", color = ExamColors.TextSecondary)
         Spacer(Modifier.height(24.dp))
         Surface(color = ExamColors.Surface, shape = RoundedCornerShape(24.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {

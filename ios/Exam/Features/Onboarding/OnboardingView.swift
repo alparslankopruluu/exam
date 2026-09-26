@@ -57,7 +57,9 @@ struct OnboardingView: View {
                         choices: timeChoices
                     )
                 case 4:
-                    diagnosticStep
+                    DiagnosticOnboardingView(exam: exams[examIndex ?? 0]) { score in
+                        selected[4] = score
+                    }
                 default:
                     planReadyStep
                 }
@@ -88,7 +90,10 @@ struct OnboardingView: View {
                         StudySetup(
                             country: country,
                             exam: exams[examIndex],
-                            languageCode: ExamCatalog.languageCode
+                            languageCode: ExamCatalog.languageCode,
+                            goalKey: goalKey(for: selected[2] ?? 2),
+                            dailyMinutes: dailyMinutes(for: selected[3] ?? 1),
+                            diagnosticPercent: selected[4] ?? 50
                         )
                     )
                 } else {
@@ -293,69 +298,6 @@ struct OnboardingView: View {
         .frame(maxHeight: .infinity)
     }
 
-    private var diagnosticStep: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Let's find your starting point.")
-                    .font(.system(size: 30, weight: .bold))
-                    .padding(.top, 28)
-                Text("This sample will be replaced by an exam-specific diagnostic blueprint.")
-                    .font(.system(size: 15))
-                    .foregroundStyle(ExamPalette.textSecondary)
-                    .padding(.top, 8)
-
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("DIAGNOSTIC · SAMPLE")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(ExamPalette.primary)
-                    Text("f(x) = 2x + 4")
-                        .font(.system(size: 22, weight: .semibold))
-                    Text("If f(x) = 10, what is x?")
-                        .font(.system(size: 16))
-
-                    ForEach(Array(["2", "3", "4", "5"].enumerated()), id: \.offset) { index, answer in
-                        let correct = selected[step] != nil && index == 1
-                        let chosen = selected[step] == index
-
-                        Button {
-                            withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) {
-                                selected[step] = index
-                            }
-                        } label: {
-                            HStack {
-                                Text(String(UnicodeScalar(65 + index)!))
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(ExamPalette.textSecondary)
-                                Text(answer)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(ExamPalette.textPrimary)
-                                Spacer()
-                                if correct {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(ExamPalette.mint)
-                                }
-                            }
-                            .padding(14)
-                            .background(correct ? ExamPalette.softMint : (chosen ? ExamPalette.softBlue : ExamPalette.background))
-                            .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 15, style: .continuous)
-                                    .stroke(correct ? ExamPalette.mint : (chosen ? ExamPalette.primary : ExamPalette.border))
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(20)
-                .examCard(radius: 22)
-                .padding(.top, 28)
-                .padding(.bottom, 24)
-            }
-            .padding(.horizontal, 20)
-        }
-        .frame(maxHeight: .infinity)
-    }
-
     private var planReadyStep: some View {
         let exam = exams[examIndex ?? 0]
 
@@ -364,7 +306,7 @@ struct OnboardingView: View {
                 Text("Your \(exam.shortName) week is ready.")
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 28)
-                Text("The plan uses the \(exam.syllabusPackId) content pack and adapts as you improve.")
+                Text("Starting level \(selected[4] ?? 50)% · \(dailyMinutes(for: selected[3] ?? 1)) min/day. The plan adapts as your mastery changes.")
                     .font(.system(size: 15))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 8)
@@ -422,6 +364,25 @@ struct OnboardingView: View {
         }
     }
 
+    private func goalKey(for index: Int) -> String {
+        switch index {
+        case 0: "top_score"
+        case 1: "target_score"
+        case 3: "pass"
+        case 4: "explore"
+        default: "improve"
+        }
+    }
+
+    private func dailyMinutes(for index: Int) -> Int {
+        switch index {
+        case 0: 10
+        case 2: 30
+        case 3: 45
+        default: 20
+        }
+    }
+
     private var goalChoices: [OnboardingChoice] {
         [
             .init(title: "Highest possible score", subtitle: "Push for the top range", symbol: "trophy.fill", accent: ExamPalette.amber),
@@ -439,5 +400,207 @@ struct OnboardingView: View {
             .init(title: "30 min", subtitle: "Serious progress", symbol: "flame.fill", accent: ExamPalette.amber),
             .init(title: "45+ min", subtitle: "Intensive", symbol: "rocket.fill", accent: ExamPalette.purple)
         ]
+    }
+}
+
+
+private struct DiagnosticOnboardingQuestion {
+    let prompt: String
+    let options: [String]
+    let correctIndex: Int
+    let explanation: String
+}
+
+private struct DiagnosticOnboardingView: View {
+    let exam: ExamDefinition
+    let onComplete: (Int) -> Void
+
+    @State private var index = 0
+    @State private var selectedIndex: Int?
+    @State private var correctCount = 0
+    @State private var finished = false
+
+    private var questions: [DiagnosticOnboardingQuestion] {
+        let common = [
+            DiagnosticOnboardingQuestion(
+                prompt: "If 3x + 6 = 21, what is x?",
+                options: ["3", "5", "7", "9"],
+                correctIndex: 1,
+                explanation: "Subtract 6, then divide 15 by 3."
+            ),
+            DiagnosticOnboardingQuestion(
+                prompt: "Which value is equivalent to 3/5?",
+                options: ["0.3", "0.5", "0.6", "1.5"],
+                correctIndex: 2,
+                explanation: "3 divided by 5 equals 0.6."
+            ),
+            DiagnosticOnboardingQuestion(
+                prompt: "A claim is best supported by evidence that is…",
+                options: ["Relevant and verifiable", "Long", "Emotional", "Repeated"],
+                correctIndex: 0,
+                explanation: "Strong evidence directly supports the claim and can be checked."
+            ),
+            DiagnosticOnboardingQuestion(
+                prompt: "A quantity rises from 80 to 100. What is the percentage increase?",
+                options: ["10%", "20%", "25%", "80%"],
+                correctIndex: 2,
+                explanation: "The increase is 20; 20/80 = 25%."
+            ),
+            DiagnosticOnboardingQuestion(
+                prompt: "When two answers look plausible, what should you do first?",
+                options: ["Guess", "Re-read the exact requirement", "Pick the longest", "Always skip"],
+                correctIndex: 1,
+                explanation: "Returning to the precise requirement helps eliminate distractors."
+            )
+        ]
+
+        if exam.category == .language {
+            return [
+                .init(
+                    prompt: "Choose the grammatically correct sentence.",
+                    options: ["She have finished.", "She has finished.", "She finishing.", "She finish yesterday."],
+                    correctIndex: 1,
+                    explanation: "Present perfect uses has/have + past participle."
+                ),
+                .init(
+                    prompt: "The word 'concise' most nearly means…",
+                    options: ["brief and clear", "uncertain", "very old", "unrelated"],
+                    correctIndex: 0,
+                    explanation: "Concise means expressing much in few words."
+                ),
+                common[2],
+                common[4],
+                .init(
+                    prompt: "Which transition signals contrast?",
+                    options: ["Therefore", "However", "For example", "Similarly"],
+                    correctIndex: 1,
+                    explanation: "However introduces contrast."
+                )
+            ]
+        }
+        return common
+    }
+
+    var body: some View {
+        let question = questions[index]
+
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Let's find your starting point.")
+                    .font(.system(size: 30, weight: .bold))
+                    .padding(.top, 28)
+                Text("A short \(exam.shortName) diagnostic adapts your first week. It won't affect any official score.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .padding(.top, 8)
+
+                ProgressView(
+                    value: Double(index + ((selectedIndex != nil || finished) ? 1 : 0)),
+                    total: Double(questions.count)
+                )
+                .tint(ExamPalette.primary)
+                .padding(.top, 18)
+
+                VStack(alignment: .leading, spacing: 14) {
+                    Text(finished ? "DIAGNOSTIC COMPLETE" : "QUESTION \(index + 1) OF \(questions.count)")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(ExamPalette.primary)
+
+                    if finished {
+                        let score = min(max(correctCount * 100 / questions.count, 0), 100)
+                        Text("\(score)%")
+                            .font(.system(size: 42, weight: .bold))
+                        Text(
+                            score >= 80
+                            ? "Strong starting point. We'll begin with harder mixed practice."
+                            : score >= 55
+                            ? "Good base. We'll balance review with exam-style practice."
+                            : "We'll rebuild the highest-impact foundations first."
+                        )
+                        .font(.system(size: 14))
+                        .foregroundStyle(ExamPalette.textSecondary)
+                    } else {
+                        Text(question.prompt)
+                            .font(.system(size: 18, weight: .semibold))
+
+                        ForEach(Array(question.options.enumerated()), id: \.offset) { optionIndex, answer in
+                            let chosen = selectedIndex == optionIndex
+                            let correct = selectedIndex != nil && optionIndex == question.correctIndex
+                            let wrong = chosen && optionIndex != question.correctIndex
+
+                            Button {
+                                guard selectedIndex == nil else { return }
+                                selectedIndex = optionIndex
+                                if optionIndex == question.correctIndex {
+                                    correctCount += 1
+                                }
+                            } label: {
+                                HStack {
+                                    Text(String(UnicodeScalar(65 + optionIndex)!))
+                                        .fontWeight(.bold)
+                                        .foregroundStyle(ExamPalette.textSecondary)
+                                    Text(answer)
+                                        .foregroundStyle(ExamPalette.textPrimary)
+                                    Spacer()
+                                    if correct {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(ExamPalette.mint)
+                                    } else if wrong {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(ExamPalette.coral)
+                                    }
+                                }
+                                .padding(14)
+                                .background(
+                                    correct ? ExamPalette.softMint
+                                    : wrong ? ExamPalette.coral.opacity(0.08)
+                                    : ExamPalette.background
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                        .stroke(
+                                            correct ? ExamPalette.mint
+                                            : wrong ? ExamPalette.coral
+                                            : ExamPalette.border
+                                        )
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        if selectedIndex != nil {
+                            Text(question.explanation)
+                                .font(.system(size: 12))
+                                .foregroundStyle(ExamPalette.textSecondary)
+
+                            Button {
+                                if index == questions.count - 1 {
+                                    finished = true
+                                    onComplete(min(max(correctCount * 100 / questions.count, 0), 100))
+                                } else {
+                                    index += 1
+                                    selectedIndex = nil
+                                }
+                            } label: {
+                                Text(index == questions.count - 1 ? "See my level" : "Next question")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 48)
+                                    .background(ExamPalette.primary)
+                                    .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .padding(20)
+                .examCard(radius: 22)
+                .padding(.top, 18)
+                .padding(.bottom, 24)
+            }
+            .padding(.horizontal, 20)
+        }
     }
 }

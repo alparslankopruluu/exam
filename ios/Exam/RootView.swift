@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RootView: View {
-    @State private var setup: StudySetup?
+    @State private var setup: StudySetup? = StudySetupStore.load()
     @State private var onboardingPaywallSeen = false
 
     var body: some View {
@@ -24,6 +24,7 @@ struct RootView: View {
             } else {
                 OnboardingView { result in
                     withAnimation(.spring(response: 0.45, dampingFraction: 0.9)) {
+                        StudySetupStore.save(result)
                         setup = result
                     }
                 }
