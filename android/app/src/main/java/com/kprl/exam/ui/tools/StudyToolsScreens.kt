@@ -34,6 +34,7 @@ import com.kprl.exam.domain.FlashcardScheduler
 import com.kprl.exam.domain.SampleQuestionFactory
 import com.kprl.exam.domain.StudyQuestion
 import com.kprl.exam.platform.ai.AIGatewayClient
+import com.kprl.exam.platform.account.AccountService
 import com.kprl.exam.platform.ai.GatewayResult
 import com.kprl.exam.platform.notifications.PushTokenRegistrar
 import com.kprl.exam.platform.persistence.LearningDatabase
@@ -591,6 +592,10 @@ fun ProfileSettingsScreen(
     val context = LocalContext.current
     val setupStore = remember { StudySetupStore(context.applicationContext) }
     val progressStore = remember { UserProgressStore(context.applicationContext) }
+    val accountService = remember { AccountService() }
+    var deleteConfirm by remember { mutableStateOf(false) }
+    var deletingAccount by remember { mutableStateOf(false) }
+    var deleteError by remember { mutableStateOf<String?>(null) }
     var reminderHour by remember { mutableIntStateOf(progressStore.snapshot().reminderHour) }
     var languageExpanded by remember { mutableStateOf(false) }
     val languages = listOf(
@@ -667,6 +672,16 @@ fun ProfileSettingsScreen(
         }
         item { SettingsRow(Icons.Rounded.RestartAlt, "Choose another exam", "Restart onboarding and build a new plan", onRestartOnboarding) }
         item {
+            SettingsRow(
+                Icons.Rounded.DeleteForever,
+                "Delete account",
+                "Permanently delete cloud study data and account"
+            ) { deleteConfirm = true }
+        }
+        deleteError?.let { message ->
+            item { Text(message, color = ExamColors.Coral, fontSize = 12.sp) }
+        }
+        item {
             Text(
                 "Privacy: study files stay scoped to your authenticated account. AI provider keys are server-side and are never shipped in the app.",
                 color = ExamColors.TextSecondary,
@@ -675,6 +690,44 @@ fun ProfileSettingsScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         }
+    }
+
+    if (deleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { if (!deletingAccount) deleteConfirm = false },
+            title = { Text("Delete account?") },
+            text = {
+                Text("This permanently deletes your cloud study files, AI jobs, push token and account. This cannot be undone.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !deletingAccount,
+                    onClick = {
+                        deletingAccount = true
+                        deleteError = null
+                        accountService.deleteAccount { result ->
+                            deletingAccount = false
+                            result.onSuccess {
+                                setupStore.clear()
+                                progressStore.reset()
+                                deleteConfirm = false
+                                onRestartOnboarding()
+                            }.onFailure {
+                                deleteError = it.message ?: "Account deletion failed."
+                            }
+                        }
+                    }
+                ) {
+                    Text(if (deletingAccount) "Deleting…" else "Delete permanently", color = ExamColors.Coral)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !deletingAccount,
+                    onClick = { deleteConfirm = false }
+                ) { Text("Cancel") }
+            }
+        )
     }
 }
 
