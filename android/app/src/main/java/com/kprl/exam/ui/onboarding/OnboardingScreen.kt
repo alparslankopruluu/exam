@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -330,7 +331,7 @@ private fun DiagnosticStep(exam: ExamDefinition, onCompleted: (Int) -> Unit) {
                             modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
                             color = when {
                                 correct -> ExamColors.SoftMint
-                                wrongChosen -> ExamColors.SoftCoral
+                                wrongChosen -> ExamColors.Coral.copy(alpha = .08f)
                                 else -> ExamColors.Background
                             },
                             shape = RoundedCornerShape(15.dp),
