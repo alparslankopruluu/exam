@@ -23,8 +23,9 @@ final class ExamAppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UN
     }
 
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        guard fcmToken != nil else { return }
+        guard let fcmToken else { return }
         AppServices.shared.analytics.event("push_token_refreshed")
+        PushTokenRegistrar.register(token: fcmToken)
     }
 
     func userNotificationCenter(
