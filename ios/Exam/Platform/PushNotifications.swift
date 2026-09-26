@@ -1,6 +1,7 @@
 import UIKit
 import UserNotifications
 
+@MainActor
 final class PushNotifications {
     static let shared = PushNotifications()
 
