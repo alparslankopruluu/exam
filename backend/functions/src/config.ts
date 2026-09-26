@@ -24,3 +24,5 @@ export const FREE_AI_CALLS_PER_DAY = defineString("FREE_AI_CALLS_PER_DAY", { def
 export const SMALL_CREDIT_PACK_AMOUNT = defineString("SMALL_CREDIT_PACK_AMOUNT", { default: "25" });
 
 export const REMINDER_IMAGE_URL = defineString("REMINDER_IMAGE_URL", { default: "" });
+
+export const FREE_MATERIALS_LIMIT = defineString("FREE_MATERIALS_LIMIT", { default: "3" });
