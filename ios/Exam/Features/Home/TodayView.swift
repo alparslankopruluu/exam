@@ -23,10 +23,15 @@ struct TodayView: View {
     var body: some View {
         VStack(spacing: 0) {
             Group {
-                if selectedTab == .today {
+                switch selectedTab {
+                case .today:
                     todayContent
-                } else {
-                    placeholder(selectedTab)
+                case .practice:
+                    PracticeView(setup: setup)
+                case .tutor:
+                    AITutorView(setup: setup)
+                case .library:
+                    LibraryView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -186,21 +191,5 @@ struct TodayView: View {
         .overlay(alignment: .top) {
             Rectangle().fill(ExamPalette.border).frame(height: 0.5)
         }
-    }
-
-    private func placeholder(_ tab: ExamTab) -> some View {
-        VStack(spacing: 14) {
-            Image(systemName: tab.symbol)
-                .font(.system(size: 34, weight: .semibold))
-                .foregroundStyle(ExamPalette.primary)
-                .frame(width: 76, height: 76)
-                .background(ExamPalette.softBlue)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            Text(tab.rawValue).font(.system(size: 24, weight: .bold))
-            Text("Ready for the next feature slice.")
-                .font(.system(size: 13))
-                .foregroundStyle(ExamPalette.textSecondary)
-        }
-        .padding(24)
     }
 }
