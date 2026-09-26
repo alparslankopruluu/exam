@@ -35,6 +35,13 @@ class StudySetupStore(context: Context) {
         )
     }
 
+    fun isOnboardingPaywallSeen(): Boolean =
+        prefs.getBoolean("onboarding_paywall_seen", false)
+
+    fun setOnboardingPaywallSeen(seen: Boolean) {
+        prefs.edit().putBoolean("onboarding_paywall_seen", seen).apply()
+    }
+
     fun clear() {
         prefs.edit().clear().apply()
     }
