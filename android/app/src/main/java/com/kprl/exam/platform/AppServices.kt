@@ -4,6 +4,8 @@ import android.content.Context
 import com.kprl.exam.platform.analytics.AppAnalytics
 import com.kprl.exam.platform.analytics.FirebaseAppAnalytics
 import com.kprl.exam.platform.firebase.FirebaseBootstrap
+import com.google.firebase.messaging.FirebaseMessaging
+import com.kprl.exam.platform.notifications.PushTokenRegistrar
 import com.kprl.exam.platform.remote.RemoteFeatureFlags
 
 object AppServices {
@@ -18,6 +20,11 @@ object AppServices {
         analytics = FirebaseAppAnalytics.create(context, firebaseReady)
         flags = RemoteFeatureFlags.create(firebaseReady)
         flags.refresh()
-        FirebaseBootstrap.ensureAnonymousSession(firebaseReady)
+        FirebaseBootstrap.ensureAnonymousSession(firebaseReady) {
+            FirebaseMessaging.getInstance().token
+                .addOnSuccessListener { token ->
+                    PushTokenRegistrar.register(context, token)
+                }
+        }
     }
 }
