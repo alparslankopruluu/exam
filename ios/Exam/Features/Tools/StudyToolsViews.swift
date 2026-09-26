@@ -532,7 +532,7 @@ struct FocusView: View {
     }
 }
 
-struct ProgressView: View {
+struct StudyProgressView: View {
     let setup: StudySetup
     let onClose: () -> Void
 
