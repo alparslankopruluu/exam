@@ -62,6 +62,7 @@ struct MockExamView: View {
     let setup: StudySetup
     let onClose: () -> Void
     let onStart: ([StudyQuestion]) -> Void
+    var onPaywall: (String) -> Void = { _ in }
 
     @State private var questionCount = 10
     @State private var loading = false
@@ -136,7 +137,13 @@ struct MockExamView: View {
                             onStart(generated)
                         }
                     } catch {
-                        self.error = error.localizedDescription
+                        let message = error.localizedDescription
+                        if message.localizedCaseInsensitiveContains("Daily AI limit") {
+                            onPaywall("ai_limit")
+                            loading = false
+                            return
+                        }
+                        self.error = message
                         let fallback = SampleQuestionFactory.questions(for: setup)
                         onStart((0..<questionCount).map {
                             let source = fallback[$0 % fallback.count]
@@ -345,6 +352,7 @@ struct CreatePracticeView: View {
     let setup: StudySetup
     let onClose: () -> Void
     let onStart: ([StudyQuestion]) -> Void
+    var onPaywall: (String) -> Void = { _ in }
 
     @State private var topic = ""
     @State private var count = 5
@@ -405,7 +413,12 @@ struct CreatePracticeView: View {
                             onStart(parsed)
                         }
                     } catch {
-                        self.error = error.localizedDescription
+                        let message = error.localizedDescription
+                        if message.localizedCaseInsensitiveContains("Daily AI limit") {
+                            onPaywall("ai_limit")
+                        } else {
+                            self.error = message
+                        }
                     }
                     loading = false
                 }
