@@ -10,12 +10,17 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import com.kprl.exam.billing.GooglePlayBillingService
 import com.kprl.exam.billing.StoreOfferPresentation
 import com.kprl.exam.billing.StorePlanPresentation
 import com.kprl.exam.data.StudySetup
@@ -25,11 +30,24 @@ import com.kprl.exam.ui.theme.ExamColors
 fun PremiumPaywallScreen(
     setup: StudySetup,
     placement: String,
-    offer: StoreOfferPresentation = StoreOfferPresentation(),
-    onClose: () -> Unit,
-    onPurchase: (String) -> Unit = {}
+    onClose: () -> Unit
 ) {
+    val context = LocalContext.current
+    val activity = remember(context) { context.findActivity() }
+    val billing = remember { GooglePlayBillingService(context.applicationContext) }
+
+    var offer by remember { mutableStateOf(StoreOfferPresentation()) }
     var annualSelected by remember { mutableStateOf(true) }
+    var purchasing by remember { mutableStateOf(false) }
+    var purchaseError by remember { mutableStateOf<String?>(null) }
+
+    DisposableEffect(billing) {
+        billing.start {
+            billing.loadOffer { loaded -> offer = loaded }
+        }
+        onDispose { billing.close() }
+    }
+
     val selectedPlan = if (annualSelected) offer.annual else offer.monthly
 
     Column(
@@ -104,8 +122,21 @@ fun PremiumPaywallScreen(
 
         Spacer(Modifier.weight(1f))
         Button(
-            onClick = { onPurchase(selectedPlan.productId) },
-            enabled = selectedPlan.localizedPrice != null,
+            onClick = {
+                val host = activity
+                if (host == null) {
+                    purchaseError = "Purchase screen is unavailable."
+                    return@Button
+                }
+                purchasing = true
+                purchaseError = null
+                billing.purchase(host, selectedPlan.productId) { success, message ->
+                    purchasing = false
+                    if (success) onClose()
+                    else if (message != "cancelled") purchaseError = message ?: "Purchase failed."
+                }
+            },
+            enabled = selectedPlan.localizedPrice != null && !purchasing,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(
@@ -115,9 +146,17 @@ fun PremiumPaywallScreen(
             elevation = ButtonDefaults.buttonElevation(0.dp)
         ) {
             Text(
-                selectedPlan.localizedPrice?.let { "Continue · $it" } ?: "Loading local price…",
+                when {
+                    purchasing -> "Processing…"
+                    selectedPlan.localizedPrice != null -> "Continue · " + selectedPlan.localizedPrice
+                    else -> "Loading local price…"
+                },
                 fontWeight = FontWeight.Bold
             )
+        }
+        purchaseError?.let {
+            Spacer(Modifier.height(7.dp))
+            Text(it, color = ExamColors.Coral, fontSize = 11.sp)
         }
         Spacer(Modifier.height(8.dp))
         Text(
@@ -188,4 +227,11 @@ private fun PlanCard(plan: StorePlanPresentation, selected: Boolean, onClick: ()
             Text(plan.localizedPrice ?: "—", color = ExamColors.TextPrimary, fontWeight = FontWeight.SemiBold)
         }
     }
+}
+
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
