@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 private enum ExamTab: String, CaseIterable, Hashable {
     case today = "Today"
@@ -16,13 +17,43 @@ private enum ExamTab: String, CaseIterable, Hashable {
     }
 }
 
+private enum ToolRoute {
+    case mock
+    case mistakes
+    case flashcards
+    case createPractice
+    case focus
+    case progress
+    case credits
+    case profile
+}
+
 struct TodayView: View {
     let setup: StudySetup
+    var onSetupChanged: (StudySetup) -> Void = { _ in }
+    var onRestartOnboarding: () -> Void = {}
+
+    @Environment(\.modelContext) private var modelContext
+
     @State private var selectedTab: ExamTab = .today
     @State private var premiumPlacement: String?
-    @State private var quickPracticeOpen = false
     @State private var voiceTutorOpen = false
+    @State private var toolRoute: ToolRoute?
+    @State private var sessionOpen = false
+    @State private var sessionQuestions: [StudyQuestion]?
+    @State private var sessionType = "quick_practice"
+    @State private var dashboardRefresh = 0
     @State private var entitlement = EntitlementSnapshot.empty
+
+    @State private var plan: [PlanTask] = []
+    @State private var progress = StudyProgressSummary(
+        masteryPercent: 0,
+        sessions: 0,
+        questions: 0,
+        correct: 0,
+        studyMinutes: 0
+    )
+    @State private var userProgress = UserProgressStore().snapshot()
 
     private var copy: LocalizedCopy {
         LocalizedCopy.load(languageCode: setup.languageCode)
@@ -37,16 +68,31 @@ struct TodayView: View {
                     onClose: {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
                             self.premiumPlacement = nil
+                            dashboardRefresh += 1
                         }
                     }
                 )
-            } else if quickPracticeOpen {
+            } else if sessionOpen {
                 QuestionSessionView(
                     setup: setup,
                     onClose: {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                            quickPracticeOpen = false
+                            sessionOpen = false
+                            sessionQuestions = nil
+                            dashboardRefresh += 1
                         }
+                    },
+                    questionsOverride: sessionQuestions,
+                    sessionType: sessionType,
+                    onSessionCompleted: {
+                        if sessionType == "quick_practice" || sessionType == "daily_plan" {
+                            let dayKey = Self.dayKey
+                            let store = LearningStore(context: modelContext)
+                            if let first = (try? store.plan(dayKey: dayKey))?.first(where: { !$0.completed }) {
+                                try? store.markPlanCompleted(id: first.id)
+                            }
+                        }
+                        dashboardRefresh += 1
                     }
                 )
             } else if voiceTutorOpen {
@@ -55,18 +101,100 @@ struct TodayView: View {
                     onClose: {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
                             voiceTutorOpen = false
+                            dashboardRefresh += 1
                         }
                     }
                 )
+            } else if let toolRoute {
+                toolView(toolRoute)
             } else {
                 appShell
             }
         }
         .background(ExamPalette.background.ignoresSafeArea())
-        .task(id: premiumPlacement) {
+        .task(id: dashboardRefresh) {
             if premiumPlacement == nil {
                 entitlement = await EntitlementService().fetch()
             }
+            loadDashboard()
+        }
+    }
+
+    @ViewBuilder
+    private func toolView(_ route: ToolRoute) -> some View {
+        switch route {
+        case .mock:
+            MockExamView(
+                setup: setup,
+                onClose: { toolRoute = nil },
+                onStart: { questions in
+                    toolRoute = nil
+                    openSession(type: "mock_exam", questions: questions)
+                }
+            )
+
+        case .mistakes:
+            MistakesView(
+                setup: setup,
+                onClose: { toolRoute = nil },
+                onPractice: {
+                    toolRoute = nil
+                    openSession(type: "mistake_review")
+                }
+            )
+
+        case .flashcards:
+            FlashcardsView(
+                setup: setup,
+                onClose: {
+                    toolRoute = nil
+                    dashboardRefresh += 1
+                }
+            )
+
+        case .createPractice:
+            CreatePracticeView(
+                setup: setup,
+                onClose: { toolRoute = nil },
+                onStart: { questions in
+                    toolRoute = nil
+                    openSession(type: "generated_practice", questions: questions)
+                }
+            )
+
+        case .focus:
+            FocusView(
+                setup: setup,
+                onClose: { toolRoute = nil }
+            )
+
+        case .progress:
+            StudyProgressView(
+                setup: setup,
+                onClose: { toolRoute = nil }
+            )
+
+        case .credits:
+            CreditStoreView(
+                setup: setup,
+                onClose: {
+                    toolRoute = nil
+                    dashboardRefresh += 1
+                }
+            )
+
+        case .profile:
+            ProfileSettingsView(
+                setup: setup,
+                onClose: { toolRoute = nil },
+                onSetupChanged: { updated in
+                    onSetupChanged(updated)
+                    toolRoute = nil
+                },
+                onProgress: { toolRoute = .progress },
+                onCredits: { toolRoute = .credits },
+                onRestartOnboarding: onRestartOnboarding
+            )
         }
     }
 
@@ -76,21 +204,36 @@ struct TodayView: View {
                 switch selectedTab {
                 case .today:
                     todayContent
+
                 case .practice:
                     PracticeView(
                         setup: setup,
                         onQuickPractice: {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                                quickPracticeOpen = true
-                            }
+                            openSession(type: "quick_practice")
+                        },
+                        onMockExam: {
+                            toolRoute = .mock
+                        },
+                        onMistakes: {
+                            toolRoute = .mistakes
+                        },
+                        onFlashcards: {
+                            toolRoute = .flashcards
+                        },
+                        onCreatePractice: {
+                            toolRoute = .createPractice
+                        },
+                        onFocus: {
+                            toolRoute = .focus
                         }
                     )
+
                 case .tutor:
                     AITutorView(
                         setup: setup,
                         onVoiceTutor: {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
-                                if entitlement.premium {
+                                if entitlement.premium && AppServices.shared.flags.snapshot.voiceTutorEnabled {
                                     voiceTutorOpen = true
                                 } else {
                                     premiumPlacement = "voice_tutor"
@@ -98,6 +241,7 @@ struct TodayView: View {
                             }
                         }
                     )
+
                 case .library:
                     LibraryView()
                 }
@@ -109,7 +253,14 @@ struct TodayView: View {
     }
 
     private var todayContent: some View {
-        ScrollView(showsIndicators: false) {
+        let activeTask = plan.first(where: { !$0.completed })
+        let mastery = progress.masteryPercent == 0
+            ? setup.diagnosticPercent
+            : progress.masteryPercent
+        let completedCount = plan.filter(\.completed).count
+        let remainingMinutes = max(5, plan.filter { !$0.completed }.map(\.estimatedMinutes).reduce(0, +))
+
+        return ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 3) {
@@ -119,38 +270,185 @@ struct TodayView: View {
                         Text(copy.text("ready_small_win"))
                             .font(.system(size: 22, weight: .bold))
                     }
+
                     Spacer()
-                    Image(systemName: "person.fill")
-                        .foregroundStyle(ExamPalette.primary)
-                        .frame(width: 42, height: 42)
-                        .background(ExamPalette.softBlue)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                    Button {
+                        toolRoute = .profile
+                    } label: {
+                        Image(systemName: "person.fill")
+                            .foregroundStyle(ExamPalette.primary)
+                            .frame(width: 42, height: 42)
+                            .background(ExamPalette.softBlue)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 HStack(spacing: 9) {
-                    ExamStatPill(value: "7", label: copy.text("day_streak"), symbol: "flame.fill", accent: ExamPalette.amber)
-                    ExamStatPill(value: setup.exam.shortName, label: copy.text("active_exam"), symbol: "graduationcap.fill", accent: ExamPalette.mint)
-                    ExamStatPill(value: "61", label: copy.text("mastery"), symbol: "chart.xyaxis.line", accent: ExamPalette.purple)
+                    ExamStatPill(
+                        value: "\(userProgress.streak)",
+                        label: copy.text("day_streak"),
+                        symbol: "flame.fill",
+                        accent: ExamPalette.amber
+                    )
+                    ExamStatPill(
+                        value: setup.exam.shortName,
+                        label: copy.text("active_exam"),
+                        symbol: "graduationcap.fill",
+                        accent: ExamPalette.mint
+                    )
+                    ExamStatPill(
+                        value: "\(mastery)",
+                        label: copy.text("mastery"),
+                        symbol: "chart.xyaxis.line",
+                        accent: ExamPalette.purple
+                    )
                 }
                 .padding(.top, 20)
 
-                Text(copy.text("todays_plan", variables: ["exam": setup.exam.shortName]).uppercased())
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(ExamPalette.textSecondary)
-                    .padding(.top, 24)
+                let expiry = AppServices.shared.flags.snapshot.limitedOfferExpiryEpochSeconds
+                if expiry > Int64(Date().timeIntervalSince1970) {
+                    LimitedOfferView(expiryEpochSeconds: expiry) {
+                        premiumPlacement = "winback"
+                    }
+                    .padding(.top, 14)
+                }
 
-                hero.padding(.top, 9)
+                HStack {
+                    Text(copy.text("todays_plan", variables: ["exam": setup.exam.shortName]).uppercased())
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(ExamPalette.textSecondary)
+
+                    Spacer()
+
+                    Button {
+                        toolRoute = .progress
+                    } label: {
+                        Text("\(completedCount)/\(max(plan.count, 1)) done")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 22)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Image(systemName: "books.vertical.fill")
+                            .foregroundStyle(.white)
+                            .frame(width: 42, height: 42)
+                            .background(.white.opacity(0.16))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                        Spacer()
+
+                        Text("\(userProgress.xp) XP")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(.white.opacity(0.16))
+                            .clipShape(Capsule())
+                    }
+
+                    Text(activeTask?.title ?? "Daily plan complete")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.top, 22)
+
+                    Text(
+                        activeTask == nil
+                        ? "Come back tomorrow for the next adaptive plan."
+                        : "Personalized from your diagnostic, mastery and recent mistakes."
+                    )
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .padding(.top, 3)
+
+                    Label(
+                        activeTask == nil
+                        ? "Completed"
+                        : "\(activeTask?.estimatedMinutes ?? 0) min · \(remainingMinutes) min remaining",
+                        systemImage: "clock.fill"
+                    )
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(.top, 16)
+
+                    Button {
+                        if activeTask == nil {
+                            toolRoute = .focus
+                        } else {
+                            openSession(type: "daily_plan")
+                        }
+                    } label: {
+                        Text(activeTask == nil ? "Start a focus session" : copy.text("continue"))
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(ExamPalette.primary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .background(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 18)
+                }
+                .padding(20)
+                .background(
+                    LinearGradient(
+                        colors: [ExamPalette.primary, ExamPalette.indigo],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .padding(.top, 8)
 
                 Text(copy.text("next_up"))
                     .font(.system(size: 18, weight: .bold))
-                    .padding(.top, 24)
+                    .padding(.top, 22)
 
                 VStack(spacing: 8) {
-                    nextRow(symbol: "checklist", title: copy.text("exam_style_questions"), subtitle: copy.text("questions_count", variables: ["count": "5"]), accent: ExamPalette.purple)
-                    nextRow(symbol: "arrow.clockwise", title: copy.text("review_mistakes"), subtitle: copy.text("mistakes_count", variables: ["count": "3"]), accent: ExamPalette.coral)
-                    nextRow(symbol: "sparkles", title: copy.text("ask_tutor"), subtitle: copy.text("explain_scan_practice"), accent: ExamPalette.purple)
+                    ForEach(Array(plan.filter { !$0.completed }.dropFirst().prefix(2))) { task in
+                        nextRow(
+                            symbol: task.type == "mistake_review"
+                                ? "arrow.clockwise"
+                                : task.type == "mixed_set"
+                                ? "checklist"
+                                : "book.fill",
+                            title: task.title,
+                            subtitle: "\(task.estimatedMinutes) min",
+                            accent: task.type == "mistake_review"
+                                ? ExamPalette.coral
+                                : task.type == "mixed_set"
+                                ? ExamPalette.purple
+                                : ExamPalette.primary
+                        ) {
+                            openSession(type: "daily_plan")
+                        }
+                    }
+
+                    if ((try? LearningStore(context: modelContext).mistakes(examId: setup.exam.id, limit: 1)) ?? []).isEmpty == false {
+                        nextRow(
+                            symbol: "arrow.clockwise",
+                            title: copy.text("review_mistakes"),
+                            subtitle: "Error DNA needs attention",
+                            accent: ExamPalette.coral
+                        ) {
+                            toolRoute = .mistakes
+                        }
+                    }
+
+                    nextRow(
+                        symbol: "sparkles",
+                        title: copy.text("ask_tutor"),
+                        subtitle: copy.text("explain_scan_practice"),
+                        accent: ExamPalette.purple
+                    ) {
+                        selectedTab = .tutor
+                    }
                 }
-                .padding(.top, 10)
+                .padding(.top, 9)
                 .padding(.bottom, 20)
             }
             .padding(.horizontal, 20)
@@ -158,79 +456,32 @@ struct TodayView: View {
         }
     }
 
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Image(systemName: "books.vertical.fill")
-                    .foregroundStyle(.white)
-                    .frame(width: 42, height: 42)
-                    .background(.white.opacity(0.16))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                Spacer()
-                Text("+80 XP")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(.white.opacity(0.16))
-                    .clipShape(Capsule())
-            }
-
-            Text(copy.text("core_practice"))
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.top, 24)
-            Text(setup.exam.title)
-                .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.82))
-                .padding(.top, 2)
-
-            Label("14 min", systemImage: "clock.fill")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
-                .padding(.top, 18)
-
-            Button {
-                quickPracticeOpen = true
-            } label: {
-                Text(copy.text("continue"))
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(ExamPalette.primary)
+    private var bottomBar: some View {
+        HStack {
+            ForEach(ExamTab.allCases, id: \.self) { tab in
+                Button {
+                    selectedTab = tab
+                } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: tab.symbol)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(selectedTab == tab ? ExamPalette.primary : ExamPalette.textSecondary)
+                        Text(tabLabel(tab))
+                            .font(.system(size: 10, weight: selectedTab == tab ? .bold : .medium))
+                            .foregroundStyle(selectedTab == tab ? ExamPalette.primary : ExamPalette.textSecondary)
+                    }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .padding(.vertical, 8)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-            .padding(.top, 18)
         }
-        .padding(20)
-        .background(
-            LinearGradient(
-                colors: [ExamPalette.primary, ExamPalette.indigo],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-    }
-
-    private func nextRow(symbol: String, title: String, subtitle: String, accent: Color) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .foregroundStyle(accent)
-                .frame(width: 40, height: 40)
-                .background(accent.opacity(0.10))
-                .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 15, weight: .semibold))
-                Text(subtitle).font(.system(size: 11)).foregroundStyle(ExamPalette.textSecondary)
-            }
-            Spacer()
-            Image(systemName: "chevron.right").foregroundStyle(ExamPalette.textSecondary)
+        .padding(.horizontal, 8)
+        .padding(.bottom, 4)
+        .background(ExamPalette.surface)
+        .overlay(alignment: .top) {
+            Divider().foregroundStyle(ExamPalette.border)
         }
-        .padding(13)
-        .examCard(radius: 17)
     }
 
     private func tabLabel(_ tab: ExamTab) -> String {
@@ -242,32 +493,143 @@ struct TodayView: View {
         }
     }
 
-    private var bottomBar: some View {
-        HStack {
-            ForEach(ExamTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                        selectedTab = tab
+    private func nextRow(
+        symbol: String,
+        title: String,
+        subtitle: String,
+        accent: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: symbol)
+                    .foregroundStyle(accent)
+                    .frame(width: 40, height: 40)
+                    .background(accent.opacity(0.10))
+                    .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(ExamPalette.textPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(ExamPalette.textSecondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(ExamPalette.textSecondary)
+            }
+            .padding(13)
+            .examCard(radius: 17)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func openSession(
+        type: String,
+        questions: [StudyQuestion]? = nil
+    ) {
+        sessionType = type
+        sessionQuestions = questions
+        sessionOpen = true
+    }
+
+    @MainActor
+    private func loadDashboard() {
+        let store = LearningStore(context: modelContext)
+        progress = (try? store.progressSummary(examId: setup.exam.id)) ?? progress
+        userProgress = UserProgressStore().snapshot()
+
+        let key = Self.dayKey
+        var currentPlan = (try? store.plan(dayKey: key)) ?? []
+
+        if currentPlan.isEmpty {
+            var generated = DailyPlanEngine().build(
+                weakSkills: (try? store.weakSkills(examId: setup.exam.id)) ?? [],
+                dueSkills: (try? store.dueSkills(examId: setup.exam.id)) ?? [],
+                errorDNA: (try? store.errorDNA(examId: setup.exam.id)) ?? [],
+                dailyMinutes: setup.dailyMinutes
+            )
+
+            if progress.sessions == 0,
+               let pack = ContentPackRepository.load(packId: setup.exam.syllabusPackId),
+               !pack.units.isEmpty {
+                var remaining = setup.dailyMinutes
+                generated = Array(pack.units.prefix(3).enumerated()).map { index, unit in
+                    let minutes = min(unit.durationMinutes.map { min(max($0, 6), 15) } ?? 8, max(remaining, 6))
+                    remaining -= minutes
+                    return PlanTask(
+                        id: "seed_\(key)_\(index)",
+                        type: index == 0 ? "foundation" : "practice",
+                        skillId: setup.exam.id + ":" + unit.id,
+                        title: unit.title,
+                        estimatedMinutes: minutes,
+                        priority: 1.0 - Double(index) * 0.1
+                    )
+                }
+            }
+
+            try? store.savePlan(dayKey: key, tasks: generated)
+            currentPlan = (try? store.plan(dayKey: key)) ?? generated
+        }
+
+        plan = currentPlan
+    }
+
+    private static var dayKey: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date())
+    }
+}
+
+private struct LimitedOfferView: View {
+    let expiryEpochSeconds: Int64
+    let onTap: () -> Void
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let remaining = max(0, expiryEpochSeconds - Int64(context.date.timeIntervalSince1970))
+            if remaining > 0 {
+                let hours = remaining / 3600
+                let minutes = (remaining % 3600) / 60
+                let seconds = remaining % 60
+
+                Button(action: onTap) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "bolt.fill")
+                            .foregroundStyle(ExamPalette.purple)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Personal offer")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(ExamPalette.textPrimary)
+                            Text("Server-timed offer · no fake reset")
+                                .font(.system(size: 10))
+                                .foregroundStyle(ExamPalette.textSecondary)
+                        }
+
+                        Spacer()
+
+                        Text(String(format: "%02lld:%02lld:%02lld", hours, minutes, seconds))
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .foregroundStyle(ExamPalette.purple)
                     }
-                } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: tab.symbol)
-                            .font(.system(size: 20, weight: .semibold))
-                        Text(tabLabel(tab))
-                            .font(.system(size: 10, weight: selectedTab == tab ? .bold : .medium))
+                    .padding(13)
+                    .background(ExamPalette.softPurple)
+                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .stroke(ExamPalette.purple.opacity(0.25))
                     }
-                    .foregroundStyle(selectedTab == tab ? ExamPalette.primary : ExamPalette.textSecondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
                 }
                 .buttonStyle(.plain)
             }
-        }
-        .padding(.horizontal, 8)
-        .padding(.bottom, 2)
-        .background(ExamPalette.surface)
-        .overlay(alignment: .top) {
-            Rectangle().fill(ExamPalette.border).frame(height: 0.5)
         }
     }
 }
