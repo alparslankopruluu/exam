@@ -148,6 +148,13 @@ final class AIGatewayClient {
         )
     }
 
+    func transcribeAudio(storagePath: String) async throws -> String {
+        let data = try await call("transcribeAudio", payload: [
+            "storagePath": storagePath
+        ])
+        return data["text"] as? String ?? ""
+    }
+
     func synthesizeSpeech(text: String) async throws -> String {
         let data = try await call("synthesizeSpeech", payload: ["text": text])
         return data["storagePath"] as? String ?? ""
