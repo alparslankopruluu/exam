@@ -7,7 +7,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if let setup {
-                if onboardingPaywallSeen {
+                if onboardingPaywallSeen || !AppServices.shared.flags.snapshot.onboardingPaywallEnabled {
                     TodayView(setup: setup)
                         .transition(.opacity.combined(with: .scale(scale: 0.99)))
                 } else {
