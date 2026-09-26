@@ -23,7 +23,11 @@ import com.kprl.exam.data.StudySetup
 import com.kprl.exam.ui.theme.ExamColors
 
 @Composable
-fun PracticeScreen(setup: StudySetup, modifier: Modifier = Modifier) {
+fun PracticeScreen(
+    setup: StudySetup,
+    modifier: Modifier = Modifier,
+    onQuickPractice: () -> Unit = {}
+) {
     val context = LocalContext.current
     val pack = remember(setup.exam.syllabusPackId) {
         ContentPackRepository.load(context, setup.exam.syllabusPackId)
@@ -60,7 +64,7 @@ fun PracticeScreen(setup: StudySetup, modifier: Modifier = Modifier) {
             Text("A short adaptive set from what matters most right now.", color = Color.White.copy(alpha = .82f), fontSize = 13.sp)
             Spacer(Modifier.height(18.dp))
             Surface(
-                onClick = {},
+                onClick = onQuickPractice,
                 color = Color.White,
                 contentColor = ExamColors.Primary,
                 shape = RoundedCornerShape(16.dp)

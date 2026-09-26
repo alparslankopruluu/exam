@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PracticeView: View {
     let setup: StudySetup
+    var onQuickPractice: () -> Void = {}
 
     private var pack: ExamContentPack? {
         ContentPackRepository.load(packId: setup.exam.syllabusPackId)
@@ -39,7 +40,7 @@ struct PracticeView: View {
                         .foregroundStyle(.white.opacity(0.82))
                         .padding(.top, 3)
 
-                    Button {} label: {
+                    Button(action: onQuickPractice) {
                         Text("Start 5 questions")
                             .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(ExamPalette.primary)

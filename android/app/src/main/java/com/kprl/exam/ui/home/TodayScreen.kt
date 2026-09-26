@@ -23,6 +23,7 @@ import com.kprl.exam.ui.components.ExamStatPill
 import com.kprl.exam.ui.library.LibraryScreen
 import com.kprl.exam.ui.paywall.PremiumPaywallScreen
 import com.kprl.exam.ui.practice.PracticeScreen
+import com.kprl.exam.ui.question.QuestionSessionScreen
 import com.kprl.exam.ui.theme.ExamColors
 import com.kprl.exam.ui.tutor.AITutorScreen
 
@@ -32,14 +33,24 @@ private data class NavItem(val label: String, val icon: ImageVector)
 fun TodayScreen(setup: StudySetup) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var premiumPlacement by remember { mutableStateOf<String?>(null) }
+    var quickPracticeOpen by remember { mutableStateOf(false) }
 
-    if (premiumPlacement != null) {
-        PremiumPaywallScreen(
-            setup = setup,
-            placement = premiumPlacement!!,
-            onClose = { premiumPlacement = null }
-        )
-        return
+    when {
+        premiumPlacement != null -> {
+            PremiumPaywallScreen(
+                setup = setup,
+                placement = premiumPlacement!!,
+                onClose = { premiumPlacement = null }
+            )
+            return
+        }
+        quickPracticeOpen -> {
+            QuestionSessionScreen(
+                setup = setup,
+                onClose = { quickPracticeOpen = false }
+            )
+            return
+        }
     }
 
     val nav = listOf(
@@ -72,7 +83,11 @@ fun TodayScreen(setup: StudySetup) {
     ) { padding ->
         when (selectedTab) {
             0 -> TodayContent(setup, Modifier.padding(padding))
-            1 -> PracticeScreen(setup, Modifier.padding(padding))
+            1 -> PracticeScreen(
+                setup = setup,
+                modifier = Modifier.padding(padding),
+                onQuickPractice = { quickPracticeOpen = true }
+            )
             2 -> AITutorScreen(
                 setup = setup,
                 modifier = Modifier.padding(padding),
@@ -130,7 +145,7 @@ private fun TodayContent(setup: StudySetup, modifier: Modifier) {
             }
             Spacer(Modifier.height(18.dp))
             Button(
-                onClick = {},
+                onClick = { },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = ExamColors.Primary),
                 elevation = ButtonDefaults.buttonElevation(0.dp),
                 shape = RoundedCornerShape(16.dp),

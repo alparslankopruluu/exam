@@ -20,6 +20,7 @@ struct TodayView: View {
     let setup: StudySetup
     @State private var selectedTab: ExamTab = .today
     @State private var premiumPlacement: String?
+    @State private var quickPracticeOpen = false
 
     var body: some View {
         Group {
@@ -30,6 +31,15 @@ struct TodayView: View {
                     onClose: {
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
                             self.premiumPlacement = nil
+                        }
+                    }
+                )
+            } else if quickPracticeOpen {
+                QuestionSessionView(
+                    setup: setup,
+                    onClose: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                            quickPracticeOpen = false
                         }
                     }
                 )
@@ -47,7 +57,14 @@ struct TodayView: View {
                 case .today:
                     todayContent
                 case .practice:
-                    PracticeView(setup: setup)
+                    PracticeView(
+                        setup: setup,
+                        onQuickPractice: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) {
+                                quickPracticeOpen = true
+                            }
+                        }
+                    )
                 case .tutor:
                     AITutorView(
                         setup: setup,
@@ -149,7 +166,9 @@ struct TodayView: View {
                 .foregroundStyle(.white.opacity(0.9))
                 .padding(.top, 18)
 
-            Button {} label: {
+            Button {
+                quickPracticeOpen = true
+            } label: {
                 Text("Continue")
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(ExamPalette.primary)
