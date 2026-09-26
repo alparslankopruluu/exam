@@ -8,12 +8,31 @@ private struct OnboardingChoice {
 }
 
 struct OnboardingView: View {
-    let onComplete: () -> Void
+    let onComplete: (StudySetup) -> Void
 
     @State private var step = 0
+    @State private var countryIndex = ExamCatalog.suggestedCountryIndex
+    @State private var examIndex: Int?
     @State private var selected: [Int: Int] = [:]
 
-    private let totalSteps = 5
+    private let totalSteps = 6
+
+    private var country: CountryDefinition {
+        ExamCatalog.countries[countryIndex]
+    }
+
+    private var exams: [ExamDefinition] {
+        ExamCatalog.exams(for: country)
+    }
+
+    private var canContinue: Bool {
+        switch step {
+        case 0: true
+        case 1: examIndex != nil
+        case 2, 3, 4: selected[step] != nil
+        default: true
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,24 +41,22 @@ struct OnboardingView: View {
             Group {
                 switch step {
                 case 0:
-                    choiceStep(
-                        title: "What are you preparing for?",
-                        subtitle: "Choose your exam to get a study plan built around your real goal.",
-                        choices: examChoices
-                    )
+                    countryStep
                 case 1:
+                    examStep
+                case 2:
                     choiceStep(
                         title: "What's your goal?",
                         subtitle: "We'll tune pace, difficulty and your weekly plan.",
                         choices: goalChoices
                     )
-                case 2:
+                case 3:
                     choiceStep(
                         title: "How much time can you study daily?",
                         subtitle: "Choose something realistic. Consistency wins.",
                         choices: timeChoices
                     )
-                case 3:
+                case 4:
                     diagnosticStep
                 default:
                     planReadyStep
@@ -53,10 +70,16 @@ struct OnboardingView: View {
 
             ExamPrimaryButton(
                 title: step == totalSteps - 1 ? "Start my plan" : "Continue",
-                enabled: step == totalSteps - 1 || selected[step] != nil
+                enabled: canContinue
             ) {
-                if step == totalSteps - 1 {
-                    onComplete()
+                if step == totalSteps - 1, let examIndex {
+                    onComplete(
+                        StudySetup(
+                            country: country,
+                            exam: exams[examIndex],
+                            languageCode: ExamCatalog.languageCode
+                        )
+                    )
                 } else {
                     withAnimation(.spring(response: 0.45, dampingFraction: 0.9)) {
                         step += 1
@@ -100,18 +123,101 @@ struct OnboardingView: View {
         .padding(.top, 8)
     }
 
+    private var countryStep: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Where are you studying?")
+                    .font(.system(size: 30, weight: .bold))
+                    .padding(.top, 28)
+
+                Text("We use your region to suggest the right exams. You can still choose international exams anywhere.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .lineSpacing(3)
+                    .padding(.top, 8)
+
+                VStack(spacing: 9) {
+                    ForEach(Array(ExamCatalog.countries.enumerated()), id: \.element.id) { index, item in
+                        Button {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) {
+                                countryIndex = index
+                                examIndex = nil
+                            }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Text(item.flag).font(.system(size: 26)).frame(width: 42)
+                                Text(item.name)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(ExamPalette.textPrimary)
+                                Spacer()
+                                if countryIndex == index {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(ExamPalette.primary)
+                                }
+                            }
+                            .padding(14)
+                            .background(ExamPalette.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .stroke(countryIndex == index ? ExamPalette.primary : ExamPalette.border, lineWidth: countryIndex == index ? 1.5 : 1)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.top, 22)
+                .padding(.bottom, 24)
+            }
+            .padding(.horizontal, 20)
+        }
+        .frame(maxHeight: .infinity)
+    }
+
+    private var examStep: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Which exam are you preparing for?")
+                    .font(.system(size: 30, weight: .bold))
+                    .padding(.top, 28)
+
+                Text("\(country.flag) \(country.name) exams first, followed by international options.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .padding(.top, 8)
+
+                VStack(spacing: 9) {
+                    ForEach(Array(exams.enumerated()), id: \.element.id) { index, exam in
+                        ExamSelectionCard(
+                            title: exam.shortName,
+                            subtitle: exam.international ? "International · \(exam.title)" : exam.title,
+                            symbol: symbol(for: exam.category),
+                            accent: accent(for: exam.category),
+                            selected: examIndex == index
+                        ) {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) {
+                                examIndex = index
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 22)
+                .padding(.bottom, 24)
+            }
+            .padding(.horizontal, 20)
+        }
+        .frame(maxHeight: .infinity)
+    }
+
     private func choiceStep(title: String, subtitle: String, choices: [OnboardingChoice]) -> some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(title)
                     .font(.system(size: 30, weight: .bold))
-                    .foregroundStyle(ExamPalette.textPrimary)
                     .padding(.top, 28)
-
                 Text(subtitle)
                     .font(.system(size: 15))
                     .foregroundStyle(ExamPalette.textSecondary)
-                    .lineSpacing(3)
                     .padding(.top, 8)
 
                 VStack(spacing: 10) {
@@ -143,13 +249,13 @@ struct OnboardingView: View {
                 Text("Let's find your starting point.")
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 28)
-                Text("A quick sample helps us start at the right difficulty.")
+                Text("This sample will be replaced by an exam-specific diagnostic blueprint.")
                     .font(.system(size: 15))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 8)
 
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("DIAGNOSTIC · 1 / 5")
+                    Text("DIAGNOSTIC · SAMPLE")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(ExamPalette.primary)
                     Text("f(x) = 2x + 4")
@@ -189,12 +295,6 @@ struct OnboardingView: View {
                         }
                         .buttonStyle(.plain)
                     }
-
-                    if let answer = selected[step] {
-                        Text(answer == 1 ? "Nice. You isolated x correctly." : "Almost. Subtract 4 first, then divide by 2.")
-                            .font(.system(size: 13))
-                            .foregroundStyle(ExamPalette.textSecondary)
-                    }
                 }
                 .padding(20)
                 .examCard(radius: 22)
@@ -207,21 +307,23 @@ struct OnboardingView: View {
     }
 
     private var planReadyStep: some View {
-        ScrollView(showsIndicators: false) {
+        let exam = exams[examIndex ?? 0]
+
+        return ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Your first week is ready.")
+                Text("Your \(exam.shortName) week is ready.")
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 28)
-                Text("A focused plan that adapts as you answer, review and improve.")
+                Text("The plan uses the \(exam.syllabusPackId) content pack and adapts as you improve.")
                     .font(.system(size: 15))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 8)
 
                 VStack(spacing: 15) {
-                    planRow("MON", "Functions", "Learn + Practice", "12 min", ExamPalette.primary)
-                    planRow("TUE", "Geometry", "Key concepts", "17 min", ExamPalette.mint)
+                    planRow("MON", "Core concept", "Learn + Practice", "12 min", ExamPalette.primary)
+                    planRow("TUE", "Targeted practice", "Exam-style questions", "17 min", ExamPalette.mint)
                     planRow("WED", "Review", "Mistake session", "14 min", ExamPalette.amber)
-                    planRow("THU", "Mini mock", "Mixed questions", "20 min", ExamPalette.purple)
+                    planRow("THU", "Mini mock", "Exam blueprint", "20 min", ExamPalette.purple)
                 }
                 .padding(18)
                 .examCard(radius: 24)
@@ -250,21 +352,31 @@ struct OnboardingView: View {
         }
     }
 
-    private var examChoices: [OnboardingChoice] {
-        [
-            .init(title: "University entrance", subtitle: "YKS · DGS · ALES · SAT", symbol: "graduationcap.fill", accent: ExamPalette.primary),
-            .init(title: "Language exam", subtitle: "IELTS · TOEFL · Cambridge", symbol: "globe", accent: ExamPalette.mint),
-            .init(title: "School exams", subtitle: "Middle school · High school", symbol: "books.vertical.fill", accent: ExamPalette.amber),
-            .init(title: "Professional exams", subtitle: "KPSS · certification", symbol: "briefcase.fill", accent: ExamPalette.purple),
-            .init(title: "Something else", subtitle: "Build a custom plan", symbol: "sparkles", accent: ExamPalette.indigo)
-        ]
+    private func symbol(for category: ExamCategory) -> String {
+        switch category {
+        case .university: "graduationcap.fill"
+        case .school: "books.vertical.fill"
+        case .language: "globe"
+        case .professional: "briefcase.fill"
+        case .international: "sparkles"
+        }
+    }
+
+    private func accent(for category: ExamCategory) -> Color {
+        switch category {
+        case .university: ExamPalette.primary
+        case .school: ExamPalette.amber
+        case .language: ExamPalette.mint
+        case .professional: ExamPalette.purple
+        case .international: ExamPalette.indigo
+        }
     }
 
     private var goalChoices: [OnboardingChoice] {
         [
-            .init(title: "Top 1K", subtitle: "Aim for the highest score", symbol: "trophy.fill", accent: ExamPalette.amber),
-            .init(title: "Top 10K", subtitle: "Strong university options", symbol: "chart.line.uptrend.xyaxis", accent: ExamPalette.primary),
-            .init(title: "Top 50K", subtitle: "Build a reliable score", symbol: "scope", accent: ExamPalette.mint),
+            .init(title: "Highest possible score", subtitle: "Push for the top range", symbol: "trophy.fill", accent: ExamPalette.amber),
+            .init(title: "Strong target score", subtitle: "Build competitive options", symbol: "chart.line.uptrend.xyaxis", accent: ExamPalette.primary),
+            .init(title: "Improve significantly", subtitle: "Raise your current level", symbol: "scope", accent: ExamPalette.mint),
             .init(title: "Pass comfortably", subtitle: "Study with less stress", symbol: "checkmark.circle.fill", accent: ExamPalette.purple),
             .init(title: "I don't know yet", subtitle: "We'll help you decide", symbol: "safari.fill", accent: ExamPalette.indigo)
         ]

@@ -17,6 +17,7 @@ private enum ExamTab: String, CaseIterable, Hashable {
 }
 
 struct TodayView: View {
+    let setup: StudySetup
     @State private var selectedTab: ExamTab = .today
 
     var body: some View {
@@ -56,12 +57,12 @@ struct TodayView: View {
 
                 HStack(spacing: 9) {
                     ExamStatPill(value: "7", label: "day streak", symbol: "flame.fill", accent: ExamPalette.amber)
-                    ExamStatPill(value: "238", label: "days to YKS", symbol: "calendar", accent: ExamPalette.mint)
+                    ExamStatPill(value: setup.exam.shortName, label: "active exam", symbol: "graduationcap.fill", accent: ExamPalette.mint)
                     ExamStatPill(value: "61", label: "mastery", symbol: "chart.xyaxis.line", accent: ExamPalette.purple)
                 }
                 .padding(.top, 20)
 
-                Text("TODAY'S PLAN")
+                Text("TODAY'S \(setup.exam.shortName.uppercased()) PLAN")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 24)
@@ -73,7 +74,7 @@ struct TodayView: View {
                     .padding(.top, 24)
 
                 VStack(spacing: 8) {
-                    nextRow(symbol: "triangle.fill", title: "Geometry questions", subtitle: "5 questions", accent: ExamPalette.purple)
+                    nextRow(symbol: "checklist", title: "Exam-style questions", subtitle: "5 questions", accent: ExamPalette.purple)
                     nextRow(symbol: "arrow.clockwise", title: "Review mistakes", subtitle: "3 mistakes", accent: ExamPalette.coral)
                     nextRow(symbol: "sparkles", title: "Ask your tutor", subtitle: "Explain, scan or practice anything", accent: ExamPalette.purple)
                 }
@@ -88,7 +89,7 @@ struct TodayView: View {
     private var hero: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Image(systemName: "function")
+                Image(systemName: "books.vertical.fill")
                     .foregroundStyle(.white)
                     .frame(width: 42, height: 42)
                     .background(.white.opacity(0.16))
@@ -103,11 +104,11 @@ struct TodayView: View {
                     .clipShape(Capsule())
             }
 
-            Text("Functions")
+            Text("Core practice")
                 .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(.white)
                 .padding(.top, 24)
-            Text("Learn + Practice")
+            Text(setup.exam.title)
                 .font(.system(size: 14))
                 .foregroundStyle(.white.opacity(0.82))
                 .padding(.top, 2)
