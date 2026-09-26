@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldPath, FieldValue, getFirestore, QueryDocumentSnapshot, WriteResult } from "firebase-admin/firestore";
 import { getMessaging, Message } from "firebase-admin/messaging";
 import { onCall } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
@@ -56,7 +56,7 @@ function currentUtcQuarter(): number {
   return now.getUTCHours() * 4 + Math.floor(now.getUTCMinutes() / 15);
 }
 
-function messageFor(doc: FirebaseFirestore.QueryDocumentSnapshot): Message {
+function messageFor(doc: QueryDocumentSnapshot): Message {
   const data = doc.data();
   const lang = String(data.language ?? "en").split("-")[0].toLowerCase();
   const localized = copy[lang] ?? copy.en;
@@ -106,12 +106,12 @@ export const sendStudyReminders = onSchedule(
   },
   async () => {
     const bucket = currentUtcQuarter();
-    let last: FirebaseFirestore.QueryDocumentSnapshot | undefined;
+    let last: QueryDocumentSnapshot | undefined;
 
     while (true) {
       let query = db.collection("pushTokens")
         .where("reminderBucket", "==", bucket)
-        .orderBy(FieldValue.documentId())
+        .orderBy(FieldPath.documentId())
         .limit(500);
 
       if (last) query = query.startAfter(last);
@@ -125,7 +125,7 @@ export const sendStudyReminders = onSchedule(
       if (messages.length > 0) {
         const response = await getMessaging().sendEach(messages);
 
-        const deletes: Promise<FirebaseFirestore.WriteResult>[] = [];
+        const deletes: Promise<WriteResult>[] = [];
         response.responses.forEach((result, index) => {
           if (result.success) return;
           const code = result.error?.code ?? "";
