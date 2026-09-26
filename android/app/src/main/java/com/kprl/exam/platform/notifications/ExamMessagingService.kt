@@ -17,6 +17,7 @@ import java.net.URL
 class ExamMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         AppServices.analytics.event("push_token_refreshed")
+        PushTokenRegistrar.register(this, token)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
