@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.localization.LocalizedCopy
+import com.kprl.exam.platform.entitlements.EntitlementService
+import com.kprl.exam.platform.entitlements.EntitlementSnapshot
 import com.kprl.exam.ui.components.ExamStatPill
 import com.kprl.exam.ui.library.LibraryScreen
 import com.kprl.exam.ui.paywall.PremiumPaywallScreen
@@ -28,6 +30,7 @@ import com.kprl.exam.ui.practice.PracticeScreen
 import com.kprl.exam.ui.question.QuestionSessionScreen
 import com.kprl.exam.ui.theme.ExamColors
 import com.kprl.exam.ui.tutor.AITutorScreen
+import com.kprl.exam.ui.voice.VoiceTutorScreen
 
 private data class NavItem(val label: String, val icon: ImageVector)
 
@@ -36,8 +39,17 @@ fun TodayScreen(setup: StudySetup) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var premiumPlacement by remember { mutableStateOf<String?>(null) }
     var quickPracticeOpen by remember { mutableStateOf(false) }
+    var voiceTutorOpen by remember { mutableStateOf(false) }
+    var entitlement by remember { mutableStateOf(EntitlementSnapshot()) }
+    val entitlementService = remember { EntitlementService() }
     val context = LocalContext.current
     val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
+
+    LaunchedEffect(premiumPlacement) {
+        if (premiumPlacement == null) {
+            entitlementService.fetch { entitlement = it }
+        }
+    }
 
     when {
         premiumPlacement != null -> {
@@ -52,6 +64,13 @@ fun TodayScreen(setup: StudySetup) {
             QuestionSessionScreen(
                 setup = setup,
                 onClose = { quickPracticeOpen = false }
+            )
+            return
+        }
+        voiceTutorOpen -> {
+            VoiceTutorScreen(
+                setup = setup,
+                onClose = { voiceTutorOpen = false }
             )
             return
         }
@@ -95,7 +114,10 @@ fun TodayScreen(setup: StudySetup) {
             2 -> AITutorScreen(
                 setup = setup,
                 modifier = Modifier.padding(padding),
-                onVoiceTutor = { premiumPlacement = "voice_tutor" }
+                onVoiceTutor = {
+                    if (entitlement.premium) voiceTutorOpen = true
+                    else premiumPlacement = "voice_tutor"
+                }
             )
             else -> LibraryScreen(Modifier.padding(padding))
         }
