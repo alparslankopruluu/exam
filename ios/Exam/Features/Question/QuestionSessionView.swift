@@ -8,6 +8,7 @@ struct QuestionSessionView: View {
     var sessionType: String = "quick_practice"
     var onSessionCompleted: (() -> Void)? = nil
     var onPaywall: (String) -> Void = { _ in }
+    var timeLimitSeconds: Int? = nil
 
     @Environment(\.modelContext) private var modelContext
     @State private var sessionStartedAt = Date()
@@ -20,6 +21,7 @@ struct QuestionSessionView: View {
     @State private var simplerExplanation: String?
     @State private var tutorAnswer: String?
     @State private var helperLoading = false
+    @State private var remainingSeconds = 0
 
     private var questions: [StudyQuestion] {
         if let questionsOverride, !questionsOverride.isEmpty {
@@ -29,10 +31,25 @@ struct QuestionSessionView: View {
     }
 
     var body: some View {
-        if completed {
-            completeView
-        } else {
-            questionView
+        Group {
+            if completed {
+                completeView
+            } else {
+                questionView
+            }
+        }
+        .task(id: timeLimitSeconds) {
+            guard let limit = timeLimitSeconds, !completed else { return }
+            if remainingSeconds <= 0 {
+                remainingSeconds = limit
+            }
+            while remainingSeconds > 0 && !completed {
+                try? await Task.sleep(for: .seconds(1))
+                if !completed { remainingSeconds -= 1 }
+            }
+            if remainingSeconds <= 0 && !completed {
+                finishSession()
+            }
         }
     }
 
@@ -58,6 +75,12 @@ struct QuestionSessionView: View {
                     }
                 }
                 .frame(height: 6)
+
+                if timeLimitSeconds != nil {
+                    Text(String(format: "%02d:%02d", remainingSeconds / 60, remainingSeconds % 60))
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundStyle(remainingSeconds <= 60 ? ExamPalette.coral : ExamPalette.textSecondary)
+                }
 
                 Text("\(index + 1)/\(questions.count)")
                     .font(.system(size: 12, weight: .semibold))
@@ -93,24 +116,7 @@ struct QuestionSessionView: View {
             if selected != nil {
                 Button {
                     if index == questions.count - 1 {
-                        let completedAt = Date()
-                        try? LearningStore(context: modelContext).saveSession(
-                            examId: setup.exam.id,
-                            sessionType: sessionType,
-                            startedAt: sessionStartedAt,
-                            completedAt: completedAt,
-                            correctCount: correctCount,
-                            totalCount: questions.count
-                        )
-                        let before = UserProgressStore().snapshot()
-                        let after = UserProgressStore().recordSession(
-                            correct: correctCount,
-                            total: questions.count,
-                            durationSeconds: max(0, Int(completedAt.timeIntervalSince(sessionStartedAt)))
-                        )
-                        earnedXP = max(0, after.xp - before.xp)
-                        onSessionCompleted?()
-                        completed = true
+                        finishSession()
                     } else {
                         index += 1
                         selected = nil
@@ -134,6 +140,29 @@ struct QuestionSessionView: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 12)
         .background(ExamPalette.background.ignoresSafeArea())
+    }
+
+    @MainActor
+    private func finishSession() {
+        guard !completed else { return }
+        let completedAt = Date()
+        try? LearningStore(context: modelContext).saveSession(
+            examId: setup.exam.id,
+            sessionType: sessionType,
+            startedAt: sessionStartedAt,
+            completedAt: completedAt,
+            correctCount: correctCount,
+            totalCount: questions.count
+        )
+        let before = UserProgressStore().snapshot()
+        let after = UserProgressStore().recordSession(
+            correct: correctCount,
+            total: questions.count,
+            durationSeconds: max(0, Int(completedAt.timeIntervalSince(sessionStartedAt)))
+        )
+        earnedXP = max(0, after.xp - before.xp)
+        onSessionCompleted?()
+        completed = true
     }
 
     private var progress: CGFloat {
