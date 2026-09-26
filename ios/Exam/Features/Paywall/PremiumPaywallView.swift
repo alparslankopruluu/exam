@@ -3,11 +3,12 @@ import SwiftUI
 struct PremiumPaywallView: View {
     let setup: StudySetup
     let placement: String
-    var offer: StoreOfferPresentation = .placeholder
     let onClose: () -> Void
-    var onPurchase: (String) -> Void = { _ in }
 
+    @State private var offer: StoreOfferPresentation = .placeholder
     @State private var annualSelected = true
+    @State private var purchasing = false
+    @State private var purchaseError: String?
 
     private var selectedPlan: StorePlanPresentation {
         annualSelected ? offer.annual : offer.monthly
@@ -80,9 +81,23 @@ struct PremiumPaywallView: View {
             }
 
             Button {
-                onPurchase(selectedPlan.productId)
+                Task { @MainActor in
+                    purchasing = true
+                    purchaseError = nil
+                    let success = await StoreKitBillingService.shared.purchase(productId: selectedPlan.productId)
+                    purchasing = false
+                    if success {
+                        onClose()
+                    } else {
+                        purchaseError = "Purchase was not completed."
+                    }
+                }
             } label: {
-                Text(selectedPlan.localizedPrice.map { "Continue · \($0)" } ?? "Loading local price…")
+                Text(
+                    purchasing
+                    ? "Processing…"
+                    : selectedPlan.localizedPrice.map { "Continue · \($0)" } ?? "Loading local price…"
+                )
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -91,7 +106,14 @@ struct PremiumPaywallView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
             .buttonStyle(.plain)
-            .disabled(selectedPlan.localizedPrice == nil)
+            .disabled(selectedPlan.localizedPrice == nil || purchasing)
+
+            if let purchaseError {
+                Text(purchaseError)
+                    .font(.system(size: 11))
+                    .foregroundStyle(ExamPalette.coral)
+                    .padding(.top, 7)
+            }
 
             Text("Price, trial eligibility and renewal terms come directly from the App Store for your account and region.")
                 .font(.system(size: 10))
@@ -102,6 +124,9 @@ struct PremiumPaywallView: View {
         }
         .padding(.horizontal, 20)
         .background(ExamPalette.background.ignoresSafeArea())
+        .task {
+            offer = await StoreKitBillingService.shared.loadOffer()
+        }
     }
 
     private var headline: String {
