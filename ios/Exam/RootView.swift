@@ -8,8 +8,19 @@ struct RootView: View {
         Group {
             if let setup {
                 if onboardingPaywallSeen || !AppServices.shared.flags.snapshot.onboardingPaywallEnabled {
-                    TodayView(setup: setup)
-                        .transition(.opacity.combined(with: .scale(scale: 0.99)))
+                    TodayView(
+                        setup: setup,
+                        onSetupChanged: { updated in
+                            StudySetupStore.save(updated)
+                            self.setup = updated
+                        },
+                        onRestartOnboarding: {
+                            StudySetupStore.clear()
+                            self.setup = nil
+                            onboardingPaywallSeen = false
+                        }
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.99)))
                 } else {
                     PremiumPaywallView(
                         setup: setup,

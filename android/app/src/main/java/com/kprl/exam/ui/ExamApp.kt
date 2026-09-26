@@ -35,7 +35,18 @@ fun ExamApp() {
                 )
             }
 
-            else -> TodayScreen(setup = setup!!)
+            else -> TodayScreen(
+                setup = setup!!,
+                onSetupChanged = { updated ->
+                    setupStore.save(updated)
+                    setup = updated
+                },
+                onRestartOnboarding = {
+                    setupStore.clear()
+                    setup = null
+                    onboardingPaywallSeen = false
+                }
+            )
         }
     }
 }
