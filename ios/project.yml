@@ -45,6 +45,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: exam
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Voice Tutor uses the microphone only while you are asking a spoken study question."
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0
 
