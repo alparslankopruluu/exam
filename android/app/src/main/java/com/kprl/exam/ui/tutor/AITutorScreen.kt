@@ -34,7 +34,8 @@ fun AITutorScreen(
     setup: StudySetup,
     modifier: Modifier = Modifier,
     onVoiceTutor: () -> Unit = {},
-    onStudyNotes: () -> Unit = {}
+    onStudyNotes: () -> Unit = {},
+    onMediaLab: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val gateway = remember { AIGatewayClient() }
@@ -154,6 +155,15 @@ fun AITutorScreen(
             "Ask questions from indexed Library materials",
             ExamColors.Mint,
             onStudyNotes
+        )
+
+        Spacer(Modifier.height(9.dp))
+        TutorAction(
+            Icons.Rounded.Image,
+            "Visual explanation",
+            "Generate a study image or video with credits",
+            ExamColors.Primary,
+            onMediaLab
         )
 
         Spacer(Modifier.height(9.dp))
