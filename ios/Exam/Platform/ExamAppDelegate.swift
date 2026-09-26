@@ -1,7 +1,8 @@
 import UIKit
-import UserNotifications
-import FirebaseMessaging
+@preconcurrency import UserNotifications
+@preconcurrency import FirebaseMessaging
 
+@MainActor
 final class ExamAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func application(
         _ application: UIApplication,
