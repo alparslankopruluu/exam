@@ -94,6 +94,10 @@ struct TodayView: View {
                             }
                         }
                         dashboardRefresh += 1
+                    },
+                    onPaywall: { placement in
+                        sessionOpen = false
+                        premiumPlacement = placement
                     }
                 )
             } else if voiceTutorOpen {
@@ -253,6 +257,9 @@ struct TodayView: View {
                         },
                         onMediaLab: {
                             toolRoute = .media
+                        },
+                        onPaywall: { placement in
+                            premiumPlacement = placement
                         }
                     )
 
@@ -261,6 +268,9 @@ struct TodayView: View {
                         setup: setup,
                         onStartPractice: { questions in
                             openSession(type: "material_practice", questions: questions)
+                        },
+                        onPaywall: { placement in
+                            premiumPlacement = placement
                         }
                     )
                 }
