@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 final class AppServices {
     static let shared = AppServices()
 
