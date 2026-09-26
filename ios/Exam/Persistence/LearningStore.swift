@@ -25,6 +25,7 @@ struct PlanTask: Identifiable, Hashable {
     let title: String
     let estimatedMinutes: Int
     let priority: Double
+    let completed: Bool
 
     init(
         id: String = UUID().uuidString,
@@ -32,7 +33,8 @@ struct PlanTask: Identifiable, Hashable {
         skillId: String?,
         title: String,
         estimatedMinutes: Int,
-        priority: Double
+        priority: Double,
+        completed: Bool = false
     ) {
         self.id = id
         self.type = type
@@ -40,7 +42,26 @@ struct PlanTask: Identifiable, Hashable {
         self.title = title
         self.estimatedMinutes = estimatedMinutes
         self.priority = priority
+        self.completed = completed
     }
+}
+
+struct MistakeDetail: Identifiable, Hashable {
+    let id: String
+    let questionId: String
+    let skillId: String
+    let errorType: String
+    let selectedAnswer: String?
+    let correctAnswer: String?
+    let createdAt: Date
+}
+
+struct StudyProgressSummary: Hashable {
+    let masteryPercent: Int
+    let sessions: Int
+    let questions: Int
+    let correct: Int
+    let studyMinutes: Int
 }
 
 @MainActor
@@ -164,6 +185,79 @@ final class LearningStore {
             )
         )
         try context.save()
+    }
+
+    func mistakes(examId: String, limit: Int = 100) throws -> [MistakeDetail] {
+        try context.fetch(FetchDescriptor<MistakeRecord>())
+            .filter { $0.examId == examId && !$0.resolved }
+            .sorted { $0.createdAt > $1.createdAt }
+            .prefix(limit)
+            .map {
+                MistakeDetail(
+                    id: $0.id,
+                    questionId: $0.questionId,
+                    skillId: $0.skillId,
+                    errorType: $0.errorType,
+                    selectedAnswer: $0.selectedAnswer,
+                    correctAnswer: $0.correctAnswer,
+                    createdAt: $0.createdAt
+                )
+            }
+    }
+
+    func resolveMistake(id: String) throws {
+        let rows = try context.fetch(FetchDescriptor<MistakeRecord>())
+        if let row = rows.first(where: { $0.id == id }) {
+            row.resolved = true
+            try context.save()
+        }
+    }
+
+    func progressSummary(examId: String) throws -> StudyProgressSummary {
+        let masteryRows = try context.fetch(FetchDescriptor<MasteryRecord>())
+            .filter { $0.examId == examId }
+        let mastery = masteryRows.isEmpty
+            ? 0
+            : Int((masteryRows.map(\.score).reduce(0, +) / Double(masteryRows.count)) * 100)
+
+        let sessions = try context.fetch(FetchDescriptor<StudySessionRecord>())
+            .filter { $0.examId == examId }
+
+        return StudyProgressSummary(
+            masteryPercent: min(max(mastery, 0), 100),
+            sessions: sessions.count,
+            questions: sessions.map(\.totalCount).reduce(0, +),
+            correct: sessions.map(\.correctCount).reduce(0, +),
+            studyMinutes: sessions.map(\.durationSeconds).reduce(0, +) / 60
+        )
+    }
+
+    func plan(dayKey: String) throws -> [PlanTask] {
+        try context.fetch(FetchDescriptor<DailyPlanRecord>())
+            .filter { $0.dayKey == dayKey }
+            .sorted {
+                if $0.completed != $1.completed { return !$0.completed }
+                return $0.priority > $1.priority
+            }
+            .map {
+                PlanTask(
+                    id: $0.id,
+                    type: $0.taskType,
+                    skillId: $0.skillId,
+                    title: $0.title,
+                    estimatedMinutes: $0.estimatedMinutes,
+                    priority: $0.priority,
+                    completed: $0.completed
+                )
+            }
+    }
+
+    func markPlanCompleted(id: String) throws {
+        let rows = try context.fetch(FetchDescriptor<DailyPlanRecord>())
+        if let row = rows.first(where: { $0.id == id }) {
+            row.completed = true
+            try context.save()
+        }
     }
 
     func savePlan(dayKey: String, tasks: [PlanTask]) throws {

@@ -27,7 +27,26 @@ data class PlanTask(
     val skillId: String?,
     val title: String,
     val estimatedMinutes: Int,
-    val priority: Double
+    val priority: Double,
+    val completed: Boolean = false
+)
+
+data class MistakeDetail(
+    val id: String,
+    val questionId: String,
+    val skillId: String,
+    val errorType: String,
+    val selectedAnswer: String?,
+    val correctAnswer: String?,
+    val createdAt: Long
+)
+
+data class StudyProgressSummary(
+    val masteryPercent: Int,
+    val sessions: Int,
+    val questions: Int,
+    val correct: Int,
+    val studyMinutes: Int
 )
 
 class LearningRepository(private val database: LearningDatabase) {
@@ -163,6 +182,111 @@ class LearningRepository(private val database: LearningDatabase) {
                 put("total_count", totalCount)
                 put("duration_seconds", ((completedAt - startedAt) / 1000L).coerceAtLeast(0L))
             }
+        )
+    }
+
+    fun mistakes(examId: String, limit: Int = 100): List<MistakeDetail> {
+        val result = mutableListOf<MistakeDetail>()
+        database.readableDatabase.query(
+            "mistakes",
+            null,
+            "exam_id = ? AND resolved = 0",
+            arrayOf(examId),
+            null,
+            null,
+            "created_at DESC",
+            limit.toString()
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                result += MistakeDetail(
+                    id = cursor.getString(cursor.getColumnIndexOrThrow("id")),
+                    questionId = cursor.getString(cursor.getColumnIndexOrThrow("question_id")),
+                    skillId = cursor.getString(cursor.getColumnIndexOrThrow("skill_id")),
+                    errorType = cursor.getString(cursor.getColumnIndexOrThrow("error_type")),
+                    selectedAnswer = cursor.getString(cursor.getColumnIndexOrThrow("selected_answer")),
+                    correctAnswer = cursor.getString(cursor.getColumnIndexOrThrow("correct_answer")),
+                    createdAt = cursor.getLong(cursor.getColumnIndexOrThrow("created_at"))
+                )
+            }
+        }
+        return result
+    }
+
+    fun resolveMistake(id: String) {
+        database.writableDatabase.update(
+            "mistakes",
+            ContentValues().apply { put("resolved", 1) },
+            "id = ?",
+            arrayOf(id)
+        )
+    }
+
+    fun progressSummary(examId: String): StudyProgressSummary {
+        val masteryValues = weakSkills(examId, limit = 500)
+        val mastery = if (masteryValues.isEmpty()) 0
+        else (masteryValues.map { it.score }.average() * 100).toInt().coerceIn(0, 100)
+
+        var sessions = 0
+        var questions = 0
+        var correct = 0
+        var seconds = 0L
+        database.readableDatabase.rawQuery(
+            """
+            SELECT COUNT(*), COALESCE(SUM(total_count),0), COALESCE(SUM(correct_count),0), COALESCE(SUM(duration_seconds),0)
+            FROM study_sessions
+            WHERE exam_id = ?
+            """.trimIndent(),
+            arrayOf(examId)
+        ).use { cursor ->
+            if (cursor.moveToFirst()) {
+                sessions = cursor.getInt(0)
+                questions = cursor.getInt(1)
+                correct = cursor.getInt(2)
+                seconds = cursor.getLong(3)
+            }
+        }
+
+        return StudyProgressSummary(
+            masteryPercent = mastery,
+            sessions = sessions,
+            questions = questions,
+            correct = correct,
+            studyMinutes = (seconds / 60L).toInt()
+        )
+    }
+
+    fun plan(dayKey: String): List<PlanTask> {
+        val result = mutableListOf<PlanTask>()
+        database.readableDatabase.query(
+            "daily_plan",
+            null,
+            "day_key = ?",
+            arrayOf(dayKey),
+            null,
+            null,
+            "completed ASC, priority DESC"
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                result += PlanTask(
+                    id = cursor.getString(cursor.getColumnIndexOrThrow("id")),
+                    type = cursor.getString(cursor.getColumnIndexOrThrow("task_type")),
+                    skillId = cursor.getString(cursor.getColumnIndexOrThrow("skill_id")),
+                    title = cursor.getString(cursor.getColumnIndexOrThrow("title")),
+                    estimatedMinutes = cursor.getInt(cursor.getColumnIndexOrThrow("estimated_minutes")),
+                    priority = cursor.getDouble(cursor.getColumnIndexOrThrow("priority")),
+                    completed = cursor.getInt(cursor.getColumnIndexOrThrow("completed")) == 1
+                )
+            }
+        }
+        return result
+    }
+
+    fun markPlanCompleted(id: String) {
+        database.writableDatabase.update(
+            "daily_plan",
+            ContentValues().apply { put("completed", 1) },
+            "id = ?",
+            arrayOf(id)
         )
     }
 
