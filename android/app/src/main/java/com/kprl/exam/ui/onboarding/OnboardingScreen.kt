@@ -24,6 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.*
+import com.kprl.exam.analytics.AnalyticsEvents
+import com.kprl.exam.analytics.AnalyticsParams
+import com.kprl.exam.platform.AppServices
 import com.kprl.exam.ui.components.ExamPrimaryButton
 import com.kprl.exam.ui.components.ExamSelectionCard
 import com.kprl.exam.ui.theme.ExamColors
@@ -40,6 +43,29 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
 
     val country = ExamCatalog.countries[countryIndex]
     val exams = ExamCatalog.examsFor(country)
+
+    LaunchedEffect(Unit) {
+        AppServices.analytics.event(AnalyticsEvents.ONBOARDING_STARTED)
+    }
+
+    LaunchedEffect(step) {
+        when (step) {
+            4 -> AppServices.analytics.event(
+                AnalyticsEvents.DIAGNOSTIC_STARTED,
+                mapOf(
+                    AnalyticsParams.COUNTRY_CODE to country.code,
+                    AnalyticsParams.EXAM_ID to exams.getOrNull(examIndex)?.id
+                )
+            )
+            5 -> AppServices.analytics.event(
+                AnalyticsEvents.DIAGNOSTIC_COMPLETED,
+                mapOf(
+                    AnalyticsParams.COUNTRY_CODE to country.code,
+                    AnalyticsParams.EXAM_ID to exams.getOrNull(examIndex)?.id
+                )
+            )
+        }
+    }
 
     fun canContinue(): Boolean = when (step) {
         0 -> true
@@ -85,9 +111,29 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
                 0 -> CountryStep(countryIndex) {
                     countryIndex = it
                     examIndex = -1
+                    AppServices.analytics.event(
+                        AnalyticsEvents.COUNTRY_SELECTED,
+                        mapOf(AnalyticsParams.COUNTRY_CODE to ExamCatalog.countries[it].code)
+                    )
                 }
-                1 -> ExamStep(country, exams, examIndex) { examIndex = it }
-                2 -> ChoiceStep("What's your goal?", "We'll tune pace, difficulty and your weekly plan.", goalChoices(), selected[current]) { selected[current] = it }
+                1 -> ExamStep(country, exams, examIndex) {
+                    examIndex = it
+                    AppServices.analytics.event(
+                        AnalyticsEvents.EXAM_SELECTED,
+                        mapOf(
+                            AnalyticsParams.COUNTRY_CODE to country.code,
+                            AnalyticsParams.EXAM_ID to exams[it].id,
+                            AnalyticsParams.CONTENT_PACK_ID to exams[it].syllabusPackId
+                        )
+                    )
+                }
+                2 -> ChoiceStep("What's your goal?", "We'll tune pace, difficulty and your weekly plan.", goalChoices(), selected[current]) {
+                    selected[current] = it
+                    AppServices.analytics.event(
+                        AnalyticsEvents.GOAL_SELECTED,
+                        mapOf("goal_index" to it)
+                    )
+                }
                 3 -> ChoiceStep("How much time can you study daily?", "Choose something realistic. Consistency wins.", timeChoices(), selected[current]) { selected[current] = it }
                 4 -> DiagnosticStep(selected[current]) { selected[current] = it }
                 else -> PlanReadyStep(exams[examIndex])
@@ -99,6 +145,17 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
             enabled = canContinue()
         ) {
             if (step == total - 1) {
+                AppServices.analytics.event(
+                    AnalyticsEvents.PLAN_GENERATED,
+                    mapOf(
+                        AnalyticsParams.COUNTRY_CODE to country.code,
+                        AnalyticsParams.EXAM_ID to exams[examIndex].id,
+                        AnalyticsParams.CONTENT_PACK_ID to exams[examIndex].syllabusPackId,
+                        AnalyticsParams.LANGUAGE_CODE to ExamCatalog.languageCode()
+                    )
+                )
+                AppServices.analytics.userProperty("exam_id", exams[examIndex].id)
+                AppServices.analytics.userProperty("country_code", country.code)
                 onComplete(
                     StudySetup(
                         country = country,
