@@ -5,6 +5,7 @@ struct AITutorView: View {
     let setup: StudySetup
     var onVoiceTutor: () -> Void = {}
     var onStudyNotes: () -> Void = {}
+    var onMediaLab: () -> Void = {}
 
     @State private var prompt = ""
     @State private var answer: String?
@@ -64,6 +65,14 @@ struct AITutorView: View {
                             "Ask questions from indexed Library materials",
                             ExamPalette.mint,
                             action: onStudyNotes
+                        )
+
+                        tutorRow(
+                            "photo.on.rectangle.angled",
+                            "Visual explanation",
+                            "Generate a study image or video with credits",
+                            ExamPalette.primary,
+                            action: onMediaLab
                         )
 
                         tutorRow(
