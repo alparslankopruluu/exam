@@ -11,7 +11,6 @@ final class ExamAppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UN
         AppServices.shared.configure()
         UNUserNotificationCenter.current().delegate = self
         Messaging.messaging().delegate = self
-        PushNotifications.shared.requestAuthorizationAndRegister()
         return true
     }
 
