@@ -3,9 +3,16 @@ options:
   bundleIdPrefix: com.kprl
   deploymentTarget:
     iOS: "18.0"
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    from: 12.19.2
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
+
 targets:
   Exam:
     type: application
@@ -14,6 +21,23 @@ targets:
       - Exam
     resources:
       - path: ../content
+    dependencies:
+      - package: Firebase
+        product: FirebaseAnalytics
+      - package: Firebase
+        product: FirebaseCrashlytics
+      - package: Firebase
+        product: FirebaseRemoteConfig
+      - package: Firebase
+        product: FirebaseMessaging
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFunctions
+      - package: Firebase
+        product: FirebaseStorage
+      - package: Firebase
+        product: FirebaseFirestore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam
@@ -23,3 +47,18 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0
+
+  ExamNotificationService:
+    type: app-extension
+    platform: iOS
+    sources:
+      - ExamNotificationService
+    dependencies:
+      - package: Firebase
+        product: FirebaseMessaging
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam.NotificationService
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: ExamNotificationService/Info.plist
+        SKIP_INSTALL: YES
