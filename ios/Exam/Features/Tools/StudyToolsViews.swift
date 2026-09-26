@@ -685,6 +685,9 @@ struct ProfileSettingsView: View {
     let onRestartOnboarding: () -> Void
 
     @State private var reminderHour = UserProgressStore().snapshot().reminderHour
+    @State private var confirmDelete = false
+    @State private var deletingAccount = false
+    @State private var deleteError: String?
 
     private let languages = [
         ("en", "English"), ("tr", "Türkçe"), ("de", "Deutsch"),
@@ -767,6 +770,16 @@ struct ProfileSettingsView: View {
 
                 settingsRow("arrow.counterclockwise", "Choose another exam", "Restart onboarding and build a new plan", action: onRestartOnboarding)
 
+                settingsRow("trash.fill", "Delete account", "Permanently delete cloud study data and account") {
+                    confirmDelete = true
+                }
+
+                if let deleteError {
+                    Text(deleteError)
+                        .font(.system(size: 12))
+                        .foregroundStyle(ExamPalette.coral)
+                }
+
                 Text("Privacy: study files stay scoped to your authenticated account. AI provider keys are server-side and are never shipped in the app.")
                     .font(.system(size: 11))
                     .foregroundStyle(ExamPalette.textSecondary)
@@ -776,6 +789,27 @@ struct ProfileSettingsView: View {
             .padding(.bottom, 20)
         }
         .background(ExamPalette.background.ignoresSafeArea())
+        .alert("Delete account?", isPresented: $confirmDelete) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete permanently", role: .destructive) {
+                deletingAccount = true
+                deleteError = nil
+                Task { @MainActor in
+                    do {
+                        try await AccountService().deleteAccount()
+                        StudySetupStore.clear()
+                        UserProgressStore().reset()
+                        onRestartOnboarding()
+                    } catch {
+                        deleteError = error.localizedDescription
+                    }
+                    deletingAccount = false
+                }
+            }
+            .disabled(deletingAccount)
+        } message: {
+            Text("This permanently deletes your cloud study files, AI jobs, push token and account. This cannot be undone.")
+        }
     }
 
     private func settingsRow(
