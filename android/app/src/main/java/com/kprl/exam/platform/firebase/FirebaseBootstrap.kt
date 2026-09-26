@@ -19,12 +19,15 @@ object FirebaseBootstrap {
         }
     }
 
-    fun ensureAnonymousSession(firebaseReady: Boolean) {
+    fun ensureAnonymousSession(firebaseReady: Boolean, onReady: (() -> Unit)? = null) {
         if (!firebaseReady) return
         runCatching {
             val auth = FirebaseAuth.getInstance()
             if (auth.currentUser == null) {
                 auth.signInAnonymously()
+                    .addOnCompleteListener { if (it.isSuccessful) onReady?.invoke() }
+            } else {
+                onReady?.invoke()
             }
         }
     }
