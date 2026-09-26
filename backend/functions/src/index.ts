@@ -1,0 +1,16 @@
+import { initializeApp } from "firebase-admin/app";
+
+initializeApp();
+
+export {
+  aiTutor,
+  solveQuestion,
+  generatePractice,
+  indexMaterial,
+  askMaterial,
+  mediaGenerate,
+  mediaStatus,
+  synthesizeSpeech
+} from "./ai.js";
+
+export { verifyStorePurchase } from "./purchases.js";
