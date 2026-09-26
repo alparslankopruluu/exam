@@ -10,6 +10,7 @@ export {
   askMaterial,
   mediaGenerate,
   mediaStatus,
+  transcribeAudio,
   synthesizeSpeech
 } from "./ai.js";
 
