@@ -1,21 +1,20 @@
 import Foundation
 
+@MainActor
 enum StudySetupStore {
-    private static let defaults = UserDefaults.standard
-
     static func save(_ setup: StudySetup) {
-        defaults.set(setup.country.code, forKey: "study.country")
-        defaults.set(setup.exam.id, forKey: "study.exam")
-        defaults.set(setup.languageCode, forKey: "study.language")
-        defaults.set(setup.goalKey, forKey: "study.goal")
-        defaults.set(setup.dailyMinutes, forKey: "study.dailyMinutes")
-        defaults.set(setup.diagnosticPercent, forKey: "study.diagnosticPercent")
+        UserDefaults.standard.set(setup.country.code, forKey: "study.country")
+        UserDefaults.standard.set(setup.exam.id, forKey: "study.exam")
+        UserDefaults.standard.set(setup.languageCode, forKey: "study.language")
+        UserDefaults.standard.set(setup.goalKey, forKey: "study.goal")
+        UserDefaults.standard.set(setup.dailyMinutes, forKey: "study.dailyMinutes")
+        UserDefaults.standard.set(setup.diagnosticPercent, forKey: "study.diagnosticPercent")
     }
 
     static func load() -> StudySetup? {
         guard
-            let countryCode = defaults.string(forKey: "study.country"),
-            let examId = defaults.string(forKey: "study.exam"),
+            let countryCode = UserDefaults.standard.string(forKey: "study.country"),
+            let examId = UserDefaults.standard.string(forKey: "study.exam"),
             let country = ExamCatalog.country(code: countryCode),
             let exam = ExamCatalog.exam(id: examId)
         else {
@@ -25,10 +24,10 @@ enum StudySetupStore {
         return StudySetup(
             country: country,
             exam: exam,
-            languageCode: defaults.string(forKey: "study.language") ?? ExamCatalog.languageCode,
-            goalKey: defaults.string(forKey: "study.goal") ?? "improve",
-            dailyMinutes: defaults.object(forKey: "study.dailyMinutes") == nil ? 20 : defaults.integer(forKey: "study.dailyMinutes"),
-            diagnosticPercent: defaults.object(forKey: "study.diagnosticPercent") == nil ? 50 : defaults.integer(forKey: "study.diagnosticPercent")
+            languageCode: UserDefaults.standard.string(forKey: "study.language") ?? ExamCatalog.languageCode,
+            goalKey: UserDefaults.standard.string(forKey: "study.goal") ?? "improve",
+            dailyMinutes: UserDefaults.standard.object(forKey: "study.dailyMinutes") == nil ? 20 : UserDefaults.standard.integer(forKey: "study.dailyMinutes"),
+            diagnosticPercent: UserDefaults.standard.object(forKey: "study.diagnosticPercent") == nil ? 50 : UserDefaults.standard.integer(forKey: "study.diagnosticPercent")
         )
     }
 
@@ -40,6 +39,6 @@ enum StudySetupStore {
             "study.goal",
             "study.dailyMinutes",
             "study.diagnosticPercent"
-        ].forEach(defaults.removeObject(forKey:))
+        ].forEach(UserDefaults.standard.removeObject(forKey:))
     }
 }
