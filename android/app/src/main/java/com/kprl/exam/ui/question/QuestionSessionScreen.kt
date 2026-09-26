@@ -34,7 +34,8 @@ fun QuestionSessionScreen(
     onClose: () -> Unit,
     questionsOverride: List<StudyQuestion>? = null,
     sessionType: String = "quick_practice",
-    onSessionCompleted: (() -> Unit)? = null
+    onSessionCompleted: (() -> Unit)? = null,
+    onPaywall: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
@@ -194,7 +195,13 @@ fun QuestionSessionScreen(
                                         helperLoading = false
                                         when (result) {
                                             is GatewayResult.Success -> tutorAnswer = result.value
-                                            is GatewayResult.Error -> tutorAnswer = result.message
+                                            is GatewayResult.Error -> {
+                                                if (result.message.contains("Daily AI limit", ignoreCase = true)) {
+                                                    onPaywall("ai_limit")
+                                                } else {
+                                                    tutorAnswer = result.message
+                                                }
+                                            }
                                         }
                                     }
                                 }
