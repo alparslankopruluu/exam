@@ -22,3 +22,5 @@ export const APPLE_ENVIRONMENT = defineString("APPLE_ENVIRONMENT", { default: "S
 
 export const FREE_AI_CALLS_PER_DAY = defineString("FREE_AI_CALLS_PER_DAY", { default: "5" });
 export const SMALL_CREDIT_PACK_AMOUNT = defineString("SMALL_CREDIT_PACK_AMOUNT", { default: "25" });
+
+export const REMINDER_IMAGE_URL = defineString("REMINDER_IMAGE_URL", { default: "" });
