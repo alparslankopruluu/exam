@@ -27,6 +27,7 @@ import com.kprl.exam.platform.persistence.LearningDatabase
 import com.kprl.exam.platform.persistence.LearningRepository
 import com.kprl.exam.platform.persistence.UserProgressStore
 import com.kprl.exam.ui.theme.ExamColors
+import kotlinx.coroutines.delay
 
 @Composable
 fun QuestionSessionScreen(
@@ -35,7 +36,8 @@ fun QuestionSessionScreen(
     questionsOverride: List<StudyQuestion>? = null,
     sessionType: String = "quick_practice",
     onSessionCompleted: (() -> Unit)? = null,
-    onPaywall: (String) -> Unit = {}
+    onPaywall: (String) -> Unit = {},
+    timeLimitSeconds: Int? = null
 ) {
     val context = LocalContext.current
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
@@ -54,6 +56,43 @@ fun QuestionSessionScreen(
     var simplerExplanation by remember { mutableStateOf<String?>(null) }
     var tutorAnswer by remember { mutableStateOf<String?>(null) }
     var helperLoading by remember { mutableStateOf(false) }
+    var remainingSeconds by remember(timeLimitSeconds) {
+        mutableIntStateOf(timeLimitSeconds ?: 0)
+    }
+
+    fun finishSession() {
+        if (completed) return
+        val completedAt = System.currentTimeMillis()
+        repository.saveSession(
+            examId = setup.exam.id,
+            sessionType = sessionType,
+            startedAt = sessionStartedAt,
+            completedAt = completedAt,
+            correctCount = correctCount,
+            totalCount = questions.size
+        )
+        val before = progressStore.snapshot()
+        val after = progressStore.recordSession(
+            correct = correctCount,
+            total = questions.size,
+            durationSeconds = ((completedAt - sessionStartedAt) / 1000L).toInt()
+        )
+        earnedXp = (after.xp - before.xp).coerceAtLeast(0)
+        onSessionCompleted?.invoke()
+        completed = true
+    }
+
+    LaunchedEffect(timeLimitSeconds, completed) {
+        if (timeLimitSeconds != null && !completed) {
+            while (remainingSeconds > 0 && !completed) {
+                delay(1_000)
+                remainingSeconds--
+            }
+            if (remainingSeconds <= 0 && !completed) {
+                finishSession()
+            }
+        }
+    }
 
     if (completed) {
         SessionCompleteScreen(
@@ -86,6 +125,15 @@ fun QuestionSessionScreen(
                 trackColor = ExamColors.Border
             )
             Spacer(Modifier.width(10.dp))
+            if (timeLimitSeconds != null) {
+                Text(
+                    "%02d:%02d".format(remainingSeconds / 60, remainingSeconds % 60),
+                    color = if (remainingSeconds <= 60) ExamColors.Coral else ExamColors.TextSecondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.width(8.dp))
+            }
             Text("${index + 1}/${questions.size}", color = ExamColors.TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
 
@@ -216,24 +264,7 @@ fun QuestionSessionScreen(
             Button(
                 onClick = {
                     if (index == questions.lastIndex) {
-                        val completedAt = System.currentTimeMillis()
-                        repository.saveSession(
-                            examId = setup.exam.id,
-                            sessionType = sessionType,
-                            startedAt = sessionStartedAt,
-                            completedAt = completedAt,
-                            correctCount = correctCount,
-                            totalCount = questions.size
-                        )
-                        val before = progressStore.snapshot()
-                        val after = progressStore.recordSession(
-                            correct = correctCount,
-                            total = questions.size,
-                            durationSeconds = ((completedAt - sessionStartedAt) / 1000L).toInt()
-                        )
-                        earnedXp = (after.xp - before.xp).coerceAtLeast(0)
-                        onSessionCompleted?.invoke()
-                        completed = true
+                        finishSession()
                     } else {
                         index++
                         selected = null
