@@ -1,6 +1,6 @@
 import SwiftUI
 
-private enum ExamTab: String, CaseIterable {
+private enum ExamTab: String, CaseIterable, Hashable {
     case today = "Today"
     case practice = "Practice"
     case tutor = "AI Tutor"
