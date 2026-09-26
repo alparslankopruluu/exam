@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "kr.csat.v1",
+  "examId": "kr_csat",
+  "displayName": "CSAT",
+  "market": "KR",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "Korean"
+    },
+    {
+      "id": "domain_2",
+      "title": "Mathematics"
+    },
+    {
+      "id": "domain_3",
+      "title": "English"
+    },
+    {
+      "id": "domain_4",
+      "title": "Korean History"
+    },
+    {
+      "id": "domain_5",
+      "title": "Inquiry"
+    },
+    {
+      "id": "domain_6",
+      "title": "Second Foreign Language / Classical Chinese"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}

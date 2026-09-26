@@ -15,6 +15,111 @@
       "id": "tr.yks.v1",
       "path": "packs/tr.yks.v1.json",
       "status": "active"
+    },
+    {
+      "id": "tr.lgs.v1",
+      "path": "packs/tr.lgs.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "tr.kpss.v1",
+      "path": "packs/tr.kpss.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "tr.ales.v1",
+      "path": "packs/tr.ales.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "tr.dgs.v1",
+      "path": "packs/tr.dgs.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "us.act.v1",
+      "path": "packs/us.act.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "us.ap.v1",
+      "path": "packs/us.ap.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "gb.gcse.v1",
+      "path": "packs/gb.gcse.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "gb.alevel.v1",
+      "path": "packs/gb.alevel.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "in.jee-main.v1",
+      "path": "packs/in.jee-main.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "in.neet-ug.v1",
+      "path": "packs/in.neet-ug.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "in.cuet-ug.v1",
+      "path": "packs/in.cuet-ug.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "br.enem.v1",
+      "path": "packs/br.enem.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "kr.csat.v1",
+      "path": "packs/kr.csat.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "de.abitur.v1",
+      "path": "packs/de.abitur.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "es.pau.v1",
+      "path": "packs/es.pau.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "fr.bac.v1",
+      "path": "packs/fr.bac.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "jp.common-test.v1",
+      "path": "packs/jp.common-test.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "intl.toefl.v1",
+      "path": "packs/intl.toefl.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "intl.cambridge.v1",
+      "path": "packs/intl.cambridge.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "intl.ib.v1",
+      "path": "packs/intl.ib.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "intl.igcse.v1",
+      "path": "packs/intl.igcse.v1.json",
+      "status": "active"
     }
   ]
 }

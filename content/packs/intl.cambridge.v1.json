@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "intl.cambridge.v1",
+  "examId": "intl_cambridge",
+  "displayName": "Cambridge English",
+  "market": "international",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "Reading and Use of English"
+    },
+    {
+      "id": "domain_2",
+      "title": "Writing"
+    },
+    {
+      "id": "domain_3",
+      "title": "Listening"
+    },
+    {
+      "id": "domain_4",
+      "title": "Speaking"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}

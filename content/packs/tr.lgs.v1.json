@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "tr.lgs.v1",
+  "examId": "tr_lgs",
+  "displayName": "LGS",
+  "market": "TR",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "Türkçe"
+    },
+    {
+      "id": "domain_2",
+      "title": "T.C. İnkılap Tarihi ve Atatürkçülük"
+    },
+    {
+      "id": "domain_3",
+      "title": "Din Kültürü ve Ahlak Bilgisi"
+    },
+    {
+      "id": "domain_4",
+      "title": "Yabancı Dil"
+    },
+    {
+      "id": "domain_5",
+      "title": "Matematik"
+    },
+    {
+      "id": "domain_6",
+      "title": "Fen Bilimleri"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}

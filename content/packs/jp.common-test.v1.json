@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "jp.common-test.v1",
+  "examId": "jp_common_test",
+  "displayName": "Common Test",
+  "market": "JP",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "Japanese"
+    },
+    {
+      "id": "domain_2",
+      "title": "Geography / History / Civics"
+    },
+    {
+      "id": "domain_3",
+      "title": "Mathematics"
+    },
+    {
+      "id": "domain_4",
+      "title": "Science"
+    },
+    {
+      "id": "domain_5",
+      "title": "Foreign Languages"
+    },
+    {
+      "id": "domain_6",
+      "title": "Information"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}

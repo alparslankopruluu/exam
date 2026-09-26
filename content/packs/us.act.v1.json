@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "us.act.v1",
+  "examId": "us_act",
+  "displayName": "ACT",
+  "market": "US",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "English"
+    },
+    {
+      "id": "domain_2",
+      "title": "Mathematics"
+    },
+    {
+      "id": "domain_3",
+      "title": "Reading"
+    },
+    {
+      "id": "domain_4",
+      "title": "Science"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}

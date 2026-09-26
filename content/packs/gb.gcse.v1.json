@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "gb.gcse.v1",
+  "examId": "gb_gcse",
+  "displayName": "GCSE",
+  "market": "GB",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "English"
+    },
+    {
+      "id": "domain_2",
+      "title": "Mathematics"
+    },
+    {
+      "id": "domain_3",
+      "title": "Sciences"
+    },
+    {
+      "id": "domain_4",
+      "title": "Humanities"
+    },
+    {
+      "id": "domain_5",
+      "title": "Languages"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}

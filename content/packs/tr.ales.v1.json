@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "tr.ales.v1",
+  "examId": "tr_ales",
+  "displayName": "ALES",
+  "market": "TR",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "Sayısal"
+    },
+    {
+      "id": "domain_2",
+      "title": "Sözel"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}

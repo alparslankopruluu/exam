@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "de.abitur.v1",
+  "examId": "de_abitur",
+  "displayName": "Abitur",
+  "market": "DE",
+  "structurePolicy": "versioned_remote_blueprint",
+  "verificationStatus": "seed_high_level_domains",
+  "sections": [
+    {
+      "id": "domain_1",
+      "title": "Deutsch"
+    },
+    {
+      "id": "domain_2",
+      "title": "Mathematik"
+    },
+    {
+      "id": "domain_3",
+      "title": "Fremdsprache"
+    },
+    {
+      "id": "domain_4",
+      "title": "Profilfach"
+    }
+  ],
+  "diagnostic": {
+    "mode": "domain_balanced",
+    "initialQuestionCount": 10
+  },
+  "contentRules": {
+    "generatedQuestionsMustMatchSelectedExam": true,
+    "officialRulesMustComeFromVerifiedSource": true,
+    "doNotPresentGeneratedQuestionsAsOfficial": true
+  },
+  "reviewedAt": "2026-09-27"
+}
