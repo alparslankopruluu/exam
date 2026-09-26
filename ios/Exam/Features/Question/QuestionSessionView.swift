@@ -1,9 +1,13 @@
 import SwiftUI
+import SwiftData
 
 struct QuestionSessionView: View {
     let setup: StudySetup
     let onClose: () -> Void
 
+    @Environment(\.modelContext) private var modelContext
+    @State private var sessionStartedAt = Date()
+    @State private var questionStartedAt = Date()
     @State private var index = 0
     @State private var selected: Int?
     @State private var correctCount = 0
@@ -78,10 +82,20 @@ struct QuestionSessionView: View {
             if selected != nil {
                 Button {
                     if index == questions.count - 1 {
+                        let completedAt = Date()
+                        try? LearningStore(context: modelContext).saveSession(
+                            examId: setup.exam.id,
+                            sessionType: "quick_practice",
+                            startedAt: sessionStartedAt,
+                            completedAt: completedAt,
+                            correctCount: correctCount,
+                            totalCount: questions.count
+                        )
                         completed = true
                     } else {
                         index += 1
                         selected = nil
+                        questionStartedAt = Date()
                     }
                 } label: {
                     Text(index == questions.count - 1 ? "Finish session" : "Next question")
@@ -123,10 +137,27 @@ struct QuestionSessionView: View {
 
         return Button {
             guard selected == nil else { return }
+            let answeredAt = Date()
+            let correct = optionIndex == question.correctIndex
             selected = optionIndex
-            if optionIndex == question.correctIndex {
+            if correct {
                 correctCount += 1
             }
+
+            let skillId = setup.exam.id + ":" + question.topic
+                .lowercased()
+                .replacingOccurrences(of: " ", with: "_")
+
+            try? LearningStore(context: modelContext).recordAnswer(
+                examId: setup.exam.id,
+                skillId: skillId,
+                questionId: question.id,
+                correct: correct,
+                responseTimeMs: max(0, Int(answeredAt.timeIntervalSince(questionStartedAt) * 1000)),
+                selectedAnswer: option,
+                correctAnswer: question.options[question.correctIndex],
+                errorType: correct ? "none" : "concept"
+            )
         } label: {
             HStack(spacing: 10) {
                 Text(String(UnicodeScalar(65 + optionIndex)!))
