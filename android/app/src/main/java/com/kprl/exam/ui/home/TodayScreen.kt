@@ -101,6 +101,10 @@ fun TodayScreen(
                 onClose = {
                     premiumPlacement = null
                     dashboardRefresh++
+                },
+                onPaywall = { placement ->
+                    sessionOpen = false
+                    premiumPlacement = placement
                 }
             )
             return
@@ -297,7 +301,8 @@ fun TodayScreen(
                     }
                 },
                 onStudyNotes = { selectedTab = 3 },
-                onMediaLab = { toolRoute = ToolRoute.MEDIA }
+                onMediaLab = { toolRoute = ToolRoute.MEDIA },
+                onPaywall = { premiumPlacement = it }
             )
 
             else -> LibraryScreen(
@@ -305,7 +310,8 @@ fun TodayScreen(
                 modifier = Modifier.padding(padding),
                 onStartPractice = { questions ->
                     openSession("material_practice", questions)
-                }
+                },
+                onPaywall = { premiumPlacement = it }
             )
         }
     }
