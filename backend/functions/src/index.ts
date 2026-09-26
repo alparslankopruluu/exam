@@ -8,6 +8,7 @@ export {
   generatePractice,
   indexMaterial,
   askMaterial,
+  generateMaterialPractice,
   mediaGenerate,
   mediaStatus,
   transcribeAudio,
