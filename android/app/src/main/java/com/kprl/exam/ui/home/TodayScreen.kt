@@ -152,6 +152,10 @@ fun TodayScreen(
                     onStart = {
                         toolRoute = null
                         openSession("mock_exam", it)
+                    },
+                    onPaywall = {
+                        toolRoute = null
+                        premiumPlacement = it
                     }
                 )
 
@@ -178,6 +182,10 @@ fun TodayScreen(
                     onStart = {
                         toolRoute = null
                         openSession("generated_practice", it)
+                    },
+                    onPaywall = {
+                        toolRoute = null
+                        premiumPlacement = it
                     }
                 )
 
