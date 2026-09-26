@@ -135,6 +135,10 @@ struct TodayView: View {
                 onStart: { questions in
                     toolRoute = nil
                     openSession(type: "mock_exam", questions: questions)
+                },
+                onPaywall: { placement in
+                    toolRoute = nil
+                    premiumPlacement = placement
                 }
             )
 
@@ -164,6 +168,10 @@ struct TodayView: View {
                 onStart: { questions in
                     toolRoute = nil
                     openSession(type: "generated_practice", questions: questions)
+                },
+                onPaywall: { placement in
+                    toolRoute = nil
+                    premiumPlacement = placement
                 }
             )
 
