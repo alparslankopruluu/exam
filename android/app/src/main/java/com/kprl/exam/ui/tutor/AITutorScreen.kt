@@ -35,7 +35,8 @@ fun AITutorScreen(
     modifier: Modifier = Modifier,
     onVoiceTutor: () -> Unit = {},
     onStudyNotes: () -> Unit = {},
-    onMediaLab: () -> Unit = {}
+    onMediaLab: () -> Unit = {},
+    onPaywall: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val gateway = remember { AIGatewayClient() }
@@ -61,7 +62,10 @@ fun AITutorScreen(
                 loading = false
                 when (result) {
                     is GatewayResult.Success -> answer = result.value
-                    is GatewayResult.Error -> error = result.message
+                    is GatewayResult.Error -> {
+                        if (result.message.contains("Daily AI limit", ignoreCase = true)) onPaywall("ai_limit")
+                        else error = result.message
+                    }
                 }
             }
         }
@@ -100,7 +104,10 @@ fun AITutorScreen(
                     answer = result.value
                     prompt = ""
                 }
-                is GatewayResult.Error -> error = result.message
+                is GatewayResult.Error -> {
+                        if (result.message.contains("Daily AI limit", ignoreCase = true)) onPaywall("ai_limit")
+                        else error = result.message
+                    }
             }
         }
     }
