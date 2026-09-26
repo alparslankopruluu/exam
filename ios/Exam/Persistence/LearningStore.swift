@@ -144,6 +144,28 @@ final class LearningStore {
         .sorted { $0.count > $1.count }
     }
 
+    func saveSession(
+        examId: String,
+        sessionType: String,
+        startedAt: Date,
+        completedAt: Date,
+        correctCount: Int,
+        totalCount: Int
+    ) throws {
+        context.insert(
+            StudySessionRecord(
+                examId: examId,
+                sessionType: sessionType,
+                startedAt: startedAt,
+                completedAt: completedAt,
+                correctCount: correctCount,
+                totalCount: totalCount,
+                durationSeconds: max(0, Int(completedAt.timeIntervalSince(startedAt)))
+            )
+        )
+        try context.save()
+    }
+
     func savePlan(dayKey: String, tasks: [PlanTask]) throws {
         let existing = try context.fetch(FetchDescriptor<DailyPlanRecord>())
             .filter { $0.dayKey == dayKey }
