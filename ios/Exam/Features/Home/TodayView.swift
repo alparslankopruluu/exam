@@ -22,6 +22,10 @@ struct TodayView: View {
     @State private var premiumPlacement: String?
     @State private var quickPracticeOpen = false
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         Group {
             if let premiumPlacement {
@@ -89,10 +93,10 @@ struct TodayView: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Good evening")
+                        Text(copy.text("good_evening"))
                             .font(.system(size: 13))
                             .foregroundStyle(ExamPalette.textSecondary)
-                        Text("Ready for a small win? 👋")
+                        Text(copy.text("ready_small_win"))
                             .font(.system(size: 22, weight: .bold))
                     }
                     Spacer()
@@ -104,27 +108,27 @@ struct TodayView: View {
                 }
 
                 HStack(spacing: 9) {
-                    ExamStatPill(value: "7", label: "day streak", symbol: "flame.fill", accent: ExamPalette.amber)
-                    ExamStatPill(value: setup.exam.shortName, label: "active exam", symbol: "graduationcap.fill", accent: ExamPalette.mint)
-                    ExamStatPill(value: "61", label: "mastery", symbol: "chart.xyaxis.line", accent: ExamPalette.purple)
+                    ExamStatPill(value: "7", label: copy.text("day_streak"), symbol: "flame.fill", accent: ExamPalette.amber)
+                    ExamStatPill(value: setup.exam.shortName, label: copy.text("active_exam"), symbol: "graduationcap.fill", accent: ExamPalette.mint)
+                    ExamStatPill(value: "61", label: copy.text("mastery"), symbol: "chart.xyaxis.line", accent: ExamPalette.purple)
                 }
                 .padding(.top, 20)
 
-                Text("TODAY'S \(setup.exam.shortName.uppercased()) PLAN")
+                Text(copy.text("todays_plan", variables: ["exam": setup.exam.shortName]).uppercased())
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 24)
 
                 hero.padding(.top, 9)
 
-                Text("Next up")
+                Text(copy.text("next_up"))
                     .font(.system(size: 18, weight: .bold))
                     .padding(.top, 24)
 
                 VStack(spacing: 8) {
-                    nextRow(symbol: "checklist", title: "Exam-style questions", subtitle: "5 questions", accent: ExamPalette.purple)
-                    nextRow(symbol: "arrow.clockwise", title: "Review mistakes", subtitle: "3 mistakes", accent: ExamPalette.coral)
-                    nextRow(symbol: "sparkles", title: "Ask your tutor", subtitle: "Explain, scan or practice anything", accent: ExamPalette.purple)
+                    nextRow(symbol: "checklist", title: copy.text("exam_style_questions"), subtitle: copy.text("questions_count", variables: ["count": "5"]), accent: ExamPalette.purple)
+                    nextRow(symbol: "arrow.clockwise", title: copy.text("review_mistakes"), subtitle: copy.text("mistakes_count", variables: ["count": "3"]), accent: ExamPalette.coral)
+                    nextRow(symbol: "sparkles", title: copy.text("ask_tutor"), subtitle: copy.text("explain_scan_practice"), accent: ExamPalette.purple)
                 }
                 .padding(.top, 10)
                 .padding(.bottom, 20)
@@ -152,7 +156,7 @@ struct TodayView: View {
                     .clipShape(Capsule())
             }
 
-            Text("Core practice")
+            Text(copy.text("core_practice"))
                 .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(.white)
                 .padding(.top, 24)
@@ -169,7 +173,7 @@ struct TodayView: View {
             Button {
                 quickPracticeOpen = true
             } label: {
-                Text("Continue")
+                Text(copy.text("continue"))
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(ExamPalette.primary)
                     .frame(maxWidth: .infinity)
@@ -209,6 +213,15 @@ struct TodayView: View {
         .examCard(radius: 17)
     }
 
+    private func tabLabel(_ tab: ExamTab) -> String {
+        switch tab {
+        case .today: copy.text("today")
+        case .practice: copy.text("practice")
+        case .tutor: copy.text("ai_tutor")
+        case .library: copy.text("library")
+        }
+    }
+
     private var bottomBar: some View {
         HStack {
             ForEach(ExamTab.allCases, id: \.self) { tab in
@@ -220,7 +233,7 @@ struct TodayView: View {
                     VStack(spacing: 3) {
                         Image(systemName: tab.symbol)
                             .font(.system(size: 20, weight: .semibold))
-                        Text(tab.rawValue)
+                        Text(tabLabel(tab))
                             .font(.system(size: 10, weight: selectedTab == tab ? .bold : .medium))
                     }
                     .foregroundStyle(selectedTab == tab ? ExamPalette.primary : ExamPalette.textSecondary)
