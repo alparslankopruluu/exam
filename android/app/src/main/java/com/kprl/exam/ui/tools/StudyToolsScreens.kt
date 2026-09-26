@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.BorderStroke
@@ -700,4 +702,174 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
+}
+
+
+@Composable
+fun MediaLabScreen(
+    setup: StudySetup,
+    onClose: () -> Unit,
+    onNeedCredits: () -> Unit
+) {
+    val context = LocalContext.current
+    val ai = remember { AIGatewayClient() }
+
+    var prompt by remember { mutableStateOf("") }
+    var requestId by remember { mutableStateOf<String?>(null) }
+    var status by remember { mutableStateOf<String?>(null) }
+    var assetUrl by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var submitting by remember { mutableStateOf(false) }
+
+    fun submit(kind: String) {
+        val value = prompt.trim()
+        if (value.isEmpty() || submitting) return
+        submitting = true
+        error = null
+        assetUrl = null
+        status = "submitting"
+
+        ai.generateMedia(kind, value) { result ->
+            submitting = false
+            when (result) {
+                is GatewayResult.Success -> {
+                    requestId = result.value.requestId
+                    status = "queued · " + result.value.creditCost + " credits"
+                }
+                is GatewayResult.Error -> {
+                    error = result.message
+                    if (result.message.contains("credit", ignoreCase = true)) {
+                        onNeedCredits()
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(requestId) {
+        val id = requestId ?: return@LaunchedEffect
+        while (assetUrl == null && error == null) {
+            delay(2_500)
+            ai.mediaStatus(id) { result ->
+                when (result) {
+                    is GatewayResult.Success -> {
+                        status = result.value.status
+                        result.value.assetUrl?.let { assetUrl = it }
+                    }
+                    is GatewayResult.Error -> error = result.message
+                }
+            }
+            if (status == "completed" && assetUrl == null) break
+        }
+    }
+
+    Column(
+        Modifier.fillMaxSize()
+            .background(ExamColors.Background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp)
+    ) {
+        ToolHeader("Visual Explanation", setup.exam.shortName + " · credit-based AI media", onClose)
+        Spacer(Modifier.height(18.dp))
+
+        OutlinedTextField(
+            value = prompt,
+            onValueChange = { prompt = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("What should the visual explain?") },
+            placeholder = { Text("e.g. Explain mitosis as a clean study diagram") },
+            minLines = 4,
+            shape = RoundedCornerShape(18.dp)
+        )
+
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            Button(
+                onClick = { submit("image_explainer") },
+                enabled = prompt.isNotBlank() && !submitting && AppServices.flags.snapshot.imageExplanationsEnabled,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
+            ) {
+                Icon(Icons.Rounded.Image, null)
+                Spacer(Modifier.width(6.dp))
+                Text("Image · 1")
+            }
+
+            Button(
+                onClick = { submit("video_explainer") },
+                enabled = prompt.isNotBlank() && !submitting && AppServices.flags.snapshot.videoExplanationsEnabled,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Purple)
+            ) {
+                Icon(Icons.Rounded.Movie, null)
+                Spacer(Modifier.width(6.dp))
+                Text("Video · 5")
+            }
+        }
+
+        status?.let {
+            Spacer(Modifier.height(14.dp))
+            Surface(
+                color = ExamColors.Surface,
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, ExamColors.Border)
+            ) {
+                Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (assetUrl == null) {
+                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(10.dp))
+                    }
+                    Text(it.replace("_", " "), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+
+        error?.let {
+            Spacer(Modifier.height(10.dp))
+            Text(it, color = ExamColors.Coral, fontSize = 12.sp)
+        }
+
+        assetUrl?.let { url ->
+            Spacer(Modifier.height(18.dp))
+            Surface(
+                color = ExamColors.SoftMint,
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(18.dp)) {
+                    Icon(Icons.Rounded.CheckCircle, null, tint = ExamColors.Mint)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Media ready", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(
+                        "The generated asset is ready to review.",
+                        color = ExamColors.TextSecondary,
+                        fontSize = 12.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
+                    ) {
+                        Text("Open generated asset")
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.weight(1f))
+        Text(
+            "Image/video generation is optional and uses credits because provider costs are materially higher than normal tutoring.",
+            color = ExamColors.TextSecondary,
+            fontSize = 11.sp,
+            lineHeight = 16.sp
+        )
+        Spacer(Modifier.height(12.dp))
+    }
 }
