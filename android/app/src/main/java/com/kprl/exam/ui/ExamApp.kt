@@ -3,6 +3,7 @@ package com.kprl.exam.ui
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.platform.AppServices
 import com.kprl.exam.ui.home.TodayScreen
 import com.kprl.exam.ui.onboarding.OnboardingScreen
 import com.kprl.exam.ui.paywall.PremiumPaywallScreen
@@ -21,7 +22,7 @@ fun ExamApp() {
                 }
             }
 
-            !onboardingPaywallSeen -> {
+            !onboardingPaywallSeen && AppServices.flags.snapshot.onboardingPaywallEnabled -> {
                 PremiumPaywallScreen(
                     setup = setup!!,
                     placement = "onboarding",
