@@ -18,7 +18,13 @@ struct PremiumPaywallView: View {
         VStack(spacing: 0) {
             HStack {
                 Spacer()
-                Button(action: onClose) {
+                Button {
+                    AppServices.shared.analytics.event(
+                        AnalyticsEvent.paywallClosed,
+                        params: [AnalyticsParam.placement: placement]
+                    )
+                    onClose()
+                } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(ExamPalette.textSecondary)
@@ -70,11 +76,19 @@ struct PremiumPaywallView: View {
 
                     planCard(offer.annual, selected: annualSelected) {
                         annualSelected = true
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.subscriptionPlanSelected,
+                            params: [AnalyticsParam.productId: offer.annual.productId]
+                        )
                     }
                     .padding(.top, 14)
 
                     planCard(offer.monthly, selected: !annualSelected) {
                         annualSelected = false
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.subscriptionPlanSelected,
+                            params: [AnalyticsParam.productId: offer.monthly.productId]
+                        )
                     }
                     .padding(.top, 9)
                 }
@@ -87,9 +101,23 @@ struct PremiumPaywallView: View {
                     let success = await StoreKitBillingService.shared.purchase(productId: selectedPlan.productId)
                     purchasing = false
                     if success {
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.purchaseCompleted,
+                            params: [
+                                AnalyticsParam.placement: placement,
+                                AnalyticsParam.productId: selectedPlan.productId
+                            ]
+                        )
                         onClose()
                     } else {
                         purchaseError = "Purchase was not completed."
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.purchaseFailed,
+                            params: [
+                                AnalyticsParam.placement: placement,
+                                AnalyticsParam.productId: selectedPlan.productId
+                            ]
+                        )
                     }
                 }
             } label: {
@@ -125,6 +153,14 @@ struct PremiumPaywallView: View {
         .padding(.horizontal, 20)
         .background(ExamPalette.background.ignoresSafeArea())
         .task {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.paywallViewed,
+                params: [
+                    AnalyticsParam.placement: placement,
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.contentPackId: setup.exam.syllabusPackId
+                ]
+            )
             offer = await StoreKitBillingService.shared.loadOffer()
         }
     }
