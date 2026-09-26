@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "intl.ielts.v1",
+  "examId": "intl_ielts",
+  "displayName": "IELTS",
+  "market": "international",
+  "variants": [
+    "academic",
+    "general_training"
+  ],
+  "scoring": {
+    "type": "band",
+    "min": 1,
+    "max": 9,
+    "increment": 0.5
+  },
+  "sections": [
+    {
+      "id": "listening",
+      "title": "Listening",
+      "durationMinutesApprox": 30,
+      "sharedAcrossVariants": true,
+      "parts": 4,
+      "questionCount": 40
+    },
+    {
+      "id": "reading",
+      "title": "Reading",
+      "durationMinutes": 60,
+      "sharedAcrossVariants": false,
+      "questionCount": 40
+    },
+    {
+      "id": "writing",
+      "title": "Writing",
+      "durationMinutes": 60,
+      "sharedAcrossVariants": false,
+      "tasks": 2
+    },
+    {
+      "id": "speaking",
+      "title": "Speaking",
+      "durationMinutesMin": 11,
+      "durationMinutesMax": 14,
+      "sharedAcrossVariants": true,
+      "parts": 3
+    }
+  ],
+  "speakingRubric": [
+    "Fluency and coherence",
+    "Lexical resource",
+    "Grammatical range and accuracy",
+    "Pronunciation"
+  ],
+  "diagnostic": {
+    "mode": "sectional",
+    "recommendedMinutes": 18,
+    "includeSpeakingSample": true,
+    "includeWritingSample": true
+  },
+  "sources": [
+    {
+      "name": "IELTS Academic Test Format",
+      "url": "https://www.ielts.org/take-a-test/test-types/ielts-academic-test"
+    },
+    {
+      "name": "IELTS Academic Reading",
+      "url": "https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-reading"
+    },
+    {
+      "name": "IELTS Academic Speaking",
+      "url": "https://ielts.org/take-a-test/test-types/ielts-academic-test/ielts-academic-format-speaking"
+    }
+  ],
+  "reviewedAt": "2026-09-26"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "tr.yks.v1",
+  "examId": "tr_yks",
+  "displayName": "YKS",
+  "market": "TR",
+  "sessions": [
+    {
+      "id": "tyt",
+      "title": "Temel Yeterlilik Testi"
+    },
+    {
+      "id": "ayt",
+      "title": "Alan Yeterlilik Testleri"
+    },
+    {
+      "id": "ydt",
+      "title": "Yabancı Dil Testi",
+      "languages": [
+        "de",
+        "ar",
+        "fr",
+        "en"
+      ]
+    }
+  ],
+  "scheduleProvider": "osym",
+  "diagnostic": {
+    "mode": "track_aware",
+    "startsWith": "tyt"
+  },
+  "sources": [
+    {
+      "name": "ÖSYM 2026 YKS Booklets",
+      "url": "https://www.osym.gov.tr/2026yks-tyt-ayt-ve-ydt-temel-soru-kitapciklari-ve-cevap-anahtarlari"
+    }
+  ],
+  "reviewedAt": "2026-09-26"
+}

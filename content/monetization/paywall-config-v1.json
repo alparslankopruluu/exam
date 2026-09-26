@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "entitlement": "premium",
+  "products": {
+    "annual": {
+      "storeKey": "premium_annual",
+      "trialEligible": true,
+      "recommended": true
+    },
+    "monthly": {
+      "storeKey": "premium_monthly",
+      "trialEligible": false,
+      "recommended": false
+    },
+    "creditsSmall": {
+      "storeKey": "ai_credits_small",
+      "type": "consumable"
+    }
+  },
+  "creditOnlyFeatures": [
+    "ai_video_explanation",
+    "long_media_transcription",
+    "premium_visual_generation"
+  ],
+  "subscriptionFeatures": [
+    "unlimited_personalized_practice",
+    "advanced_ai_tutor",
+    "voice_tutor",
+    "unlimited_study_materials",
+    "mock_exam_analysis",
+    "advanced_progress",
+    "streak_protection"
+  ],
+  "placements": {
+    "onboarding": {
+      "template": "personal_plan",
+      "allowClose": true
+    },
+    "ai_limit": {
+      "template": "continue_learning",
+      "allowClose": true
+    },
+    "voice_tutor": {
+      "template": "voice_tutor",
+      "allowClose": true
+    },
+    "document_limit": {
+      "template": "study_materials",
+      "allowClose": true
+    },
+    "mock_analysis": {
+      "template": "mock_analysis",
+      "allowClose": true
+    },
+    "winback": {
+      "template": "progress_recap",
+      "allowClose": true
+    }
+  },
+  "pricingRule": "never_hardcode_display_price_use_store_localized_price",
+  "offerRule": "countdowns_require_server_expiry"
+}

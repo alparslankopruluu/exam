@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "packs": [
+    {
+      "id": "us.sat.v1",
+      "path": "packs/us.sat.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "intl.ielts.v1",
+      "path": "packs/intl.ielts.v1.json",
+      "status": "active"
+    },
+    {
+      "id": "tr.yks.v1",
+      "path": "packs/tr.yks.v1.json",
+      "status": "active"
+    }
+  ]
+}

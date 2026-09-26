@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "us.sat.v1",
+  "examId": "us_sat",
+  "displayName": "SAT",
+  "market": "US",
+  "delivery": "digital",
+  "adaptive": true,
+  "scoring": {
+    "type": "scaled",
+    "min": 400,
+    "max": 1600
+  },
+  "sections": [
+    {
+      "id": "reading_writing",
+      "title": "Reading and Writing",
+      "durationMinutes": 64,
+      "questionCount": 54,
+      "modules": 2,
+      "moduleDurationMinutes": 32,
+      "domains": [
+        "Information and Ideas",
+        "Craft and Structure",
+        "Expression of Ideas",
+        "Standard English Conventions"
+      ]
+    },
+    {
+      "id": "math",
+      "title": "Math",
+      "durationMinutes": 70,
+      "questionCount": 44,
+      "modules": 2,
+      "moduleDurationMinutes": 35,
+      "domains": [
+        "Algebra",
+        "Advanced Math",
+        "Problem-Solving and Data Analysis",
+        "Geometry and Trigonometry"
+      ]
+    }
+  ],
+  "mockExam": {
+    "totalDurationMinutes": 134,
+    "breakMinutes": 10,
+    "totalQuestions": 98
+  },
+  "diagnostic": {
+    "mode": "adaptive",
+    "initialQuestionCount": 12,
+    "mix": [
+      {
+        "sectionId": "reading_writing",
+        "weight": 0.55
+      },
+      {
+        "sectionId": "math",
+        "weight": 0.45
+      }
+    ]
+  },
+  "sources": [
+    {
+      "name": "College Board SAT Structure",
+      "url": "https://satsuite.collegeboard.org/sat/whats-on-the-test/structure"
+    },
+    {
+      "name": "College Board Reading and Writing",
+      "url": "https://satsuite.collegeboard.org/sat/whats-on-the-test/reading-writing"
+    },
+    {
+      "name": "College Board Math Specifications",
+      "url": "https://satsuite.collegeboard.org/k12-educators/about/alignment/math"
+    }
+  ],
+  "reviewedAt": "2026-09-26"
+}
