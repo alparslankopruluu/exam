@@ -404,6 +404,29 @@ export const generateMaterialPractice = onCall(
   }
 );
 
+function findFirstAssetUrl(value: unknown): string | null {
+  if (typeof value === "string" && /^https?:\/\//i.test(value)) return value;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findFirstAssetUrl(item);
+      if (found) return found;
+    }
+  } else if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    for (const key of ["url", "video", "image", "file", "images", "videos", "output"]) {
+      if (key in record) {
+        const found = findFirstAssetUrl(record[key]);
+        if (found) return found;
+      }
+    }
+    for (const child of Object.values(record)) {
+      const found = findFirstAssetUrl(child);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
 export const mediaGenerate = onCall(
   { secrets: [FAL_KEY], timeoutSeconds: 60, memory: "512MiB" },
   async request => {
@@ -462,7 +485,11 @@ export const mediaStatus = onCall(
         status: "completed",
         completedAt: FieldValue.serverTimestamp()
       }, { merge: true });
-      return { status: "completed", data: result.data };
+      return {
+        status: "completed",
+        assetUrl: findFirstAssetUrl(result.data),
+        data: result.data
+      };
     }
 
     return { status: String(status.status ?? "unknown").toLowerCase() };
