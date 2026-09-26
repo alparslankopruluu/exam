@@ -39,11 +39,11 @@ struct AITutorView: View {
 
                     VStack(spacing: 9) {
                         PhotosPicker(selection: $photoItem, matching: .images) {
-                            tutorRowContent(
-                                "doc.viewfinder",
-                                "Solve a question",
-                                "Upload a photo · OCR + vision",
-                                ExamPalette.primary
+                            TutorActionRowContent(
+                                symbol: "doc.viewfinder",
+                                title: "Solve a question",
+                                subtitle: "Upload a photo · OCR + vision",
+                                accent: ExamPalette.primary
                             )
                         }
                         .buttonStyle(.plain)
@@ -164,39 +164,14 @@ struct AITutorView: View {
         action: @escaping () -> Void = {}
     ) -> some View {
         Button(action: action) {
-            tutorRowContent(symbol, title, subtitle, accent)
+            TutorActionRowContent(
+                symbol: symbol,
+                title: title,
+                subtitle: subtitle,
+                accent: accent
+            )
         }
         .buttonStyle(.plain)
-    }
-
-    private func tutorRowContent(
-        _ symbol: String,
-        _ title: String,
-        _ subtitle: String,
-        _ accent: Color
-    ) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .foregroundStyle(accent)
-                .frame(width: 44, height: 44)
-                .background(accent.opacity(0.11))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(ExamPalette.textPrimary)
-                Text(subtitle)
-                    .font(.system(size: 11))
-                    .foregroundStyle(ExamPalette.textSecondary)
-            }
-
-            Spacer()
-            Image(systemName: "chevron.right")
-                .foregroundStyle(ExamPalette.textSecondary)
-        }
-        .padding(14)
-        .examCard(radius: 18)
     }
 
     private func sendPrompt() {
@@ -251,5 +226,38 @@ struct AITutorView: View {
             loading = false
             photoItem = nil
         }
+    }
+}
+
+
+private struct TutorActionRowContent: View {
+    let symbol: String
+    let title: String
+    let subtitle: String
+    let accent: Color
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol)
+                .foregroundStyle(accent)
+                .frame(width: 44, height: 44)
+                .background(accent.opacity(0.11))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(ExamPalette.textPrimary)
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundStyle(ExamPalette.textSecondary)
+            }
+
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundStyle(ExamPalette.textSecondary)
+        }
+        .padding(14)
+        .examCard(radius: 18)
     }
 }

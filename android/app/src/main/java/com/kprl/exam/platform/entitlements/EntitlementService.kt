@@ -25,7 +25,7 @@ class EntitlementService {
 
         val db = FirebaseFirestore.getInstance()
 
-        db.doc("users/$uid/entitlements/premium").get()
+        db.document("users/$uid/entitlements/premium").get()
             .addOnSuccessListener { entitlement ->
                 val active = entitlement.getBoolean("active") == true
                 val expiresAt = entitlement.getTimestamp("expiresAt")
@@ -34,7 +34,7 @@ class EntitlementService {
                     expiresAt.toDate().time > System.currentTimeMillis()
                 )
 
-                db.doc("users/$uid").get()
+                db.document("users/$uid").get()
                     .addOnSuccessListener { user ->
                         onResult(
                             EntitlementSnapshot(

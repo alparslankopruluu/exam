@@ -1,6 +1,6 @@
 import Foundation
 import FirebaseCore
-import FirebaseFunctions
+@preconcurrency import FirebaseFunctions
 
 enum AIGatewayError: LocalizedError {
     case firebaseUnavailable
@@ -37,9 +37,17 @@ final class AIGatewayClient {
         }
 
         do {
-            let result = try await Functions.functions()
-                .httpsCallable(name)
-                .call(payload)
+            let result: HTTPSCallableResult = try await withCheckedThrowingContinuation { continuation in
+                Functions.functions().httpsCallable(name).call(payload) { result, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else if let result {
+                        continuation.resume(returning: result)
+                    } else {
+                        continuation.resume(throwing: AIGatewayError.invalidResponse)
+                    }
+                }
+            }
 
             guard let data = result.data as? [String: Any] else {
                 throw AIGatewayError.invalidResponse
