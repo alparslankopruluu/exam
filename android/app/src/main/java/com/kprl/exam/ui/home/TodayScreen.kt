@@ -70,6 +70,7 @@ fun TodayScreen(
     var sessionOpen by remember { mutableStateOf(false) }
     var sessionQuestions by remember { mutableStateOf<List<StudyQuestion>?>(null) }
     var sessionType by remember { mutableStateOf("quick_practice") }
+    var sessionTimeLimit by remember { mutableStateOf<Int?>(null) }
     var dashboardRefresh by remember { mutableIntStateOf(0) }
     var entitlement by remember { mutableStateOf(EntitlementSnapshot()) }
 
@@ -80,10 +81,12 @@ fun TodayScreen(
 
     fun openSession(
         type: String = "quick_practice",
-        questions: List<StudyQuestion>? = null
+        questions: List<StudyQuestion>? = null,
+        timeLimitSeconds: Int? = null
     ) {
         sessionType = type
         sessionQuestions = questions
+        sessionTimeLimit = timeLimitSeconds
         sessionOpen = true
     }
 
@@ -104,8 +107,10 @@ fun TodayScreen(
                 },
                 onPaywall = { placement ->
                     sessionOpen = false
+                    sessionTimeLimit = null
                     premiumPlacement = placement
-                }
+                },
+                timeLimitSeconds = sessionTimeLimit
             )
             return
         }
@@ -116,6 +121,7 @@ fun TodayScreen(
                 onClose = {
                     sessionOpen = false
                     sessionQuestions = null
+                    sessionTimeLimit = null
                     dashboardRefresh++
                 },
                 questionsOverride = sessionQuestions,
@@ -151,7 +157,7 @@ fun TodayScreen(
                     onClose = { toolRoute = null },
                     onStart = {
                         toolRoute = null
-                        openSession("mock_exam", it)
+                        openSession("mock_exam", it, it.size * 90)
                     },
                     onPaywall = {
                         toolRoute = null
