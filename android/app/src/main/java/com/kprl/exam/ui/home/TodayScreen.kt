@@ -15,10 +15,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.ui.components.ExamStatPill
 import com.kprl.exam.ui.library.LibraryScreen
 import com.kprl.exam.ui.paywall.PremiumPaywallScreen
@@ -34,6 +36,8 @@ fun TodayScreen(setup: StudySetup) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var premiumPlacement by remember { mutableStateOf<String?>(null) }
     var quickPracticeOpen by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
 
     when {
         premiumPlacement != null -> {
@@ -54,10 +58,10 @@ fun TodayScreen(setup: StudySetup) {
     }
 
     val nav = listOf(
-        NavItem("Today", Icons.Rounded.Home),
-        NavItem("Practice", Icons.Rounded.EditNote),
-        NavItem("AI Tutor", Icons.Rounded.AutoAwesome),
-        NavItem("Library", Icons.Rounded.FolderOpen)
+        NavItem(copy.text("today"), Icons.Rounded.Home),
+        NavItem(copy.text("practice"), Icons.Rounded.EditNote),
+        NavItem(copy.text("ai_tutor"), Icons.Rounded.AutoAwesome),
+        NavItem(copy.text("library"), Icons.Rounded.FolderOpen)
     )
 
     Scaffold(
@@ -82,7 +86,7 @@ fun TodayScreen(setup: StudySetup) {
         }
     ) { padding ->
         when (selectedTab) {
-            0 -> TodayContent(setup, Modifier.padding(padding))
+            0 -> TodayContent(setup, copy, Modifier.padding(padding))
             1 -> PracticeScreen(
                 setup = setup,
                 modifier = Modifier.padding(padding),
@@ -99,13 +103,13 @@ fun TodayScreen(setup: StudySetup) {
 }
 
 @Composable
-private fun TodayContent(setup: StudySetup, modifier: Modifier) {
+private fun TodayContent(setup: StudySetup, copy: LocalizedCopy, modifier: Modifier) {
     Column(modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Good evening", color = ExamColors.TextSecondary, fontSize = 13.sp)
-                Text("Ready for a small win? 👋", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                Text(copy.text("good_evening"), color = ExamColors.TextSecondary, fontSize = 13.sp)
+                Text(copy.text("ready_small_win"), fontWeight = FontWeight.Bold, fontSize = 22.sp)
             }
             Box(Modifier.size(42.dp).background(ExamColors.SoftBlue, RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Person, null, tint = ExamColors.Primary)
@@ -114,13 +118,13 @@ private fun TodayContent(setup: StudySetup, modifier: Modifier) {
 
         Spacer(Modifier.height(20.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-            ExamStatPill("7", "day streak", Icons.Rounded.LocalFireDepartment, ExamColors.Amber, Modifier.weight(1f))
-            ExamStatPill(setup.exam.shortName, "active exam", Icons.Rounded.School, ExamColors.Mint, Modifier.weight(1f))
-            ExamStatPill("61", "mastery", Icons.Rounded.Insights, ExamColors.Purple, Modifier.weight(1f))
+            ExamStatPill("7", copy.text("day_streak"), Icons.Rounded.LocalFireDepartment, ExamColors.Amber, Modifier.weight(1f))
+            ExamStatPill(setup.exam.shortName, copy.text("active_exam"), Icons.Rounded.School, ExamColors.Mint, Modifier.weight(1f))
+            ExamStatPill("61", copy.text("mastery"), Icons.Rounded.Insights, ExamColors.Purple, Modifier.weight(1f))
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("TODAY'S ${setup.exam.shortName.uppercase()} PLAN", color = ExamColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("todays_plan", mapOf("exam" to setup.exam.shortName)).uppercase(), color = ExamColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(9.dp))
 
         Column(
@@ -135,7 +139,7 @@ private fun TodayContent(setup: StudySetup, modifier: Modifier) {
                 Text("+80 XP", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp, modifier = Modifier.background(Color.White.copy(alpha = .16f), RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 6.dp))
             }
             Spacer(Modifier.height(24.dp))
-            Text("Core practice", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(copy.text("core_practice"), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Text(setup.exam.title, color = Color.White.copy(alpha = .82f), fontSize = 14.sp)
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -150,17 +154,17 @@ private fun TodayContent(setup: StudySetup, modifier: Modifier) {
                 elevation = ButtonDefaults.buttonElevation(0.dp),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().height(52.dp)
-            ) { Text("Continue", fontWeight = FontWeight.Bold) }
+            ) { Text(copy.text("continue"), fontWeight = FontWeight.Bold) }
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("Next up", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("next_up"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(10.dp))
-        NextRow(Icons.Rounded.FactCheck, "Exam-style questions", "5 questions", ExamColors.Purple)
+        NextRow(Icons.Rounded.FactCheck, copy.text("exam_style_questions"), copy.text("questions_count", mapOf("count" to "5")), ExamColors.Purple)
         Spacer(Modifier.height(8.dp))
-        NextRow(Icons.Rounded.Refresh, "Review mistakes", "3 mistakes", ExamColors.Coral)
+        NextRow(Icons.Rounded.Refresh, copy.text("review_mistakes"), copy.text("mistakes_count", mapOf("count" to "3")), ExamColors.Coral)
         Spacer(Modifier.height(18.dp))
-        NextRow(Icons.Rounded.AutoAwesome, "Ask your tutor", "Explain, scan or practice anything", ExamColors.Purple)
+        NextRow(Icons.Rounded.AutoAwesome, copy.text("ask_tutor"), copy.text("explain_scan_practice"), ExamColors.Purple)
     }
 }
 
