@@ -175,5 +175,18 @@
   "paywall_voice_title": "Converse até realmente entender.",
   "paywall_mock_title": "Transforme cada simulado em uma semana seguinte melhor.",
   "paywall_documents_title": "Transforme todo o seu material em sessões de estudo.",
-  "paywall_ai_title": "Mantenha seu tutor IA disponível quando precisar."
+  "paywall_ai_title": "Mantenha seu tutor IA disponível quando precisar.",
+  "good_morning": "Bom dia",
+  "good_afternoon": "Boa tarde",
+  "plan_done_count": "{done}/{total} concluído",
+  "daily_plan_complete": "Plano diário concluído",
+  "tomorrow_adaptive_plan": "Volte amanhã para o próximo plano adaptativo.",
+  "personalized_plan_hint": "Personalizado com seu diagnóstico, domínio e erros recentes.",
+  "completed": "Concluído",
+  "minutes_remaining": "{task} min · {remaining} min restantes",
+  "minutes_short": "{count} min",
+  "start_focus_session": "Iniciar sessão de foco",
+  "error_dna_attention": "Seu DNA de erros precisa de atenção",
+  "personal_offer": "Oferta pessoal",
+  "offer_server_timed": "Oferta com tempo no servidor · termina ao chegar a zero"
 }
