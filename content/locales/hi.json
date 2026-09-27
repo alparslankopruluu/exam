@@ -175,5 +175,18 @@
   "paywall_voice_title": "बात करके तब तक समझें जब तक बात साफ न हो जाए।",
   "paywall_mock_title": "हर मॉक को अगले बेहतर सप्ताह में बदलें।",
   "paywall_documents_title": "अपनी सारी सामग्री को अध्ययन सत्रों में बदलें।",
-  "paywall_ai_title": "जब जरूरत हो अपना AI ट्यूटर उपलब्ध रखें।"
+  "paywall_ai_title": "जब जरूरत हो अपना AI ट्यूटर उपलब्ध रखें।",
+  "good_morning": "सुप्रभात",
+  "good_afternoon": "नमस्कार",
+  "plan_done_count": "{done}/{total} पूरा",
+  "daily_plan_complete": "आज की योजना पूरी",
+  "tomorrow_adaptive_plan": "अगली अनुकूली योजना के लिए कल वापस आएँ।",
+  "personalized_plan_hint": "डायग्नोस्टिक, मास्टरी और हाल की गलतियों के आधार पर व्यक्तिगत।",
+  "completed": "पूरा",
+  "minutes_remaining": "{task} मिनट · {remaining} मिनट बाकी",
+  "minutes_short": "{count} मिनट",
+  "start_focus_session": "फोकस सत्र शुरू करें",
+  "error_dna_attention": "आपके त्रुटि DNA पर ध्यान चाहिए",
+  "personal_offer": "व्यक्तिगत ऑफ़र",
+  "offer_server_timed": "सर्वर-टाइम ऑफ़र · काउंटडाउन शून्य पर समाप्त"
 }
