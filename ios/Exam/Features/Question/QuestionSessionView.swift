@@ -18,6 +18,7 @@ struct QuestionSessionView: View {
     @State private var correctCount = 0
     @State private var completed = false
     @State private var earnedXP = 0
+    @State private var completedDurationSeconds = 0
     @State private var simplerExplanation: String?
     @State private var tutorAnswer: String?
     @State private var helperLoading = false
@@ -154,6 +155,7 @@ struct QuestionSessionView: View {
             correctCount: correctCount,
             totalCount: questions.count
         )
+        completedDurationSeconds = max(0, Int(completedAt.timeIntervalSince(sessionStartedAt)))
         let before = UserProgressStore().snapshot()
         let after = UserProgressStore().recordSession(
             correct: correctCount,
@@ -340,6 +342,40 @@ struct QuestionSessionView: View {
             .padding(18)
             .examCard(radius: 22)
             .padding(.top, 24)
+
+            if sessionType == "mock_exam" {
+                VStack(alignment: .leading, spacing: 8) {
+                    let accuracy = questions.isEmpty ? 0 : correctCount * 100 / questions.count
+                    Text("Mock analysis")
+                        .font(.system(size: 17, weight: .bold))
+                    Text("Accuracy · \(accuracy)%")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(
+                        "Time · " + String(
+                            format: "%02d:%02d",
+                            completedDurationSeconds / 60,
+                            completedDurationSeconds % 60
+                        )
+                    )
+                    .font(.system(size: 12))
+                    .foregroundStyle(ExamPalette.textSecondary)
+
+                    Text(
+                        accuracy >= 85
+                        ? "Strong result. Move to harder mixed sets and protect timing."
+                        : accuracy >= 65
+                        ? "Good base. Review your Error DNA, then repeat a timed mixed set."
+                        : "Prioritize weak-skill review before the next timed mock."
+                    )
+                    .font(.system(size: 12))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .lineSpacing(3)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .examCard(radius: 20)
+                .padding(.top, 14)
+            }
 
             Spacer()
 
