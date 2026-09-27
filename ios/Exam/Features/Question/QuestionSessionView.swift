@@ -24,6 +24,10 @@ struct QuestionSessionView: View {
     @State private var helperLoading = false
     @State private var remainingSeconds = 0
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     private var questions: [StudyQuestion] {
         if let questionsOverride, !questionsOverride.isEmpty {
             return questionsOverride
@@ -151,7 +155,7 @@ struct QuestionSessionView: View {
                         questionStartedAt = Date()
                     }
                 } label: {
-                    Text(index == questions.count - 1 ? "Finish session" : "Next question")
+                    Text(index == questions.count - 1 ? copy.text("finish_session") : copy.text("next_question"))
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
@@ -322,7 +326,7 @@ struct QuestionSessionView: View {
 
     private func feedbackCard(_ question: StudyQuestion) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(selected == question.correctIndex ? "Nice work." : "Almost — here's what matters.")
+            Text(selected == question.correctIndex ? copy.text("nice_work") : copy.text("almost_hint"))
                 .font(.system(size: 16, weight: .bold))
             Text(simplerExplanation ?? question.explanation)
                 .font(.system(size: 13))
@@ -331,7 +335,7 @@ struct QuestionSessionView: View {
                 .padding(.top, 6)
 
             if let tutorAnswer {
-                Text("AI Tutor")
+                Text(copy.text("ai_tutor"))
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(ExamPalette.purple)
                     .padding(.top, 10)
@@ -357,9 +361,9 @@ struct QuestionSessionView: View {
                             AnalyticsParam.sessionType: sessionType
                         ]
                     )
-                    simplerExplanation = "Think of it in one step: identify what the question asks, isolate the key relationship, then check the answer against the original statement."
+                    simplerExplanation = copy.text("simpler_explanation")
                 } label: {
-                    feedbackChip("Explain simpler")
+                    feedbackChip(copy.text("explain_simpler"))
                 }
                 .buttonStyle(.plain)
 
@@ -391,7 +395,7 @@ struct QuestionSessionView: View {
                         helperLoading = false
                     }
                 } label: {
-                    feedbackChip("Ask tutor")
+                    feedbackChip(copy.text("ask_tutor"))
                 }
                 .buttonStyle(.plain)
             }
@@ -422,20 +426,29 @@ struct QuestionSessionView: View {
                 .background(ExamPalette.softMint)
                 .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
 
-            Text("Session complete")
+            Text(copy.text("session_complete"))
                 .font(.system(size: 28, weight: .bold))
                 .padding(.top, 20)
-            Text("\(correctCount)/\(questions.count) correct · \(setup.exam.shortName)")
+            Text(
+                copy.text(
+                    "result_correct",
+                    variables: [
+                        "correct": "\(correctCount)",
+                        "total": "\(questions.count)",
+                        "exam": setup.exam.shortName
+                    ]
+                )
+            )
                 .font(.system(size: 14))
                 .foregroundStyle(ExamPalette.textSecondary)
                 .padding(.top, 7)
 
             HStack {
-                completionStat("\(correctCount)", "Correct")
+                completionStat("\(correctCount)", copy.text("correct"))
                 Spacer()
-                completionStat("\(questions.count - correctCount)", "Review")
+                completionStat("\(questions.count - correctCount)", copy.text("review"))
                 Spacer()
-                completionStat("+\(earnedXP)", "XP")
+                completionStat("+\(earnedXP)", copy.text("xp"))
             }
             .padding(18)
             .examCard(radius: 22)
@@ -444,12 +457,12 @@ struct QuestionSessionView: View {
             if sessionType == "mock_exam" {
                 VStack(alignment: .leading, spacing: 8) {
                     let accuracy = questions.isEmpty ? 0 : correctCount * 100 / questions.count
-                    Text("Mock analysis")
+                    Text(copy.text("mock_analysis"))
                         .font(.system(size: 17, weight: .bold))
-                    Text("Accuracy · \(accuracy)%")
+                    Text(copy.text("accuracy") + " · \(accuracy)%")
                         .font(.system(size: 14, weight: .semibold))
                     Text(
-                        "Time · " + String(
+                        copy.text("time") + " · " + String(
                             format: "%02d:%02d",
                             completedDurationSeconds / 60,
                             completedDurationSeconds % 60
@@ -460,10 +473,10 @@ struct QuestionSessionView: View {
 
                     Text(
                         accuracy >= 85
-                        ? "Strong result. Move to harder mixed sets and protect timing."
+                        ? copy.text("mock_result_strong")
                         : accuracy >= 65
-                        ? "Good base. Review your Error DNA, then repeat a timed mixed set."
-                        : "Prioritize weak-skill review before the next timed mock."
+                        ? copy.text("mock_result_good")
+                        : copy.text("mock_result_review")
                     )
                     .font(.system(size: 12))
                     .foregroundStyle(ExamPalette.textSecondary)
@@ -478,7 +491,7 @@ struct QuestionSessionView: View {
             Spacer()
 
             Button(action: onClose) {
-                Text("Done")
+                Text(copy.text("done"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
