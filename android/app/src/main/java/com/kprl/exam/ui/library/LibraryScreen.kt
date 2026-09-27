@@ -24,6 +24,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.domain.StudyQuestion
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.platform.ai.AIGatewayClient
 import com.kprl.exam.platform.ai.GatewayResult
 import com.kprl.exam.platform.library.LibraryUploadService
@@ -44,6 +45,7 @@ fun LibraryScreen(
     onPaywall: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val uploader = remember { LibraryUploadService(context.applicationContext) }
     val ai = remember { AIGatewayClient() }
 
@@ -147,7 +149,8 @@ fun LibraryScreen(
             },
             globalLoading = loading,
             globalError = error,
-            onPaywall = onPaywall
+            onPaywall = onPaywall,
+            copy = copy
         )
         return
     }
@@ -156,7 +159,7 @@ fun LibraryScreen(
         modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)
     ) {
         Spacer(Modifier.height(12.dp))
-        Text("Library", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("library"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(
             "Your PDFs, photos, audio, video and notes become searchable study context.",
             color = ExamColors.TextSecondary,
@@ -191,7 +194,7 @@ fun LibraryScreen(
                 Icon(Icons.Rounded.Add, null)
             }
             Spacer(Modifier.width(8.dp))
-            Text(if (loading) "Uploading & indexing…" else "Add material", fontWeight = FontWeight.Bold)
+            Text(if (loading) copy.text("uploading_indexing") else copy.text("add_material"), fontWeight = FontWeight.Bold)
         }
 
         error?.let {
@@ -223,9 +226,9 @@ fun LibraryScreen(
                             modifier = Modifier.size(34.dp)
                         )
                         Spacer(Modifier.height(12.dp))
-                        Text("No indexed materials yet", fontWeight = FontWeight.Bold)
+                        Text(copy.text("no_materials"), fontWeight = FontWeight.Bold)
                         Text(
-                            "Upload a file and exam will summarize it, answer from it and build quizzes from it.",
+                            copy.text("material_empty_hint"),
                             color = ExamColors.TextSecondary,
                             fontSize = 12.sp,
                             lineHeight = 18.sp
@@ -234,7 +237,7 @@ fun LibraryScreen(
                 }
             }
             else -> {
-                Text("Your materials", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(copy.text("your_materials"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
                 LazyColumn(
                     modifier = Modifier.weight(1f),
@@ -290,7 +293,8 @@ private fun MaterialChatScreen(
     onQuiz: (Int) -> Unit,
     globalLoading: Boolean,
     globalError: String?,
-    onPaywall: (String) -> Unit
+    onPaywall: (String) -> Unit,
+    copy: LocalizedCopy
 ) {
     var question by remember(material.id) { mutableStateOf("") }
     var answer by remember(material.id) { mutableStateOf<String?>(null) }
@@ -340,7 +344,7 @@ private fun MaterialChatScreen(
             ) {
                 Icon(Icons.Rounded.Quiz, null)
                 Spacer(Modifier.width(6.dp))
-                Text("Quiz me")
+                Text(copy.text("quiz_me"))
             }
             OutlinedButton(
                 onClick = { onQuiz(10) },
@@ -377,7 +381,7 @@ private fun MaterialChatScreen(
             value = question,
             onValueChange = { question = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Ask this material…") },
+            placeholder = { Text(copy.text("ask_material")) },
             maxLines = 4,
             trailingIcon = {
                 IconButton(
