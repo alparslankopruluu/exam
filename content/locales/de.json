@@ -175,5 +175,18 @@
   "paywall_voice_title": "Sprich es durch, bis es wirklich sitzt.",
   "paywall_mock_title": "Mach aus jedem Probetest eine bessere nächste Woche.",
   "paywall_documents_title": "Verwandle all dein Material in Lerneinheiten.",
-  "paywall_ai_title": "Halte deinen KI-Tutor verfügbar, wenn du ihn brauchst."
+  "paywall_ai_title": "Halte deinen KI-Tutor verfügbar, wenn du ihn brauchst.",
+  "good_morning": "Guten Morgen",
+  "good_afternoon": "Guten Tag",
+  "plan_done_count": "{done}/{total} erledigt",
+  "daily_plan_complete": "Tagesplan abgeschlossen",
+  "tomorrow_adaptive_plan": "Komm morgen für den nächsten adaptiven Plan zurück.",
+  "personalized_plan_hint": "Personalisiert aus Diagnose, Beherrschung und letzten Fehlern.",
+  "completed": "Abgeschlossen",
+  "minutes_remaining": "{task} Min · {remaining} Min übrig",
+  "minutes_short": "{count} Min",
+  "start_focus_session": "Fokus starten",
+  "error_dna_attention": "Deine Fehler-DNA braucht Aufmerksamkeit",
+  "personal_offer": "Persönliches Angebot",
+  "offer_server_timed": "Serverseitig begrenzt · endet bei null"
 }
