@@ -296,7 +296,7 @@ private fun DiagnosticStep(exam: ExamDefinition, copy: LocalizedCopy, onComplete
         ) {
             Column(Modifier.padding(20.dp)) {
                 Text(
-                    if (finished) copy.text("diagnostic_complete").uppercase() else "QUESTION " + (index + 1) + " / " + questions.size,",
+                    if (finished) copy.text("diagnostic_complete").uppercase() else "QUESTION " + (index + 1) + " / " + questions.size,
                     color = ExamColors.Primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
