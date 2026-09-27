@@ -39,6 +39,31 @@ struct QuestionSessionView: View {
                 questionView
             }
         }
+        .task {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.studySessionStarted,
+                params: [
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.contentPackId: setup.exam.syllabusPackId,
+                    AnalyticsParam.sessionType: sessionType,
+                    AnalyticsParam.itemCount: questions.count
+                ]
+            )
+            if sessionType == "daily_plan" {
+                AppServices.shared.analytics.event(
+                    AnalyticsEvent.dailyMissionStarted,
+                    params: [AnalyticsParam.examId: setup.exam.id]
+                )
+            } else if sessionType == "mock_exam" {
+                AppServices.shared.analytics.event(
+                    AnalyticsEvent.mockStarted,
+                    params: [
+                        AnalyticsParam.examId: setup.exam.id,
+                        AnalyticsParam.itemCount: questions.count
+                    ]
+                )
+            }
+        }
         .task(id: timeLimitSeconds) {
             guard let limit = timeLimitSeconds, !completed else { return }
             if remainingSeconds <= 0 {
@@ -163,6 +188,49 @@ struct QuestionSessionView: View {
             durationSeconds: max(0, Int(completedAt.timeIntervalSince(sessionStartedAt)))
         )
         earnedXP = max(0, after.xp - before.xp)
+        let scorePercent = questions.isEmpty ? 0 : correctCount * 100 / questions.count
+
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.studySessionCompleted,
+            params: [
+                AnalyticsParam.examId: setup.exam.id,
+                AnalyticsParam.contentPackId: setup.exam.syllabusPackId,
+                AnalyticsParam.sessionType: sessionType,
+                AnalyticsParam.itemCount: questions.count,
+                AnalyticsParam.scorePercent: scorePercent,
+                AnalyticsParam.durationSeconds: completedDurationSeconds,
+                AnalyticsParam.xpEarned: earnedXP
+            ]
+        )
+        if sessionType == "daily_plan" {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.dailyMissionCompleted,
+                params: [
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.scorePercent: scorePercent,
+                    AnalyticsParam.durationSeconds: completedDurationSeconds
+                ]
+            )
+        } else if sessionType == "mock_exam" {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.mockCompleted,
+                params: [
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.scorePercent: scorePercent,
+                    AnalyticsParam.durationSeconds: completedDurationSeconds
+                ]
+            )
+        }
+        if after.streak > before.streak {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.streakExtended,
+                params: [
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.streakCount: after.streak
+                ]
+            )
+        }
+
         onSessionCompleted?()
         completed = true
     }
@@ -200,15 +268,29 @@ struct QuestionSessionView: View {
                 .lowercased()
                 .replacingOccurrences(of: " ", with: "_")
 
+            let responseMs = max(0, Int(answeredAt.timeIntervalSince(questionStartedAt) * 1000))
             try? LearningStore(context: modelContext).recordAnswer(
                 examId: setup.exam.id,
                 skillId: skillId,
                 questionId: question.id,
                 correct: correct,
-                responseTimeMs: max(0, Int(answeredAt.timeIntervalSince(questionStartedAt) * 1000)),
+                responseTimeMs: responseMs,
                 selectedAnswer: option,
                 correctAnswer: question.options[question.correctIndex],
                 errorType: correct ? "none" : "concept"
+            )
+
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.questionAnswered,
+                params: [
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.contentPackId: setup.exam.syllabusPackId,
+                    AnalyticsParam.topicId: question.topic.lowercased().replacingOccurrences(of: " ", with: "_"),
+                    AnalyticsParam.answerCorrect: correct,
+                    AnalyticsParam.responseTimeMs: responseMs,
+                    AnalyticsParam.sessionType: sessionType,
+                    AnalyticsParam.errorType: correct ? "none" : "concept"
+                ]
             )
         } label: {
             HStack(spacing: 10) {
@@ -267,6 +349,14 @@ struct QuestionSessionView: View {
 
             HStack(spacing: 8) {
                 Button {
+                    AppServices.shared.analytics.event(
+                        AnalyticsEvent.explanationRequested,
+                        params: [
+                            AnalyticsParam.examId: setup.exam.id,
+                            AnalyticsParam.source: "simpler_local",
+                            AnalyticsParam.sessionType: sessionType
+                        ]
+                    )
                     simplerExplanation = "Think of it in one step: identify what the question asks, isolate the key relationship, then check the answer against the original statement."
                 } label: {
                     feedbackChip("Explain simpler")
@@ -275,6 +365,14 @@ struct QuestionSessionView: View {
 
                 Button {
                     guard !helperLoading else { return }
+                    AppServices.shared.analytics.event(
+                        AnalyticsEvent.explanationRequested,
+                        params: [
+                            AnalyticsParam.examId: setup.exam.id,
+                            AnalyticsParam.source: "ai_tutor",
+                            AnalyticsParam.sessionType: sessionType
+                        ]
+                    )
                     helperLoading = true
                     Task { @MainActor in
                         do {
