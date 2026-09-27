@@ -165,5 +165,15 @@
   "unlimited_materials": "Unbegrenzte Lernmaterialien",
   "unlimited_materials_hint": "Notizen und Dokumente in Übungen verwandeln.",
   "price_terms": "Preis, Testberechtigung und Verlängerung kommen direkt aus dem Store für Konto und Region.",
-  "continue_price": "Weiter · {price}"
+  "continue_price": "Weiter · {price}",
+  "simpler_explanation": "Denk in einem Schritt: Bestimme die genaue Frage, isoliere die Schlüsselbeziehung und prüfe die Antwort am Ausgangstext.",
+  "result_correct": "{correct}/{total} richtig · {exam}",
+  "time": "Zeit",
+  "mock_result_strong": "Starkes Ergebnis. Wechsle zu schwierigeren Mischsets und halte dein Timing.",
+  "mock_result_good": "Gute Basis. Prüfe deine Fehler-DNA und wiederhole danach ein zeitlich begrenztes Mischset.",
+  "mock_result_review": "Priorisiere deine Schwächen vor dem nächsten zeitlich begrenzten Probetest.",
+  "paywall_voice_title": "Sprich es durch, bis es wirklich sitzt.",
+  "paywall_mock_title": "Mach aus jedem Probetest eine bessere nächste Woche.",
+  "paywall_documents_title": "Verwandle all dein Material in Lerneinheiten.",
+  "paywall_ai_title": "Halte deinen KI-Tutor verfügbar, wenn du ihn brauchst."
 }
