@@ -84,9 +84,14 @@ struct AITutorView: View {
                             "waveform",
                             copy.text("talk_tutor"),
                             copy.text("talk_tutor_hint"),
-                            ExamPalette.purple,
-                            action: onVoiceTutor
-                        )
+                            ExamPalette.purple
+                        ) {
+                            AppServices.shared.analytics.event(
+                                AnalyticsEvent.voiceTutorStarted,
+                                params: [AnalyticsParam.examId: setup.exam.id]
+                            )
+                            onVoiceTutor()
+                        }
                     }
                     .padding(.top, 12)
 
@@ -165,6 +170,15 @@ struct AITutorView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 14)
         }
+        .task {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.aiTutorStarted,
+                params: [
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.contentPackId: setup.exam.syllabusPackId
+                ]
+            )
+        }
         .onChange(of: photoItem) { _, newItem in
             guard let newItem else { return }
             solvePhoto(newItem)
@@ -198,6 +212,14 @@ struct AITutorView: View {
         answer = nil
         error = nil
 
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.aiMessageSent,
+            params: [
+                AnalyticsParam.examId: setup.exam.id,
+                AnalyticsParam.source: "text"
+            ]
+        )
+
         Task { @MainActor in
             do {
                 answer = try await AIGatewayClient().askTutor(
@@ -221,6 +243,13 @@ struct AITutorView: View {
         loading = true
         answer = nil
         error = nil
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.scanStarted,
+            params: [
+                AnalyticsParam.examId: setup.exam.id,
+                AnalyticsParam.source: "photo_picker"
+            ]
+        )
 
         Task { @MainActor in
             do {
@@ -239,6 +268,13 @@ struct AITutorView: View {
                     setup: setup,
                     extractedText: extracted.isEmpty ? nil : extracted,
                     imageDataURL: dataURL
+                )
+                AppServices.shared.analytics.event(
+                    AnalyticsEvent.scanCompleted,
+                    params: [
+                        AnalyticsParam.examId: setup.exam.id,
+                        AnalyticsParam.source: "photo_picker"
+                    ]
                 )
             } catch {
                 let message = error.localizedDescription
