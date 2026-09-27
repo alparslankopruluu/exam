@@ -146,7 +146,8 @@ fun LibraryScreen(
                 }
             },
             globalLoading = loading,
-            globalError = error
+            globalError = error,
+            onPaywall = onPaywall
         )
         return
     }
