@@ -111,9 +111,10 @@ fun PremiumPaywallScreen(
                 Spacer(Modifier.height(20.dp))
                 Text(
                     when (placement) {
-                        "voice_tutor" -> "Talk it through until it clicks."
-                        "mock_analysis" -> "Turn every mock exam into a better next week."
-                        "document_limit" -> "Turn all your material into study sessions."
+                        "voice_tutor" -> copy.text("paywall_voice_title")
+                        "mock_analysis" -> copy.text("paywall_mock_title")
+                        "document_limit" -> copy.text("paywall_documents_title")
+                        "ai_limit" -> copy.text("paywall_ai_title")
                         else -> copy.text("paywall_title")
                     },
                     color = Color.White,
@@ -132,13 +133,13 @@ fun PremiumPaywallScreen(
         }
 
         Spacer(Modifier.height(20.dp))
-        Benefit(Icons.Rounded.AutoAwesome, "Advanced AI Tutor", "Ask follow-ups until you understand.")
-        Benefit(Icons.Rounded.GraphicEq, "Voice Tutor", "Interactive speaking and spoken explanations.")
-        Benefit(Icons.Rounded.FolderOpen, "Unlimited study materials", "Turn notes and documents into practice.")
+        Benefit(Icons.Rounded.AutoAwesome, copy.text("advanced_ai_tutor"), copy.text("advanced_ai_tutor_hint"))
+        Benefit(Icons.Rounded.GraphicEq, copy.text("voice_tutor"), copy.text("voice_tutor_hint"))
+        Benefit(Icons.Rounded.FolderOpen, copy.text("unlimited_materials"), copy.text("unlimited_materials_hint"))
         Benefit(Icons.Rounded.Bolt, copy.text("quick_practice"), copy.text("quick_practice_hint"))
 
         Spacer(Modifier.height(18.dp))
-        PlanCard(offer.annual, copy.text("annual"), annualSelected) {
+        PlanCard(offer.annual, copy.text("annual"), copy.text("best_value"), annualSelected) {
             annualSelected = true
             AppServices.analytics.event(
                 AnalyticsEvents.PLAN_SELECTED,
@@ -146,7 +147,7 @@ fun PremiumPaywallScreen(
             )
         }
         Spacer(Modifier.height(9.dp))
-        PlanCard(offer.monthly, copy.text("monthly"), !annualSelected) {
+        PlanCard(offer.monthly, copy.text("monthly"), copy.text("best_value"), !annualSelected) {
             annualSelected = false
             AppServices.analytics.event(
                 AnalyticsEvents.PLAN_SELECTED,
@@ -159,7 +160,7 @@ fun PremiumPaywallScreen(
             onClick = {
                 val host = activity
                 if (host == null) {
-                    purchaseError = "Purchase screen is unavailable."
+                    purchaseError = copy.text("purchase_not_completed")
                     return@Button
                 }
                 purchasing = true
@@ -176,7 +177,7 @@ fun PremiumPaywallScreen(
                         )
                         onClose()
                     } else if (message != "cancelled") {
-                        purchaseError = message ?: "Purchase failed."
+                        purchaseError = message ?: copy.text("purchase_not_completed")
                         AppServices.analytics.event(
                             AnalyticsEvents.PURCHASE_FAILED,
                             mapOf(
@@ -199,7 +200,10 @@ fun PremiumPaywallScreen(
             Text(
                 when {
                     purchasing -> copy.text("processing")
-                    selectedPlan.localizedPrice != null -> "Continue · " + selectedPlan.localizedPrice
+                    selectedPlan.localizedPrice != null -> copy.text(
+                        "continue_price",
+                        mapOf("price" to selectedPlan.localizedPrice)
+                    )
                     else -> copy.text("loading_price")
                 },
                 fontWeight = FontWeight.Bold
@@ -211,7 +215,7 @@ fun PremiumPaywallScreen(
         }
         Spacer(Modifier.height(8.dp))
         Text(
-            "Price, trial eligibility and renewal terms come directly from Google Play for your account and region.",
+            copy.text("price_terms"),
             color = ExamColors.TextSecondary,
             fontSize = 10.sp,
             lineHeight = 14.sp,
@@ -239,7 +243,13 @@ private fun Benefit(icon: androidx.compose.ui.graphics.vector.ImageVector, title
 }
 
 @Composable
-private fun PlanCard(plan: StorePlanPresentation, displayTitle: String, selected: Boolean, onClick: () -> Unit) {
+private fun PlanCard(
+    plan: StorePlanPresentation,
+    displayTitle: String,
+    recommendedLabel: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         color = ExamColors.Surface,
@@ -263,7 +273,7 @@ private fun PlanCard(plan: StorePlanPresentation, displayTitle: String, selected
                     if (plan.recommended) {
                         Spacer(Modifier.width(7.dp))
                         Text(
-                            "BEST VALUE",
+                            recommendedLabel,
                             color = ExamColors.Primary,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
