@@ -165,5 +165,15 @@
   "unlimited_materials": "Sınırsız çalışma materyali",
   "unlimited_materials_hint": "Notlarını ve belgelerini pratiğe dönüştür.",
   "price_terms": "Fiyat, deneme uygunluğu ve yenileme koşulları hesabın ve bölgen için doğrudan mağazadan gelir.",
-  "continue_price": "Devam et · {price}"
+  "continue_price": "Devam et · {price}",
+  "simpler_explanation": "Tek adımda düşün: sorunun ne istediğini belirle, temel ilişkiyi ayır ve cevabı ilk ifadeyle kontrol et.",
+  "result_correct": "{correct}/{total} doğru · {exam}",
+  "time": "Süre",
+  "mock_result_strong": "Güçlü sonuç. Daha zor karma setlere geç ve süre yönetimini koru.",
+  "mock_result_good": "İyi temel. Hata DNA'nı gözden geçir, sonra süreli karma seti tekrarla.",
+  "mock_result_review": "Bir sonraki süreli denemeden önce zayıf becerileri önceliklendir.",
+  "paywall_voice_title": "Konuşarak çöz; anlayana kadar devam et.",
+  "paywall_mock_title": "Her denemeyi daha iyi bir sonraki haftaya dönüştür.",
+  "paywall_documents_title": "Tüm materyallerini çalışma oturumlarına dönüştür.",
+  "paywall_ai_title": "AI öğretmenine ihtiyaç duyduğunda erişmeye devam et."
 }
