@@ -71,9 +71,9 @@ struct PremiumPaywallView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
 
                     VStack(spacing: 0) {
-                        benefit("sparkles", "Advanced AI Tutor", "Ask follow-ups until you understand.")
-                        benefit("waveform", "Voice Tutor", "Interactive speaking and spoken explanations.")
-                        benefit("folder.fill", "Unlimited study materials", "Turn notes and documents into practice.")
+                        benefit("sparkles", copy.text("advanced_ai_tutor"), copy.text("advanced_ai_tutor_hint"))
+                        benefit("waveform", copy.text("voice_tutor"), copy.text("voice_tutor_hint"))
+                        benefit("folder.fill", copy.text("unlimited_materials"), copy.text("unlimited_materials_hint"))
                         benefit("bolt.fill", copy.text("quick_practice"), copy.text("quick_practice_hint"))
                     }
                     .padding(.top, 14)
@@ -114,7 +114,7 @@ struct PremiumPaywallView: View {
                         )
                         onClose()
                     } else {
-                        purchaseError = "Purchase was not completed."
+                        purchaseError = copy.text("purchase_not_completed")
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.purchaseFailed,
                             params: [
@@ -128,7 +128,9 @@ struct PremiumPaywallView: View {
                 Text(
                     purchasing
                     ? copy.text("processing")
-                    : selectedPlan.localizedPrice.map { "Continue · \($0)" } ?? copy.text("loading_price")
+                    : selectedPlan.localizedPrice.map {
+                        copy.text("continue_price", variables: ["price": $0])
+                    } ?? copy.text("loading_price")
                 )
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
@@ -147,7 +149,7 @@ struct PremiumPaywallView: View {
                     .padding(.top, 7)
             }
 
-            Text("Price, trial eligibility and renewal terms come directly from the App Store for your account and region.")
+            Text(copy.text("price_terms"))
                 .font(.system(size: 10))
                 .foregroundStyle(ExamPalette.textSecondary)
                 .lineSpacing(2)
@@ -172,11 +174,13 @@ struct PremiumPaywallView: View {
     private var headline: String {
         switch placement {
         case "voice_tutor":
-            "Talk it through until it clicks."
+            copy.text("paywall_voice_title")
         case "mock_analysis":
-            "Turn every mock exam into a better next week."
+            copy.text("paywall_mock_title")
         case "document_limit":
-            "Turn all your material into study sessions."
+            copy.text("paywall_documents_title")
+        case "ai_limit":
+            copy.text("paywall_ai_title")
         default:
             copy.text("paywall_title")
         }
@@ -220,7 +224,7 @@ struct PremiumPaywallView: View {
                             .foregroundStyle(ExamPalette.textPrimary)
 
                         if plan.recommended {
-                            Text("BEST VALUE")
+                            Text(copy.text("best_value"))
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(ExamPalette.primary)
                                 .padding(.horizontal, 7)
