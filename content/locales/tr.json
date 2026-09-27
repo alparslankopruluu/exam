@@ -175,5 +175,18 @@
   "paywall_voice_title": "Konuşarak çöz; anlayana kadar devam et.",
   "paywall_mock_title": "Her denemeyi daha iyi bir sonraki haftaya dönüştür.",
   "paywall_documents_title": "Tüm materyallerini çalışma oturumlarına dönüştür.",
-  "paywall_ai_title": "AI öğretmenine ihtiyaç duyduğunda erişmeye devam et."
+  "paywall_ai_title": "AI öğretmenine ihtiyaç duyduğunda erişmeye devam et.",
+  "good_morning": "Günaydın",
+  "good_afternoon": "İyi günler",
+  "plan_done_count": "{done}/{total} tamamlandı",
+  "daily_plan_complete": "Bugünkü plan tamamlandı",
+  "tomorrow_adaptive_plan": "Bir sonraki adaptif plan için yarın tekrar gel.",
+  "personalized_plan_hint": "Tanı testin, hakimiyetin ve son yanlışlarına göre kişiselleştirildi.",
+  "completed": "Tamamlandı",
+  "minutes_remaining": "{task} dk · {remaining} dk kaldı",
+  "minutes_short": "{count} dk",
+  "start_focus_session": "Odak oturumu başlat",
+  "error_dna_attention": "Hata DNA'n ilgilenmeni bekliyor",
+  "personal_offer": "Sana özel teklif",
+  "offer_server_timed": "Sunucu süreli teklif · sayaç sıfırlanınca sona erer"
 }
