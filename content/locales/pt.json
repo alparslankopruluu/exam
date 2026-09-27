@@ -165,5 +165,15 @@
   "unlimited_materials": "Materiais ilimitados",
   "unlimited_materials_hint": "Transforme notas e documentos em prática.",
   "price_terms": "Preço, teste e renovação vêm diretamente da loja conforme conta e região.",
-  "continue_price": "Continuar · {price}"
+  "continue_price": "Continuar · {price}",
+  "simpler_explanation": "Pense em um passo: identifique o que a questão pede, isole a relação principal e confira a resposta no enunciado.",
+  "result_correct": "{correct}/{total} corretas · {exam}",
+  "time": "Tempo",
+  "mock_result_strong": "Resultado forte. Avance para conjuntos mistos mais difíceis e preserve o ritmo.",
+  "mock_result_good": "Boa base. Revise seu DNA de erros e repita um conjunto misto cronometrado.",
+  "mock_result_review": "Priorize habilidades fracas antes do próximo simulado cronometrado.",
+  "paywall_voice_title": "Converse até realmente entender.",
+  "paywall_mock_title": "Transforme cada simulado em uma semana seguinte melhor.",
+  "paywall_documents_title": "Transforme todo o seu material em sessões de estudo.",
+  "paywall_ai_title": "Mantenha seu tutor IA disponível quando precisar."
 }
