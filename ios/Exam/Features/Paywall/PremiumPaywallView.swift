@@ -10,6 +10,10 @@ struct PremiumPaywallView: View {
     @State private var purchasing = false
     @State private var purchaseError: String?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     private var selectedPlan: StorePlanPresentation {
         annualSelected ? offer.annual : offer.monthly
     }
@@ -49,7 +53,7 @@ struct PremiumPaywallView: View {
                             .foregroundStyle(.white)
                             .padding(.top, 20)
 
-                        Text("Premium keeps your \(setup.exam.shortName) plan adaptive across practice, tutoring and review.")
+                        Text(copy.text("paywall_subtitle"))
                             .font(.system(size: 14))
                             .foregroundStyle(.white.opacity(0.82))
                             .lineSpacing(3)
@@ -70,11 +74,11 @@ struct PremiumPaywallView: View {
                         benefit("sparkles", "Advanced AI Tutor", "Ask follow-ups until you understand.")
                         benefit("waveform", "Voice Tutor", "Interactive speaking and spoken explanations.")
                         benefit("folder.fill", "Unlimited study materials", "Turn notes and documents into practice.")
-                        benefit("chart.xyaxis.line", "Advanced progress", "See mastery and mistake patterns over time.")
+                        benefit("bolt.fill", copy.text("quick_practice"), copy.text("quick_practice_hint"))
                     }
                     .padding(.top, 14)
 
-                    planCard(offer.annual, selected: annualSelected) {
+                    planCard(offer.annual, displayTitle: copy.text("annual"), selected: annualSelected) {
                         annualSelected = true
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.subscriptionPlanSelected,
@@ -83,7 +87,7 @@ struct PremiumPaywallView: View {
                     }
                     .padding(.top, 14)
 
-                    planCard(offer.monthly, selected: !annualSelected) {
+                    planCard(offer.monthly, displayTitle: copy.text("monthly"), selected: !annualSelected) {
                         annualSelected = false
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.subscriptionPlanSelected,
@@ -123,8 +127,8 @@ struct PremiumPaywallView: View {
             } label: {
                 Text(
                     purchasing
-                    ? "Processing…"
-                    : selectedPlan.localizedPrice.map { "Continue · \($0)" } ?? "Loading local price…"
+                    ? copy.text("processing")
+                    : selectedPlan.localizedPrice.map { "Continue · \($0)" } ?? copy.text("loading_price")
                 )
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
@@ -174,7 +178,7 @@ struct PremiumPaywallView: View {
         case "document_limit":
             "Turn all your material into study sessions."
         default:
-            "Keep your full personalized plan."
+            copy.text("paywall_title")
         }
     }
 
@@ -210,7 +214,7 @@ struct PremiumPaywallView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 7) {
-                        Text(plan.title)
+                        Text(displayTitle)
                             .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(ExamPalette.textPrimary)
 
