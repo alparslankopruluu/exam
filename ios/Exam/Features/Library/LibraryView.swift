@@ -23,6 +23,10 @@ struct LibraryView: View {
     @State private var selected: CloudMaterial?
     @State private var error: String?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         Group {
             if let selected {
@@ -31,7 +35,8 @@ struct LibraryView: View {
                     material: selected,
                     onBack: { self.selected = nil },
                     onStartPractice: onStartPractice,
-                    onPaywall: onPaywall
+                    onPaywall: onPaywall,
+                    copy: copy
                 )
             } else {
                 libraryList
@@ -72,7 +77,7 @@ struct LibraryView: View {
 
     private var libraryList: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Library")
+            Text(copy.text("library"))
                 .font(.system(size: 28, weight: .bold))
             Text("Your PDFs, photos, audio, video and notes become searchable study context.")
                 .font(.system(size: 13))
@@ -85,7 +90,7 @@ struct LibraryView: View {
                 HStack(spacing: 8) {
                     if loading { ProgressView().tint(.white) }
                     else { Image(systemName: "plus") }
-                    Text(loading ? "Uploading & indexing…" : "Add material")
+                    Text(loading ? copy.text("uploading_indexing") : copy.text("add_material"))
                 }
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.white)
@@ -114,9 +119,9 @@ struct LibraryView: View {
                     Image(systemName: "folder.fill")
                         .font(.system(size: 34))
                         .foregroundStyle(ExamPalette.primary)
-                    Text("No indexed materials yet")
+                    Text(copy.text("no_materials"))
                         .font(.system(size: 18, weight: .bold))
-                    Text("Upload a file and exam will summarize it, answer from it and build quizzes from it.")
+                    Text(copy.text("material_empty_hint"))
                         .font(.system(size: 12))
                         .foregroundStyle(ExamPalette.textSecondary)
                         .multilineTextAlignment(.center)
@@ -126,7 +131,7 @@ struct LibraryView: View {
                 .examCard(radius: 24)
                 .padding(.top, 20)
             } else {
-                Text("Your materials")
+                Text(copy.text("your_materials"))
                     .font(.system(size: 18, weight: .bold))
                     .padding(.top, 20)
 
@@ -209,6 +214,7 @@ private struct MaterialChatView: View {
     let onBack: () -> Void
     let onStartPractice: ([StudyQuestion]) -> Void
     let onPaywall: (String) -> Void
+    let copy: LocalizedCopy
 
     @State private var question = ""
     @State private var answer: String?
@@ -250,7 +256,7 @@ private struct MaterialChatView: View {
             }
 
             HStack(spacing: 8) {
-                quizButton(title: "Quiz me", count: 5)
+                quizButton(title: copy.text("quiz_me"), count: 5)
                 quizButton(title: "10 questions", count: 10)
             }
             .padding(.top, 12)
@@ -279,7 +285,7 @@ private struct MaterialChatView: View {
             Spacer()
 
             HStack(spacing: 8) {
-                TextField("Ask this material…", text: $question, axis: .vertical)
+                TextField(copy.text("ask_material"), text: $question, axis: .vertical)
                     .lineLimit(1...4)
                 Button {
                     ask()
