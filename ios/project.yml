@@ -42,13 +42,14 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam
-        PRODUCT_NAME: exam
+        PRODUCT_NAME: Exam
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: exam
+        INFOPLIST_KEY_CFBundleDisplayName: Exam
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Voice Tutor uses the microphone only while you are asking a spoken study question."
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: 0.1.0
+        MARKETING_VERSION: 1.0.0
     postBuildScripts:
       - name: Firebase Crashlytics Symbols
         basedOnDependencyAnalysis: false
