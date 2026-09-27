@@ -16,6 +16,8 @@ enum AnalyticsEvent {
     static let purchaseFailed = "purchase_failed"
     static let paywallClosed = "paywall_closed"
 
+    static let studySessionStarted = "study_session_started"
+    static let studySessionCompleted = "study_session_completed"
     static let dailyMissionStarted = "daily_mission_started"
     static let dailyMissionCompleted = "daily_mission_completed"
     static let questionAnswered = "question_answered"
