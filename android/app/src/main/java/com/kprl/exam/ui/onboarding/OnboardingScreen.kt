@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,6 +29,7 @@ import com.kprl.exam.data.*
 import com.kprl.exam.analytics.AnalyticsEvents
 import com.kprl.exam.analytics.AnalyticsParams
 import com.kprl.exam.platform.AppServices
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.ui.components.ExamPrimaryButton
 import com.kprl.exam.ui.components.ExamSelectionCard
 import com.kprl.exam.ui.theme.ExamColors
@@ -44,6 +46,8 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
 
     val country = ExamCatalog.countries[countryIndex]
     val exams = ExamCatalog.examsFor(country)
+    val context = LocalContext.current
+    val copy = remember { LocalizedCopy.load(context, ExamCatalog.languageCode()) }
 
     LaunchedEffect(Unit) {
         AppServices.analytics.event(AnalyticsEvents.ONBOARDING_STARTED)
@@ -109,7 +113,7 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
             label = "onboarding"
         ) { current ->
             when (current) {
-                0 -> CountryStep(countryIndex) {
+                0 -> CountryStep(copy, countryIndex) {
                     countryIndex = it
                     examIndex = -1
                     AppServices.analytics.event(
@@ -117,7 +121,7 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
                         mapOf(AnalyticsParams.COUNTRY_CODE to ExamCatalog.countries[it].code)
                     )
                 }
-                1 -> ExamStep(country, exams, examIndex) {
+                1 -> ExamStep(copy, country, exams, examIndex) {
                     examIndex = it
                     AppServices.analytics.event(
                         AnalyticsEvents.EXAM_SELECTED,
@@ -128,15 +132,15 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
                         )
                     )
                 }
-                2 -> ChoiceStep("What's your goal?", "We'll tune pace, difficulty and your weekly plan.", goalChoices(), selected[current]) {
+                2 -> ChoiceStep(copy.text("onboarding_goal_title"), copy.text("onboarding_goal_hint"), goalChoices(), selected[current]) {
                     selected[current] = it
                     AppServices.analytics.event(
                         AnalyticsEvents.GOAL_SELECTED,
                         mapOf("goal_index" to it)
                     )
                 }
-                3 -> ChoiceStep("How much time can you study daily?", "Choose something realistic. Consistency wins.", timeChoices(), selected[current]) { selected[current] = it }
-                4 -> DiagnosticStep(exams[examIndex]) { score -> selected[current] = score }
+                3 -> ChoiceStep(copy.text("onboarding_time_title"), copy.text("onboarding_time_hint"), timeChoices(), selected[current]) { selected[current] = it }
+                4 -> DiagnosticStep(exams[examIndex], copy) { score -> selected[current] = score }
                 else -> PlanReadyStep(
                     exam = exams[examIndex],
                     diagnosticPercent = selected[4] ?: 50,
@@ -146,7 +150,7 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
         }
 
         ExamPrimaryButton(
-            text = if (step == total - 1) "Start my plan" else "Continue",
+            text = if (step == total - 1) copy.text("start_my_plan") else copy.text("continue"),
             enabled = canContinue()
         ) {
             if (step == total - 1) {
@@ -178,12 +182,12 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
 }
 
 @Composable
-private fun CountryStep(selectedIndex: Int, onSelected: (Int) -> Unit) {
+private fun CountryStep(copy: LocalizedCopy, selectedIndex: Int, onSelected: (Int) -> Unit) {
     Column {
         Spacer(Modifier.height(28.dp))
-        Text("Where are you studying?", fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("onboarding_country_title"), fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Text("We use your region to suggest the right exams. You can still choose international exams anywhere.", color = ExamColors.TextSecondary, fontSize = 15.sp)
+        Text(copy.text("onboarding_country_hint"), color = ExamColors.TextSecondary, fontSize = 15.sp)
         Spacer(Modifier.height(22.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(9.dp)) {
             itemsIndexed(ExamCatalog.countries) { index, item ->
@@ -206,10 +210,10 @@ private fun CountryStep(selectedIndex: Int, onSelected: (Int) -> Unit) {
 }
 
 @Composable
-private fun ExamStep(country: CountryDefinition, exams: List<ExamDefinition>, selectedIndex: Int, onSelected: (Int) -> Unit) {
+private fun ExamStep(copy: LocalizedCopy, country: CountryDefinition, exams: List<ExamDefinition>, selectedIndex: Int, onSelected: (Int) -> Unit) {
     Column {
         Spacer(Modifier.height(28.dp))
-        Text("Which exam are you preparing for?", fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("onboarding_exam_title"), fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text("${country.flag} ${country.name} exams first, followed by international options.", color = ExamColors.TextSecondary, fontSize = 15.sp)
         Spacer(Modifier.height(22.dp))
@@ -258,7 +262,7 @@ private fun ChoiceStep(title: String, subtitle: String, choices: List<Choice>, s
 }
 
 @Composable
-private fun DiagnosticStep(exam: ExamDefinition, onCompleted: (Int) -> Unit) {
+private fun DiagnosticStep(exam: ExamDefinition, copy: LocalizedCopy, onCompleted: (Int) -> Unit) {
     val questions = remember(exam.id) { diagnosticQuestions(exam) }
     var index by remember(exam.id) { mutableIntStateOf(0) }
     var selectedIndex by remember(exam.id) { mutableStateOf<Int?>(null) }
@@ -269,10 +273,10 @@ private fun DiagnosticStep(exam: ExamDefinition, onCompleted: (Int) -> Unit) {
 
     Column {
         Spacer(Modifier.height(28.dp))
-        Text("Let's find your starting point.", fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("diagnostic_title"), fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text(
-            "A short ${exam.shortName} diagnostic adapts your first week. It won't affect any official score.",
+            copy.text("diagnostic_hint", mapOf("exam" to exam.shortName)),
             color = ExamColors.TextSecondary
         )
         Spacer(Modifier.height(18.dp))
@@ -292,7 +296,7 @@ private fun DiagnosticStep(exam: ExamDefinition, onCompleted: (Int) -> Unit) {
         ) {
             Column(Modifier.padding(20.dp)) {
                 Text(
-                    if (finished) "DIAGNOSTIC COMPLETE" else "QUESTION ${index + 1} OF ${questions.size}",
+                    if (finished) copy.text("diagnostic_complete").uppercase() else "QUESTION " + (index + 1) + " / " + questions.size,",
                     color = ExamColors.Primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
@@ -372,7 +376,7 @@ private fun DiagnosticStep(exam: ExamDefinition, onCompleted: (Int) -> Unit) {
                             shape = RoundedCornerShape(15.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
                         ) {
-                            Text(if (index == questions.lastIndex) "See my level" else "Next question")
+                            Text(if (index == questions.lastIndex) copy.text("see_my_level") else copy.text("next_question"))
                         }
                     }
                 }
