@@ -175,5 +175,18 @@
   "paywall_voice_title": "Parle-en jusqu’à ce que tout soit clair.",
   "paywall_mock_title": "Transforme chaque examen blanc en meilleure semaine suivante.",
   "paywall_documents_title": "Transforme tout ton matériel en sessions d’étude.",
-  "paywall_ai_title": "Garde ton tuteur IA disponible quand tu en as besoin."
+  "paywall_ai_title": "Garde ton tuteur IA disponible quand tu en as besoin.",
+  "good_morning": "Bonjour",
+  "good_afternoon": "Bon après-midi",
+  "plan_done_count": "{done}/{total} terminé",
+  "daily_plan_complete": "Plan du jour terminé",
+  "tomorrow_adaptive_plan": "Reviens demain pour le prochain plan adaptatif.",
+  "personalized_plan_hint": "Personnalisé selon ton diagnostic, ta maîtrise et tes erreurs récentes.",
+  "completed": "Terminé",
+  "minutes_remaining": "{task} min · {remaining} min restantes",
+  "minutes_short": "{count} min",
+  "start_focus_session": "Démarrer une session de focus",
+  "error_dna_attention": "Ton ADN d’erreurs demande ton attention",
+  "personal_offer": "Offre personnelle",
+  "offer_server_timed": "Offre minutée côté serveur · se termine à zéro"
 }
