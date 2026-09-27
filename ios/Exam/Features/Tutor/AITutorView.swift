@@ -16,6 +16,10 @@ struct AITutorView: View {
 
     private let scanner = QuestionScanner()
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView(showsIndicators: false) {
@@ -36,7 +40,7 @@ struct AITutorView: View {
                         }
                     }
 
-                    Text("What do you need help with?")
+                    Text(copy.text("what_help"))
                         .font(.system(size: 18, weight: .bold))
                         .padding(.top, 24)
 
@@ -44,8 +48,8 @@ struct AITutorView: View {
                         PhotosPicker(selection: $photoItem, matching: .images) {
                             TutorActionRowContent(
                                 symbol: "doc.viewfinder",
-                                title: "Solve a question",
-                                subtitle: "Upload a photo · OCR + vision",
+                                title: copy.text("solve_question"),
+                                subtitle: copy.text("solve_question_hint"),
                                 accent: ExamPalette.primary
                             )
                         }
@@ -53,8 +57,8 @@ struct AITutorView: View {
 
                         tutorRow(
                             "lightbulb.fill",
-                            "Explain a concept",
-                            "Simple, visual or from zero",
+                            copy.text("explain_concept"),
+                            copy.text("explain_concept_hint"),
                             ExamPalette.amber
                         ) {
                             prompt = "Explain this concept simply: "
@@ -62,24 +66,24 @@ struct AITutorView: View {
 
                         tutorRow(
                             "folder.fill",
-                            "Study my notes",
-                            "Ask questions from indexed Library materials",
+                            copy.text("study_notes"),
+                            copy.text("study_notes_hint"),
                             ExamPalette.mint,
                             action: onStudyNotes
                         )
 
                         tutorRow(
                             "photo.on.rectangle.angled",
-                            "Visual explanation",
-                            "Generate a study image or video with credits",
+                            copy.text("visual_explanation"),
+                            copy.text("visual_explanation_hint"),
                             ExamPalette.primary,
                             action: onMediaLab
                         )
 
                         tutorRow(
                             "waveform",
-                            "Talk to tutor",
-                            "Interactive voice · Premium",
+                            copy.text("talk_tutor"),
+                            copy.text("talk_tutor_hint"),
                             ExamPalette.purple,
                             action: onVoiceTutor
                         )
@@ -128,7 +132,7 @@ struct AITutorView: View {
                 }
                 .buttonStyle(.plain)
 
-                TextField("Ask anything…", text: $prompt, axis: .vertical)
+                TextField(copy.text("ask_anything"), text: $prompt, axis: .vertical)
                     .font(.system(size: 14))
                     .lineLimit(1...3)
 
