@@ -165,5 +165,15 @@
   "unlimited_materials": "Matériel d’étude illimité",
   "unlimited_materials_hint": "Transforme notes et documents en exercices.",
   "price_terms": "Prix, essai et renouvellement proviennent directement du store selon ton compte et ta région.",
-  "continue_price": "Continuer · {price}"
+  "continue_price": "Continuer · {price}",
+  "simpler_explanation": "Pense en une étape : identifie ce que demande la question, isole la relation clé puis vérifie la réponse avec l’énoncé.",
+  "result_correct": "{correct}/{total} correctes · {exam}",
+  "time": "Temps",
+  "mock_result_strong": "Très bon résultat. Passe à des séries mixtes plus difficiles et protège ton timing.",
+  "mock_result_good": "Bonne base. Revois ton ADN d’erreurs puis refais une série mixte chronométrée.",
+  "mock_result_review": "Priorise les compétences faibles avant le prochain examen blanc chronométré.",
+  "paywall_voice_title": "Parle-en jusqu’à ce que tout soit clair.",
+  "paywall_mock_title": "Transforme chaque examen blanc en meilleure semaine suivante.",
+  "paywall_documents_title": "Transforme tout ton matériel en sessions d’étude.",
+  "paywall_ai_title": "Garde ton tuteur IA disponible quand tu en as besoin."
 }
