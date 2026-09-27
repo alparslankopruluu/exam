@@ -17,6 +17,10 @@ struct OnboardingView: View {
 
     private let totalSteps = 6
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: ExamCatalog.languageCode)
+    }
+
     private var country: CountryDefinition {
         ExamCatalog.countries[countryIndex]
     }
@@ -46,18 +50,18 @@ struct OnboardingView: View {
                     examStep
                 case 2:
                     choiceStep(
-                        title: "What's your goal?",
-                        subtitle: "We'll tune pace, difficulty and your weekly plan.",
+                        title: copy.text("onboarding_goal_title"),
+                        subtitle: copy.text("onboarding_goal_hint"),
                         choices: goalChoices
                     )
                 case 3:
                     choiceStep(
-                        title: "How much time can you study daily?",
-                        subtitle: "Choose something realistic. Consistency wins.",
+                        title: copy.text("onboarding_time_title"),
+                        subtitle: copy.text("onboarding_time_hint"),
                         choices: timeChoices
                     )
                 case 4:
-                    DiagnosticOnboardingView(exam: exams[examIndex ?? 0]) { score in
+                    DiagnosticOnboardingView(exam: exams[examIndex ?? 0], copy: copy) { score in
                         selected[4] = score
                     }
                 default:
@@ -71,7 +75,7 @@ struct OnboardingView: View {
             ))
 
             ExamPrimaryButton(
-                title: step == totalSteps - 1 ? "Start my plan" : "Continue",
+                title: step == totalSteps - 1 ? copy.text("start_my_plan") : copy.text("continue"),
                 enabled: canContinue
             ) {
                 if step == totalSteps - 1, let examIndex {
@@ -169,11 +173,11 @@ struct OnboardingView: View {
     private var countryStep: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Where are you studying?")
+                Text(copy.text("onboarding_country_title"))
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 28)
 
-                Text("We use your region to suggest the right exams. You can still choose international exams anywhere.")
+                Text(copy.text("onboarding_country_hint"))
                     .font(.system(size: 15))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .lineSpacing(3)
@@ -224,7 +228,7 @@ struct OnboardingView: View {
     private var examStep: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Which exam are you preparing for?")
+                Text(copy.text("onboarding_exam_title"))
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 28)
 
@@ -413,6 +417,7 @@ private struct DiagnosticOnboardingQuestion {
 
 private struct DiagnosticOnboardingView: View {
     let exam: ExamDefinition
+    let copy: LocalizedCopy
     let onComplete: (Int) -> Void
 
     @State private var index = 0
@@ -486,10 +491,10 @@ private struct DiagnosticOnboardingView: View {
 
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Let's find your starting point.")
+                Text(copy.text("diagnostic_title"))
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 28)
-                Text("A short \(exam.shortName) diagnostic adapts your first week. It won't affect any official score.")
+                Text(copy.text("diagnostic_hint", variables: ["exam": exam.shortName]))
                     .font(.system(size: 15))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 8)
@@ -502,7 +507,7 @@ private struct DiagnosticOnboardingView: View {
                 .padding(.top, 18)
 
                 VStack(alignment: .leading, spacing: 14) {
-                    Text(finished ? "DIAGNOSTIC COMPLETE" : "QUESTION \(index + 1) OF \(questions.count)")
+                    Text(finished ? copy.text("diagnostic_complete").uppercased() : "QUESTION \(index + 1) / \(questions.count)")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(ExamPalette.primary)
 
@@ -583,7 +588,7 @@ private struct DiagnosticOnboardingView: View {
                                     selectedIndex = nil
                                 }
                             } label: {
-                                Text(index == questions.count - 1 ? "See my level" : "Next question")
+                                Text(index == questions.count - 1 ? copy.text("see_my_level") : copy.text("next_question"))
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundStyle(.white)
                                     .frame(maxWidth: .infinity)
