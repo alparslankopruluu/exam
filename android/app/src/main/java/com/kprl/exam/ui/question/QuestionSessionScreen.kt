@@ -24,6 +24,7 @@ import com.kprl.exam.analytics.AnalyticsParams
 import com.kprl.exam.platform.AppServices
 import com.kprl.exam.domain.SampleQuestionFactory
 import com.kprl.exam.domain.StudyQuestion
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.platform.ai.AIGatewayClient
 import com.kprl.exam.platform.ai.GatewayResult
 import com.kprl.exam.platform.persistence.LearningDatabase
@@ -43,6 +44,7 @@ fun QuestionSessionScreen(
     timeLimitSeconds: Int? = null
 ) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
     val progressStore = remember { UserProgressStore(context.applicationContext) }
     val aiGateway = remember { AIGatewayClient() }
@@ -176,6 +178,7 @@ fun QuestionSessionScreen(
             earnedXp = earnedXp,
             sessionType = sessionType,
             durationSeconds = completedDurationSeconds,
+            copy = copy,
             onDone = onClose
         )
         return
@@ -293,7 +296,7 @@ fun QuestionSessionScreen(
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
-                        if (selected == question.correctIndex) "Nice work." else "Almost — here's what matters.",
+                        if (selected == question.correctIndex) copy.text("nice_work") else copy.text("almost_hint"),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -306,7 +309,7 @@ fun QuestionSessionScreen(
                     )
                     tutorAnswer?.let {
                         Spacer(Modifier.height(10.dp))
-                        Text("AI Tutor", color = ExamColors.Purple, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Text(copy.text("ai_tutor"), color = ExamColors.Purple, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                         Text(it, color = ExamColors.TextSecondary, fontSize = 12.sp, lineHeight = 18.sp)
                     }
                     if (helperLoading) {
@@ -325,10 +328,9 @@ fun QuestionSessionScreen(
                                         AnalyticsParams.SESSION_TYPE to sessionType
                                     )
                                 )
-                                simplerExplanation =
-                                    "Think of it in one step: identify what the question asks, isolate the key relationship, then check the answer against the original statement."
+                                simplerExplanation = copy.text("simpler_explanation")
                             },
-                            label = { Text("Explain simpler") }
+                            label = { Text(copy.text("explain_simpler")) }
                         )
                         AssistChip(
                             onClick = {
@@ -360,7 +362,7 @@ fun QuestionSessionScreen(
                                     }
                                 }
                             },
-                            label = { Text("Ask tutor") }
+                            label = { Text(copy.text("ask_tutor")) }
                         )
                     }
                 }
@@ -384,7 +386,10 @@ fun QuestionSessionScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary),
                 elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
-                Text(if (index == questions.lastIndex) "Finish session" else "Next question", fontWeight = FontWeight.Bold)
+                Text(
+                    if (index == questions.lastIndex) copy.text("finish_session") else copy.text("next_question"),
+                    fontWeight = FontWeight.Bold
+                )
             }
             Spacer(Modifier.height(12.dp))
         }
@@ -399,6 +404,7 @@ private fun SessionCompleteScreen(
     earnedXp: Int,
     sessionType: String,
     durationSeconds: Int,
+    copy: LocalizedCopy,
     onDone: () -> Unit
 ) {
     Column(
@@ -414,15 +420,25 @@ private fun SessionCompleteScreen(
             Icon(Icons.Rounded.CheckCircle, null, tint = ExamColors.Mint, modifier = Modifier.size(44.dp))
         }
         Spacer(Modifier.height(20.dp))
-        Text("Session complete", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("session_complete"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(7.dp))
-        Text("${correct}/${total} correct · $examName", color = ExamColors.TextSecondary)
+        Text(
+            copy.text(
+                "result_correct",
+                mapOf(
+                    "correct" to correct.toString(),
+                    "total" to total.toString(),
+                    "exam" to examName
+                )
+            ),
+            color = ExamColors.TextSecondary
+        )
         Spacer(Modifier.height(24.dp))
         Surface(color = ExamColors.Surface, shape = RoundedCornerShape(22.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
             Row(Modifier.fillMaxWidth().padding(18.dp), horizontalArrangement = Arrangement.SpaceAround) {
-                Stat("$correct", "Correct")
-                Stat("${total - correct}", "Review")
-                Stat("+$earnedXp", "XP")
+                Stat("$correct", copy.text("correct"))
+                Stat("${total - correct}", copy.text("review"))
+                Stat("+$earnedXp", copy.text("xp"))
             }
         }
         if (sessionType == "mock_exam") {
@@ -437,20 +453,20 @@ private fun SessionCompleteScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Mock analysis", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    Text(copy.text("mock_analysis"), fontWeight = FontWeight.Bold, fontSize = 17.sp)
                     Spacer(Modifier.height(10.dp))
-                    Text("Accuracy · " + accuracy + "%", fontWeight = FontWeight.SemiBold)
+                    Text(copy.text("accuracy") + " · " + accuracy + "%", fontWeight = FontWeight.SemiBold)
                     Text(
-                        "Time · %02d:%02d".format(minutes, seconds),
+                        copy.text("time") + " · %02d:%02d".format(minutes, seconds),
                         color = ExamColors.TextSecondary,
                         fontSize = 12.sp
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         when {
-                            accuracy >= 85 -> "Strong result. Move to harder mixed sets and protect timing."
-                            accuracy >= 65 -> "Good base. Review your Error DNA, then repeat a timed mixed set."
-                            else -> "Prioritize weak-skill review before the next timed mock."
+                            accuracy >= 85 -> copy.text("mock_result_strong")
+                            accuracy >= 65 -> copy.text("mock_result_good")
+                            else -> copy.text("mock_result_review")
                         },
                         color = ExamColors.TextSecondary,
                         fontSize = 12.sp,
@@ -467,7 +483,7 @@ private fun SessionCompleteScreen(
             shape = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary),
             elevation = ButtonDefaults.buttonElevation(0.dp)
-        ) { Text("Done", fontWeight = FontWeight.Bold) }
+        ) { Text(copy.text("done"), fontWeight = FontWeight.Bold) }
     }
 }
 
