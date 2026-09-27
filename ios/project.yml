@@ -49,6 +49,20 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Voice Tutor uses the microphone only while you are asking a spoken study question."
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0
+    postBuildScripts:
+      - name: Firebase Crashlytics Symbols
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ -f "${PROJECT_DIR}/Exam/GoogleService-Info.plist" ]; then
+            FIREBASE_RUN="${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+            if [ -x "${FIREBASE_RUN}" ]; then
+              "${FIREBASE_RUN}"
+            else
+              echo "warning: Firebase Crashlytics run script not found; skipping symbol upload"
+            fi
+          else
+            echo "Firebase config absent; skipping Crashlytics symbol upload"
+          fi
 
   ExamNotificationService:
     type: app-extension
