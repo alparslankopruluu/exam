@@ -303,13 +303,19 @@ struct TodayView: View {
             ? setup.diagnosticPercent
             : progress.masteryPercent
         let completedCount = plan.filter(\.completed).count
+        let hour = Calendar.current.component(.hour, from: Date())
+        let greetingKey = hour >= 5 && hour <= 11
+            ? "good_morning"
+            : hour >= 12 && hour <= 17
+            ? "good_afternoon"
+            : "good_evening"
         let remainingMinutes = max(5, plan.filter { !$0.completed }.map(\.estimatedMinutes).reduce(0, +))
 
         return ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(copy.text("good_evening"))
+                        Text(copy.text(greetingKey))
                             .font(.system(size: 13))
                             .foregroundStyle(ExamPalette.textSecondary)
                         Text(copy.text("ready_small_win"))
@@ -354,7 +360,11 @@ struct TodayView: View {
 
                 let expiry = AppServices.shared.flags.snapshot.limitedOfferExpiryEpochSeconds
                 if expiry > Int64(Date().timeIntervalSince1970) {
-                    LimitedOfferView(expiryEpochSeconds: expiry) {
+                    LimitedOfferView(
+                        expiryEpochSeconds: expiry,
+                        title: copy.text("personal_offer"),
+                        subtitle: copy.text("offer_server_timed")
+                    ) {
                         premiumPlacement = "winback"
                     }
                     .padding(.top, 14)
@@ -370,7 +380,15 @@ struct TodayView: View {
                     Button {
                         toolRoute = .progress
                     } label: {
-                        Text("\(completedCount)/\(max(plan.count, 1)) done")
+                        Text(
+                            copy.text(
+                                "plan_done_count",
+                                variables: [
+                                    "done": "\(completedCount)",
+                                    "total": "\(max(plan.count, 1))"
+                                ]
+                            )
+                        )
                             .font(.system(size: 11, weight: .semibold))
                     }
                     .buttonStyle(.plain)
@@ -396,15 +414,15 @@ struct TodayView: View {
                             .clipShape(Capsule())
                     }
 
-                    Text(activeTask?.title ?? "Daily plan complete")
+                    Text(activeTask?.title ?? copy.text("daily_plan_complete"))
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.top, 22)
 
                     Text(
                         activeTask == nil
-                        ? "Come back tomorrow for the next adaptive plan."
-                        : "Personalized from your diagnostic, mastery and recent mistakes."
+                        ? copy.text("tomorrow_adaptive_plan")
+                        : copy.text("personalized_plan_hint")
                     )
                     .font(.system(size: 13))
                     .foregroundStyle(.white.opacity(0.82))
@@ -412,8 +430,14 @@ struct TodayView: View {
 
                     Label(
                         activeTask == nil
-                        ? "Completed"
-                        : "\(activeTask?.estimatedMinutes ?? 0) min · \(remainingMinutes) min remaining",
+                        ? copy.text("completed")
+                        : copy.text(
+                            "minutes_remaining",
+                            variables: [
+                                "task": "\(activeTask?.estimatedMinutes ?? 0)",
+                                "remaining": "\(remainingMinutes)"
+                            ]
+                        ),
                         systemImage: "clock.fill"
                     )
                     .font(.system(size: 13, weight: .semibold))
@@ -427,7 +451,7 @@ struct TodayView: View {
                             openSession(type: "daily_plan")
                         }
                     } label: {
-                        Text(activeTask == nil ? "Start a focus session" : copy.text("continue"))
+                        Text(activeTask == nil ? copy.text("start_focus_session") : copy.text("continue"))
                             .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(ExamPalette.primary)
                             .frame(maxWidth: .infinity)
@@ -462,7 +486,7 @@ struct TodayView: View {
                                 ? "checklist"
                                 : "book.fill",
                             title: task.title,
-                            subtitle: "\(task.estimatedMinutes) min",
+                            subtitle: copy.text("minutes_short", variables: ["count": "\(task.estimatedMinutes)"]),
                             accent: task.type == "mistake_review"
                                 ? ExamPalette.coral
                                 : task.type == "mixed_set"
@@ -477,7 +501,7 @@ struct TodayView: View {
                         nextRow(
                             symbol: "arrow.clockwise",
                             title: copy.text("review_mistakes"),
-                            subtitle: "Error DNA needs attention",
+                            subtitle: copy.text("error_dna_attention"),
                             accent: ExamPalette.coral
                         ) {
                             toolRoute = .mistakes
@@ -637,6 +661,8 @@ struct TodayView: View {
 
 private struct LimitedOfferView: View {
     let expiryEpochSeconds: Int64
+    let title: String
+    let subtitle: String
     let onTap: () -> Void
 
     var body: some View {
@@ -653,10 +679,10 @@ private struct LimitedOfferView: View {
                             .foregroundStyle(ExamPalette.purple)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Personal offer")
+                            Text(title)
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundStyle(ExamPalette.textPrimary)
-                            Text("Server-timed offer · no fake reset")
+                            Text(subtitle)
                                 .font(.system(size: 10))
                                 .foregroundStyle(ExamPalette.textSecondary)
                         }
