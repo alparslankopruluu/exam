@@ -68,14 +68,22 @@ struct MockExamView: View {
     @State private var loading = false
     @State private var error: String?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader("Mock Exam", "\(setup.exam.shortName) · timed mixed set", onClose: onClose)
+            ToolHeader(
+                copy.text("mock_exam"),
+                copy.text("mock_timed_set", variables: ["exam": setup.exam.shortName]),
+                onClose: onClose
+            )
 
             VStack(alignment: .leading, spacing: 12) {
-                Text("Exam simulation")
+                Text(copy.text("exam_simulation"))
                     .font(.system(size: 18, weight: .bold))
-                Text("Questions are generated against your selected exam context and recorded as a mock session.")
+                Text(copy.text("mock_desc"))
                     .font(.system(size: 13))
                     .foregroundStyle(ExamPalette.textSecondary)
 
@@ -84,7 +92,7 @@ struct MockExamView: View {
                         Button {
                             questionCount = count
                         } label: {
-                            Text("\(count) questions")
+                            Text(copy.text("questions_count", variables: ["count": "\(count)"]))
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(questionCount == count ? .white : ExamPalette.primary)
                                 .padding(.horizontal, 12)
@@ -163,7 +171,7 @@ struct MockExamView: View {
                 HStack {
                     if loading { ProgressView().tint(.white) }
                     else { Image(systemName: "timer") }
-                    Text(loading ? "Building mock…" : "Start mock")
+                    Text(loading ? copy.text("building_mock") : copy.text("start_mock"))
                 }
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
@@ -189,18 +197,22 @@ struct MistakesView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var mistakes: [MistakeDetail] = []
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader("Mistakes", "Your unresolved Error DNA", onClose: onClose)
+            ToolHeader(copy.text("mistakes"), copy.text("mistakes_subtitle"), onClose: onClose)
 
             if mistakes.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 42))
                         .foregroundStyle(ExamPalette.mint)
-                    Text("No unresolved mistakes")
+                    Text(copy.text("no_unresolved_mistakes"))
                         .font(.system(size: 18, weight: .bold))
-                    Text("New mistakes will appear here automatically.")
+                    Text(copy.text("new_mistakes_hint"))
                         .font(.system(size: 12))
                         .foregroundStyle(ExamPalette.textSecondary)
                 }
@@ -215,15 +227,22 @@ struct MistakesView: View {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(item.skillId.split(separator: ":").last.map(String.init) ?? item.skillId)
                                     .font(.system(size: 15, weight: .semibold))
-                                Text("\(item.errorType.replacingOccurrences(of: "_", with: " ")) · selected: \(item.selectedAnswer ?? "—")")
+                                Text(
+                                    item.errorType.replacingOccurrences(of: "_", with: " ")
+                                    + " · "
+                                    + copy.text(
+                                        "selected_answer",
+                                        variables: ["answer": item.selectedAnswer ?? "—"]
+                                    )
+                                )
                                     .font(.system(size: 11))
                                     .foregroundStyle(ExamPalette.textSecondary)
                                 if let correct = item.correctAnswer {
-                                    Text("Correct: \(correct)")
+                                    Text(copy.text("correct_answer", variables: ["answer": correct]))
                                         .font(.system(size: 12))
                                         .foregroundStyle(ExamPalette.mint)
                                 }
-                                Button("Mark resolved") {
+                                Button(copy.text("mark_resolved")) {
                                     try? LearningStore(context: modelContext).resolveMistake(id: item.id)
                                     reload()
                                 }
@@ -241,7 +260,7 @@ struct MistakesView: View {
             Spacer()
 
             Button(action: onPractice) {
-                Label("Practice weak areas", systemImage: "arrow.clockwise")
+                Label(copy.text("practice_weak_areas"), systemImage: "arrow.clockwise")
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -270,13 +289,17 @@ struct FlashcardsView: View {
     @State private var index = 0
     @State private var revealed = false
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader("Flashcards", "Spaced repetition", onClose: onClose)
+            ToolHeader(copy.text("flashcards"), copy.text("spaced_repetition"), onClose: onClose)
 
             if cards.isEmpty {
                 Spacer()
-                Text("Nothing due right now.")
+                Text(copy.text("nothing_due"))
                     .foregroundStyle(ExamPalette.textSecondary)
                 Spacer()
             } else {
@@ -294,7 +317,7 @@ struct FlashcardsView: View {
                             .font(.system(size: revealed ? 17 : 21, weight: revealed ? .medium : .bold))
                             .multilineTextAlignment(.center)
                             .foregroundStyle(ExamPalette.textPrimary)
-                        Text(revealed ? "Rate your recall" : "Tap to reveal")
+                        Text(revealed ? copy.text("rate_recall") : copy.text("tap_reveal"))
                             .font(.system(size: 12))
                             .foregroundStyle(ExamPalette.textSecondary)
                     }
@@ -307,10 +330,10 @@ struct FlashcardsView: View {
 
                 if revealed {
                     HStack(spacing: 8) {
-                        ratingButton("Again", .again, card: card)
-                        ratingButton("Hard", .hard, card: card)
-                        ratingButton("Good", .good, card: card)
-                        ratingButton("Easy", .easy, card: card)
+                        ratingButton(copy.text("again"), .again, card: card)
+                        ratingButton(copy.text("hard"), .hard, card: card)
+                        ratingButton(copy.text("good"), .good, card: card)
+                        ratingButton(copy.text("easy"), .easy, card: card)
                     }
                     .padding(.top, 18)
                 }
@@ -367,11 +390,15 @@ struct CreatePracticeView: View {
     @State private var loading = false
     @State private var error: String?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader("Create Practice", "Generate a focused set", onClose: onClose)
+            ToolHeader(copy.text("create_practice"), copy.text("create_practice_hint"), onClose: onClose)
 
-            TextField("Topic or instruction", text: $topic, axis: .vertical)
+            TextField(copy.text("topic_instruction"), text: $topic, axis: .vertical)
                 .lineLimit(3...6)
                 .padding(14)
                 .examCard(radius: 18)
@@ -416,7 +443,7 @@ struct CreatePracticeView: View {
                         )
                         let parsed = generatedQuestions(from: rows)
                         if parsed.isEmpty {
-                            self.error = "The generated set was invalid. Try a more specific topic."
+                            self.error = copy.text("generated_set_invalid")
                         } else {
                             onStart(parsed)
                         }
@@ -434,7 +461,7 @@ struct CreatePracticeView: View {
                 HStack {
                     if loading { ProgressView().tint(.white) }
                     else { Image(systemName: "sparkles") }
-                    Text(loading ? "Generating…" : "Generate practice")
+                    Text(loading ? copy.text("generating") : copy.text("generate_practice"))
                 }
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
@@ -461,9 +488,17 @@ struct FocusView: View {
     @State private var running = false
     @State private var timer: Timer?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader("Focus", "\(setup.exam.shortName) Pomodoro", onClose: onClose)
+            ToolHeader(
+                copy.text("focus"),
+                copy.text("focus_pomodoro", variables: ["exam": setup.exam.shortName]),
+                onClose: onClose
+            )
 
             HStack(spacing: 8) {
                 ForEach([25, 40, 50], id: \.self) { minutes in
@@ -488,7 +523,7 @@ struct FocusView: View {
             VStack(spacing: 6) {
                 Text(String(format: "%02d:%02d", remaining / 60, remaining % 60))
                     .font(.system(size: 46, weight: .bold, design: .rounded))
-                Text(running ? "Stay with it" : "Ready")
+                Text(running ? copy.text("stay_with_it") : copy.text("ready"))
                     .foregroundStyle(ExamPalette.textSecondary)
             }
             .frame(width: 230, height: 230)
@@ -500,7 +535,10 @@ struct FocusView: View {
             Button {
                 running ? pause() : start()
             } label: {
-                Label(running ? "Pause" : "Start focus", systemImage: running ? "pause.fill" : "play.fill")
+                Label(
+                    running ? copy.text("pause") : copy.text("start_focus"),
+                    systemImage: running ? "pause.fill" : "play.fill"
+                )
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -510,7 +548,7 @@ struct FocusView: View {
             }
             .buttonStyle(.plain)
 
-            Button("Reset") { reset(focusMinutes) }
+            Button(copy.text("reset")) { reset(focusMinutes) }
                 .font(.system(size: 13, weight: .semibold))
                 .padding(.top, 8)
         }
@@ -544,8 +582,8 @@ struct FocusView: View {
                     )
                     pause()
                     let content = UNMutableNotificationContent()
-                    content.title = "Focus session complete"
-                    content.body = "\(setup.exam.shortName) · Nice work. Take a short break."
+                    content.title = copy.text("focus_complete")
+                    content.body = copy.text("focus_break", variables: ["exam": setup.exam.shortName])
                     content.sound = .default
                     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
                     UNUserNotificationCenter.current().add(request)
@@ -576,29 +614,37 @@ struct StudyProgressView: View {
     @State private var errorDNA: [ErrorDNAItem] = []
     @State private var user = UserProgressStore().snapshot()
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 10) {
-                ToolHeader("Progress", "\(setup.exam.shortName) learning profile", onClose: onClose)
+                ToolHeader(
+                    copy.text("progress"),
+                    copy.text("learning_profile", variables: ["exam": setup.exam.shortName]),
+                    onClose: onClose
+                )
 
                 HStack(spacing: 8) {
-                    metric("\(progress.masteryPercent == 0 ? setup.diagnosticPercent : progress.masteryPercent)%", "Mastery")
-                    metric("\(user.streak)", "Streak")
-                    metric("\(user.xp)", "XP")
+                    metric("\(progress.masteryPercent == 0 ? setup.diagnosticPercent : progress.masteryPercent)%", copy.text("mastery"))
+                    metric("\(user.streak)", copy.text("streak"))
+                    metric("\(user.xp)", copy.text("xp"))
                 }
 
                 HStack(spacing: 8) {
-                    metric("\(progress.sessions)", "Sessions")
-                    metric("\(progress.questions == 0 ? 0 : progress.correct * 100 / progress.questions)%", "Accuracy")
-                    metric("\(progress.studyMinutes)m", "Study")
+                    metric("\(progress.sessions)", copy.text("sessions"))
+                    metric("\(progress.questions == 0 ? 0 : progress.correct * 100 / progress.questions)%", copy.text("accuracy"))
+                    metric("\(progress.studyMinutes)m", copy.text("study_time"))
                 }
 
-                Text("Error DNA")
+                Text(copy.text("error_dna"))
                     .font(.system(size: 18, weight: .bold))
                     .padding(.top, 8)
 
                 if errorDNA.isEmpty {
-                    Text("No active error pattern yet.")
+                    Text(copy.text("no_error_pattern"))
                         .foregroundStyle(ExamPalette.textSecondary)
                 } else {
                     ForEach(Array(errorDNA.prefix(8).enumerated()), id: \.offset) { _, item in
@@ -653,17 +699,21 @@ struct CreditStoreView: View {
     @State private var loading = false
     @State private var message: String?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader("AI Credits", "For high-cost image & video generation", onClose: onClose)
+            ToolHeader(copy.text("ai_credits"), copy.text("credits_subtitle"), onClose: onClose)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("25 credits")
+                Text(copy.text("credits_count"))
                     .font(.system(size: 28, weight: .bold))
-                Text("Use credits only for expensive generated visuals/video. Core study stays subscription/free-limit based.")
+                Text(copy.text("credits_desc"))
                     .font(.system(size: 13))
                     .foregroundStyle(ExamPalette.textSecondary)
-                Text(price ?? "Loading local price…")
+                Text(price ?? copy.text("loading_price"))
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(ExamPalette.primary)
                     .padding(.top, 10)
@@ -694,7 +744,7 @@ struct CreditStoreView: View {
                     let success = await StoreKitBillingService.shared.purchase(
                         productId: StoreKitBillingService.ProductId.creditsSmall
                     )
-                    message = success ? "Credits added." : "Purchase not completed."
+                    message = success ? copy.text("credits_added") : copy.text("purchase_not_completed")
                     if success {
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.creditPurchaseCompleted,
@@ -715,7 +765,7 @@ struct CreditStoreView: View {
                     loading = false
                 }
             } label: {
-                Text(loading ? "Processing…" : "Buy 25 credits")
+                Text(loading ? copy.text("processing") : copy.text("buy_credits"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -752,6 +802,10 @@ struct ProfileSettingsView: View {
     @State private var deletingAccount = false
     @State private var deleteError: String?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     private let languages = [
         ("en", "English"), ("tr", "Türkçe"), ("de", "Deutsch"),
         ("es", "Español"), ("fr", "Français"), ("pt", "Português"),
@@ -761,13 +815,13 @@ struct ProfileSettingsView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 10) {
-                ToolHeader("Profile & Settings", setup.exam.shortName, onClose: onClose)
+                ToolHeader(copy.text("profile_settings"), setup.exam.shortName, onClose: onClose)
 
-                settingsRow("chart.xyaxis.line", "Progress", "Mastery, streak, XP and Error DNA", action: onProgress)
-                settingsRow("diamond.fill", "AI Credits", "High-cost image/video credits", action: onCredits)
+                settingsRow("chart.xyaxis.line", copy.text("progress"), copy.text("progress_hint"), action: onProgress)
+                settingsRow("diamond.fill", copy.text("ai_credits"), copy.text("credits_hint"), action: onCredits)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("App language").font(.system(size: 14, weight: .semibold))
+                    Text(copy.text("app_language")).font(.system(size: 14, weight: .semibold))
                     Picker("Language", selection: Binding(
                         get: { setup.languageCode },
                         set: { code in
@@ -794,8 +848,8 @@ struct ProfileSettingsView: View {
                 .examCard(radius: 18)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Daily reminder").font(.system(size: 14, weight: .semibold))
-                    Text("\(reminderHour):00 local time")
+                    Text(copy.text("daily_reminder")).font(.system(size: 14, weight: .semibold))
+                    Text(copy.text("local_time", variables: ["hour": "\(reminderHour)"]))
                         .font(.system(size: 12))
                         .foregroundStyle(ExamPalette.textSecondary)
 
@@ -832,15 +886,15 @@ struct ProfileSettingsView: View {
                 .padding(14)
                 .examCard(radius: 18)
 
-                settingsRow("arrow.clockwise", "Restore purchases", "Ask the App Store to restore active purchases") {
+                settingsRow("arrow.clockwise", copy.text("restore_purchases"), copy.text("restore_hint")) {
                     Task { @MainActor in
                         await StoreKitBillingService.shared.restore()
                     }
                 }
 
-                settingsRow("arrow.counterclockwise", "Choose another exam", "Restart onboarding and build a new plan", action: onRestartOnboarding)
+                settingsRow("arrow.counterclockwise", copy.text("choose_another_exam"), copy.text("choose_exam_hint"), action: onRestartOnboarding)
 
-                settingsRow("trash.fill", "Delete account", "Permanently delete cloud study data and account") {
+                settingsRow("trash.fill", copy.text("delete_account"), copy.text("delete_account_hint")) {
                     confirmDelete = true
                 }
 
@@ -850,7 +904,7 @@ struct ProfileSettingsView: View {
                         .foregroundStyle(ExamPalette.coral)
                 }
 
-                Text("Privacy: study files stay scoped to your authenticated account. AI provider keys are server-side and are never shipped in the app.")
+                Text(copy.text("privacy_note"))
                     .font(.system(size: 11))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.vertical, 8)
@@ -859,9 +913,9 @@ struct ProfileSettingsView: View {
             .padding(.bottom, 20)
         }
         .background(ExamPalette.background.ignoresSafeArea())
-        .alert("Delete account?", isPresented: $confirmDelete) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete permanently", role: .destructive) {
+        .alert(copy.text("delete_confirm_title"), isPresented: $confirmDelete) {
+            Button(copy.text("cancel"), role: .cancel) {}
+            Button(copy.text("delete_permanently"), role: .destructive) {
                 deletingAccount = true
                 deleteError = nil
                 Task { @MainActor in
@@ -882,7 +936,7 @@ struct ProfileSettingsView: View {
             }
             .disabled(deletingAccount)
         } message: {
-            Text("This permanently deletes your cloud study files, AI jobs, push token and account. This cannot be undone.")
+            Text(copy.text("delete_confirm_body"))
         }
     }
 
@@ -935,12 +989,20 @@ struct MediaLabView: View {
     @State private var submitting = false
     @State private var generatedKind = "image_explainer"
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader("Visual Explanation", "\(setup.exam.shortName) · credit-based AI media", onClose: onClose)
+            ToolHeader(
+                copy.text("visual_explanation"),
+                copy.text("visual_media_subtitle", variables: ["exam": setup.exam.shortName]),
+                onClose: onClose
+            )
 
             TextField(
-                "What should the visual explain?",
+                copy.text("visual_prompt_label"),
                 text: $prompt,
                 axis: .vertical
             )
@@ -951,13 +1013,13 @@ struct MediaLabView: View {
 
             HStack(spacing: 9) {
                 mediaButton(
-                    title: "Image · 1",
+                    title: copy.text("image_credit"),
                     symbol: "photo.fill",
                     kind: "image_explainer",
                     enabled: AppServices.shared.flags.snapshot.imageExplanationsEnabled
                 )
                 mediaButton(
-                    title: "Video · 5",
+                    title: copy.text("video_credit"),
                     symbol: "film.fill",
                     kind: "video_explainer",
                     enabled: AppServices.shared.flags.snapshot.videoExplanationsEnabled
@@ -1005,12 +1067,12 @@ struct MediaLabView: View {
                         }
                     }
 
-                    Label("Media ready", systemImage: "checkmark.circle.fill")
+                    Label(copy.text("media_ready"), systemImage: "checkmark.circle.fill")
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(ExamPalette.mint)
 
                     Link(destination: assetURL) {
-                        Text("Open generated asset")
+                        Text(copy.text("open_generated_asset"))
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -1026,7 +1088,7 @@ struct MediaLabView: View {
 
             Spacer()
 
-            Text("Image/video generation is optional and spends credits because its provider cost is materially higher than normal tutoring.")
+            Text(copy.text("media_cost_note"))
                 .font(.system(size: 11))
                 .foregroundStyle(ExamPalette.textSecondary)
                 .padding(.bottom, 12)
