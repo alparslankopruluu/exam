@@ -27,6 +27,7 @@ import com.kprl.exam.platform.AppServices
 import com.kprl.exam.billing.StoreOfferPresentation
 import com.kprl.exam.billing.StorePlanPresentation
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.ui.theme.ExamColors
 
 @Composable
@@ -37,6 +38,7 @@ fun PremiumPaywallScreen(
 ) {
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val billing = remember { GooglePlayBillingService(context.applicationContext) }
 
     var offer by remember { mutableStateOf(StoreOfferPresentation()) }
@@ -112,7 +114,7 @@ fun PremiumPaywallScreen(
                         "voice_tutor" -> "Talk it through until it clicks."
                         "mock_analysis" -> "Turn every mock exam into a better next week."
                         "document_limit" -> "Turn all your material into study sessions."
-                        else -> "Keep your full personalized plan."
+                        else -> copy.text("paywall_title")
                     },
                     color = Color.White,
                     fontSize = 28.sp,
@@ -121,7 +123,7 @@ fun PremiumPaywallScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Premium keeps your ${setup.exam.shortName} plan adaptive across practice, tutoring and review.",
+                    copy.text("paywall_subtitle"),
                     color = Color.White.copy(alpha = .82f),
                     fontSize = 14.sp,
                     lineHeight = 20.sp
@@ -133,10 +135,10 @@ fun PremiumPaywallScreen(
         Benefit(Icons.Rounded.AutoAwesome, "Advanced AI Tutor", "Ask follow-ups until you understand.")
         Benefit(Icons.Rounded.GraphicEq, "Voice Tutor", "Interactive speaking and spoken explanations.")
         Benefit(Icons.Rounded.FolderOpen, "Unlimited study materials", "Turn notes and documents into practice.")
-        Benefit(Icons.Rounded.Insights, "Advanced progress", "See mastery and mistake patterns over time.")
+        Benefit(Icons.Rounded.Bolt, copy.text("quick_practice"), copy.text("quick_practice_hint"))
 
         Spacer(Modifier.height(18.dp))
-        PlanCard(offer.annual, annualSelected) {
+        PlanCard(offer.annual, copy.text("annual"), annualSelected) {
             annualSelected = true
             AppServices.analytics.event(
                 AnalyticsEvents.PLAN_SELECTED,
@@ -144,7 +146,7 @@ fun PremiumPaywallScreen(
             )
         }
         Spacer(Modifier.height(9.dp))
-        PlanCard(offer.monthly, !annualSelected) {
+        PlanCard(offer.monthly, copy.text("monthly"), !annualSelected) {
             annualSelected = false
             AppServices.analytics.event(
                 AnalyticsEvents.PLAN_SELECTED,
@@ -196,9 +198,9 @@ fun PremiumPaywallScreen(
         ) {
             Text(
                 when {
-                    purchasing -> "Processing…"
+                    purchasing -> copy.text("processing")
                     selectedPlan.localizedPrice != null -> "Continue · " + selectedPlan.localizedPrice
-                    else -> "Loading local price…"
+                    else -> copy.text("loading_price")
                 },
                 fontWeight = FontWeight.Bold
             )
@@ -237,7 +239,7 @@ private fun Benefit(icon: androidx.compose.ui.graphics.vector.ImageVector, title
 }
 
 @Composable
-private fun PlanCard(plan: StorePlanPresentation, selected: Boolean, onClick: () -> Unit) {
+private fun PlanCard(plan: StorePlanPresentation, displayTitle: String, selected: Boolean, onClick: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         color = ExamColors.Surface,
@@ -257,7 +259,7 @@ private fun PlanCard(plan: StorePlanPresentation, selected: Boolean, onClick: ()
             Spacer(Modifier.width(11.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(plan.title, fontWeight = FontWeight.Bold)
+                    Text(displayTitle, fontWeight = FontWeight.Bold)
                     if (plan.recommended) {
                         Spacer(Modifier.width(7.dp))
                         Text(
