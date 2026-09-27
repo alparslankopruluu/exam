@@ -165,5 +165,15 @@
   "unlimited_materials": "Unlimited study materials",
   "unlimited_materials_hint": "Turn notes and documents into practice.",
   "price_terms": "Price, trial eligibility and renewal terms come directly from the store for your account and region.",
-  "continue_price": "Continue · {price}"
+  "continue_price": "Continue · {price}",
+  "simpler_explanation": "Think of it in one step: identify what the question asks, isolate the key relationship, then check the answer against the original statement.",
+  "result_correct": "{correct}/{total} correct · {exam}",
+  "time": "Time",
+  "mock_result_strong": "Strong result. Move to harder mixed sets and protect timing.",
+  "mock_result_good": "Good base. Review your Error DNA, then repeat a timed mixed set.",
+  "mock_result_review": "Prioritize weak-skill review before the next timed mock.",
+  "paywall_voice_title": "Talk it through until it clicks.",
+  "paywall_mock_title": "Turn every mock exam into a better next week.",
+  "paywall_documents_title": "Turn all your material into study sessions.",
+  "paywall_ai_title": "Keep your AI tutor available when you need it."
 }
