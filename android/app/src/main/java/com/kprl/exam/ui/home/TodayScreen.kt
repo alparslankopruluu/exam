@@ -41,6 +41,7 @@ import com.kprl.exam.ui.tools.*
 import com.kprl.exam.ui.tutor.AITutorScreen
 import com.kprl.exam.ui.voice.VoiceTutorScreen
 import java.time.LocalDate
+import java.time.LocalTime
 import kotlinx.coroutines.delay
 
 private data class NavItem(val label: String, val icon: ImageVector)
@@ -400,6 +401,11 @@ private fun TodayContent(
     val activeTask = plan.firstOrNull { !it.completed }
     val mastery = if (progress.masteryPercent == 0) setup.diagnosticPercent else progress.masteryPercent
     val completedTasks = plan.count { it.completed }
+    val greetingKey = when (LocalTime.now().hour) {
+        in 5..11 -> "good_morning"
+        in 12..17 -> "good_afternoon"
+        else -> "good_evening"
+    }
     val totalMinutes = plan.filterNot { it.completed }.sumOf { it.estimatedMinutes }.coerceAtLeast(5)
 
     Column(
@@ -411,7 +417,7 @@ private fun TodayContent(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(copy.text("good_evening"), color = ExamColors.TextSecondary, fontSize = 13.sp)
+                Text(copy.text(greetingKey), color = ExamColors.TextSecondary, fontSize = 13.sp)
                 Text(copy.text("ready_small_win"), fontWeight = FontWeight.Bold, fontSize = 22.sp)
             }
 
@@ -453,7 +459,12 @@ private fun TodayContent(
         val expiry = AppServices.flags.snapshot.limitedOfferExpiryEpochSeconds
         if (expiry > System.currentTimeMillis() / 1000L) {
             Spacer(Modifier.height(14.dp))
-            LimitedOfferBanner(expiryEpochSeconds = expiry, onClick = onOffer)
+            LimitedOfferBanner(
+                expiryEpochSeconds = expiry,
+                title = copy.text("personal_offer"),
+                subtitle = copy.text("offer_server_timed"),
+                onClick = onOffer
+            )
         }
 
         Spacer(Modifier.height(22.dp))
@@ -466,7 +477,16 @@ private fun TodayContent(
                 modifier = Modifier.weight(1f)
             )
             TextButton(onClick = onProgress) {
-                Text(completedTasks.toString() + "/" + plan.size.coerceAtLeast(1) + " done", fontSize = 11.sp)
+                Text(
+                    copy.text(
+                        "plan_done_count",
+                        mapOf(
+                            "done" to completedTasks.toString(),
+                            "total" to plan.size.coerceAtLeast(1).toString()
+                        )
+                    ),
+                    fontSize = 11.sp
+                )
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -499,14 +519,14 @@ private fun TodayContent(
 
             Spacer(Modifier.height(22.dp))
             Text(
-                activeTask?.title ?: "Daily plan complete",
+                activeTask?.title ?: copy.text("daily_plan_complete"),
                 color = Color.White,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                if (activeTask == null) "Come back tomorrow for the next adaptive plan."
-                else "Personalized from your diagnostic, mastery and recent mistakes.",
+                if (activeTask == null) copy.text("tomorrow_adaptive_plan")
+                else copy.text("personalized_plan_hint"),
                 color = Color.White.copy(alpha = .82f),
                 fontSize = 13.sp
             )
@@ -516,8 +536,14 @@ private fun TodayContent(
                 Icon(Icons.Rounded.Schedule, null, tint = Color.White.copy(alpha = .9f), modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    if (activeTask == null) "Completed"
-                    else "${activeTask.estimatedMinutes} min · $totalMinutes min remaining",
+                    if (activeTask == null) copy.text("completed")
+                    else copy.text(
+                        "minutes_remaining",
+                        mapOf(
+                            "task" to activeTask.estimatedMinutes.toString(),
+                            "remaining" to totalMinutes.toString()
+                        )
+                    ),
                     color = Color.White.copy(alpha = .9f),
                     fontWeight = FontWeight.SemiBold
                 )
@@ -532,7 +558,7 @@ private fun TodayContent(
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Text(
-                    if (activeTask == null) "Start a focus session" else copy.text("continue"),
+                    if (activeTask == null) copy.text("start_focus_session") else copy.text("continue"),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -550,7 +576,7 @@ private fun TodayContent(
                     else -> Icons.Rounded.MenuBook
                 },
                 title = task.title,
-                subtitle = "${task.estimatedMinutes} min",
+                subtitle = copy.text("minutes_short", mapOf("count" to task.estimatedMinutes.toString())),
                 accent = when (task.type) {
                     "mistake_review" -> ExamColors.Coral
                     "mixed_set" -> ExamColors.Purple
@@ -565,7 +591,7 @@ private fun TodayContent(
             NextRow(
                 Icons.Rounded.Refresh,
                 copy.text("review_mistakes"),
-                "Error DNA needs attention",
+                copy.text("error_dna_attention"),
                 ExamColors.Coral,
                 onMistakes
             )
@@ -583,7 +609,12 @@ private fun TodayContent(
 }
 
 @Composable
-private fun LimitedOfferBanner(expiryEpochSeconds: Long, onClick: () -> Unit) {
+private fun LimitedOfferBanner(
+    expiryEpochSeconds: Long,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
     var now by remember { mutableLongStateOf(System.currentTimeMillis() / 1000L) }
 
     LaunchedEffect(expiryEpochSeconds) {
@@ -610,8 +641,8 @@ private fun LimitedOfferBanner(expiryEpochSeconds: Long, onClick: () -> Unit) {
             Icon(Icons.Rounded.Bolt, null, tint = ExamColors.Purple)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text("Personal offer", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                Text("Server-timed offer · ends when the timer reaches zero", color = ExamColors.TextSecondary, fontSize = 10.sp)
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(subtitle, color = ExamColors.TextSecondary, fontSize = 10.sp)
             }
             Text(
                 "%02d:%02d:%02d".format(hours, minutes, seconds),
