@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.messaging.FirebaseMessaging
 import com.kprl.exam.billing.GooglePlayBillingService
+import com.kprl.exam.analytics.AnalyticsEvents
+import com.kprl.exam.analytics.AnalyticsParams
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.domain.FlashcardRating
 import com.kprl.exam.domain.FlashcardScheduler
@@ -301,6 +303,14 @@ fun FlashcardsScreen(setup: StudySetup, onClose: () -> Unit) {
                         OutlinedButton(
                             onClick = {
                                 scheduler.review(card.id, rating)
+                                AppServices.analytics.event(
+                                    AnalyticsEvents.FLASHCARD_REVIEWED,
+                                    mapOf(
+                                        AnalyticsParams.EXAM_ID to setup.exam.id,
+                                        AnalyticsParams.TOPIC_ID to card.topic.lowercase().replace(" ", "_"),
+                                        AnalyticsParams.SOURCE to label.lowercase()
+                                    )
+                                )
                                 if (index < cards.lastIndex) {
                                     index++
                                     revealed = false
@@ -402,6 +412,13 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
             remaining--
         } else if (running && remaining == 0) {
             running = false
+            AppServices.analytics.event(
+                AnalyticsEvents.FOCUS_COMPLETED,
+                mapOf(
+                    AnalyticsParams.EXAM_ID to setup.exam.id,
+                    AnalyticsParams.DURATION_SECONDS to focusMinutes * 60
+                )
+            )
             sendFocusNotification(context, setup.exam.shortName)
         }
     }
@@ -440,7 +457,18 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
         }
         Spacer(Modifier.height(32.dp))
         Button(
-            onClick = { running = !running },
+            onClick = {
+                if (!running) {
+                    AppServices.analytics.event(
+                        AnalyticsEvents.FOCUS_STARTED,
+                        mapOf(
+                            AnalyticsParams.EXAM_ID to setup.exam.id,
+                            AnalyticsParams.DURATION_SECONDS to remaining
+                        )
+                    )
+                }
+                running = !running
+            },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
@@ -549,6 +577,13 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
+    LaunchedEffect(Unit) {
+        AppServices.analytics.event(
+            AnalyticsEvents.CREDIT_STORE_VIEWED,
+            mapOf(AnalyticsParams.EXAM_ID to setup.exam.id)
+        )
+    }
+
     DisposableEffect(billing) {
         billing.start { billing.loadCreditPrice { price = it } }
         onDispose { billing.close() }
@@ -574,9 +609,33 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
             onClick = {
                 val host = activity ?: return@Button
                 loading = true
+                AppServices.analytics.event(
+                    AnalyticsEvents.CREDIT_PURCHASE_STARTED,
+                    mapOf(
+                        AnalyticsParams.EXAM_ID to setup.exam.id,
+                        AnalyticsParams.PRODUCT_ID to GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL
+                    )
+                )
                 billing.purchase(host, GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL) { success, detail ->
                     loading = false
                     message = if (success) "Credits added." else detail ?: "Purchase not completed."
+                    if (success) {
+                        AppServices.analytics.event(
+                            AnalyticsEvents.CREDIT_PURCHASE_COMPLETED,
+                            mapOf(
+                                AnalyticsParams.EXAM_ID to setup.exam.id,
+                                AnalyticsParams.PRODUCT_ID to GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL
+                            )
+                        )
+                    } else {
+                        AppServices.analytics.event(
+                            AnalyticsEvents.PURCHASE_FAILED,
+                            mapOf(
+                                AnalyticsParams.PLACEMENT to "credit_store",
+                                AnalyticsParams.PRODUCT_ID to GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL
+                            )
+                        )
+                    }
                 }
             },
             enabled = price != null && !loading,
@@ -659,6 +718,13 @@ fun ProfileSettingsScreen(
                         steps = 16,
                         onValueChangeFinished = {
                             progressStore.setReminderHour(reminderHour)
+                            AppServices.analytics.event(
+                                AnalyticsEvents.REMINDER_CHANGED,
+                                mapOf(
+                                    AnalyticsParams.EXAM_ID to setup.exam.id,
+                                    AnalyticsParams.REMINDER_HOUR to reminderHour
+                                )
+                            )
                             FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
                                 PushTokenRegistrar.register(
                                     context = context,
@@ -718,6 +784,10 @@ fun ProfileSettingsScreen(
                         accountService.deleteAccount { result ->
                             deletingAccount = false
                             result.onSuccess {
+                                AppServices.analytics.event(
+                                    AnalyticsEvents.ACCOUNT_DELETED,
+                                    mapOf(AnalyticsParams.EXAM_ID to setup.exam.id)
+                                )
                                 setupStore.clear()
                                 progressStore.reset()
                                 deleteConfirm = false
@@ -791,6 +861,14 @@ fun MediaLabScreen(
         error = null
         assetUrl = null
         status = "submitting"
+        AppServices.analytics.event(
+            AnalyticsEvents.MEDIA_REQUESTED,
+            mapOf(
+                AnalyticsParams.EXAM_ID to setup.exam.id,
+                AnalyticsParams.MEDIA_KIND to kind,
+                AnalyticsParams.CREDIT_COST to if (kind == "video_explainer") 5 else 1
+            )
+        )
 
         ai.generateMedia(kind, value) { result ->
             submitting = false
@@ -816,8 +894,21 @@ fun MediaLabScreen(
             ai.mediaStatus(id) { result ->
                 when (result) {
                     is GatewayResult.Success -> {
+                        val previousStatus = status
                         status = result.value.status
                         result.value.assetUrl?.let { assetUrl = it }
+                        if (
+                            previousStatus != "completed" &&
+                            (result.value.status == "completed" || result.value.assetUrl != null)
+                        ) {
+                            AppServices.analytics.event(
+                                AnalyticsEvents.MEDIA_COMPLETED,
+                                mapOf(
+                                    AnalyticsParams.EXAM_ID to setup.exam.id,
+                                    AnalyticsParams.MEDIA_KIND to if (result.value.assetUrl?.contains("video", ignoreCase = true) == true) "video" else "generated_media"
+                                )
+                            )
+                        }
                     }
                     is GatewayResult.Error -> error = result.message
                 }
