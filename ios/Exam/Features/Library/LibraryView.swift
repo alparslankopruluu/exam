@@ -55,6 +55,13 @@ struct LibraryView: View {
                 Task { @MainActor in
                     do {
                         _ = try await LibraryUploadService().uploadAndIndex(url: url)
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.materialAdded,
+                            params: [
+                                AnalyticsParam.examId: setup.exam.id,
+                                AnalyticsParam.materialType: materialType(for: url)
+                            ]
+                        )
                         loadMaterials()
                     } catch {
                         let message = error.localizedDescription
@@ -139,6 +146,13 @@ struct LibraryView: View {
                     LazyVStack(spacing: 9) {
                         ForEach(materials) { material in
                             Button {
+                                AppServices.shared.analytics.event(
+                                    AnalyticsEvent.materialOpened,
+                                    params: [
+                                        AnalyticsParam.examId: setup.exam.id,
+                                        AnalyticsParam.materialType: material.mimeType.split(separator: "/").first.map(String.init) ?? "unknown"
+                                    ]
+                                )
                                 selected = material
                             } label: {
                                 HStack(spacing: 12) {
@@ -198,6 +212,17 @@ struct LibraryView: View {
                     if let error { self.error = error.localizedDescription }
                 }
             }
+    }
+
+    private func materialType(for url: URL) -> String {
+        switch url.pathExtension.lowercased() {
+        case "pdf": return "pdf"
+        case "jpg", "jpeg", "png", "heic", "webp": return "image"
+        case "mp3", "wav", "m4a", "aac": return "audio"
+        case "mp4", "mov", "m4v": return "video"
+        case "txt", "md": return "text"
+        default: return "file"
+        }
     }
 
     private func icon(for mime: String) -> String {
@@ -334,6 +359,14 @@ private struct MaterialChatView: View {
                     if questions.isEmpty {
                         error = "Could not create a valid quiz from this material."
                     } else {
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.quizGenerated,
+                            params: [
+                                AnalyticsParam.examId: setup.exam.id,
+                                AnalyticsParam.source: "material",
+                                AnalyticsParam.itemCount: questions.count
+                            ]
+                        )
                         onStartPractice(questions)
                     }
                 } catch {
@@ -367,6 +400,13 @@ private struct MaterialChatView: View {
         guard !value.isEmpty else { return }
         asking = true
         error = nil
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.materialQA,
+            params: [
+                AnalyticsParam.examId: setup.exam.id,
+                AnalyticsParam.materialType: material.mimeType.split(separator: "/").first.map(String.init) ?? "unknown"
+            ]
+        )
 
         Task { @MainActor in
             do {
