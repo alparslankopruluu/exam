@@ -165,5 +165,15 @@
   "unlimited_materials": "無制限の学習教材",
   "unlimited_materials_hint": "ノートや資料を練習に変換。",
   "price_terms": "価格、体験資格、更新条件はアカウントと地域に応じてストアから直接提供されます。",
-  "continue_price": "続ける · {price}"
+  "continue_price": "続ける · {price}",
+  "simpler_explanation": "1ステップで考えます。問題が求めることを特定し、重要な関係を切り出して、元の条件に答えを当てはめて確認します。",
+  "result_correct": "{correct}/{total} 正解 · {exam}",
+  "time": "時間",
+  "mock_result_strong": "良い結果です。より難しいミックス問題へ進み、時間配分を維持しましょう。",
+  "mock_result_good": "良い土台です。エラーDNAを復習してから時間制限付きミックスを再挑戦しましょう。",
+  "mock_result_review": "次の時間制限付き模擬試験の前に弱点復習を優先しましょう。",
+  "paywall_voice_title": "理解できるまで会話しながら解決。",
+  "paywall_mock_title": "模擬試験を次の1週間の改善につなげよう。",
+  "paywall_documents_title": "すべての教材を学習セッションに変換。",
+  "paywall_ai_title": "必要なときにAIチューターを使い続けよう。"
 }
