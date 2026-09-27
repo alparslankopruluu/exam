@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.analytics.AnalyticsEvents
+import com.kprl.exam.analytics.AnalyticsParams
+import com.kprl.exam.platform.AppServices
 import com.kprl.exam.domain.SampleQuestionFactory
 import com.kprl.exam.domain.StudyQuestion
 import com.kprl.exam.platform.ai.AIGatewayClient
@@ -61,6 +64,32 @@ fun QuestionSessionScreen(
         mutableIntStateOf(timeLimitSeconds ?: 0)
     }
 
+    LaunchedEffect(Unit) {
+        AppServices.analytics.event(
+            AnalyticsEvents.STUDY_SESSION_STARTED,
+            mapOf(
+                AnalyticsParams.EXAM_ID to setup.exam.id,
+                AnalyticsParams.CONTENT_PACK_ID to setup.exam.syllabusPackId,
+                AnalyticsParams.SESSION_TYPE to sessionType,
+                AnalyticsParams.ITEM_COUNT to questions.size
+            )
+        )
+        if (sessionType == "daily_plan") {
+            AppServices.analytics.event(
+                AnalyticsEvents.DAILY_MISSION_STARTED,
+                mapOf(AnalyticsParams.EXAM_ID to setup.exam.id)
+            )
+        } else if (sessionType == "mock_exam") {
+            AppServices.analytics.event(
+                AnalyticsEvents.MOCK_STARTED,
+                mapOf(
+                    AnalyticsParams.EXAM_ID to setup.exam.id,
+                    AnalyticsParams.ITEM_COUNT to questions.size
+                )
+            )
+        }
+    }
+
     fun finishSession() {
         if (completed) return
         val completedAt = System.currentTimeMillis()
@@ -80,6 +109,49 @@ fun QuestionSessionScreen(
             durationSeconds = ((completedAt - sessionStartedAt) / 1000L).toInt()
         )
         earnedXp = (after.xp - before.xp).coerceAtLeast(0)
+        val scorePercent = if (questions.isEmpty()) 0 else correctCount * 100 / questions.size
+
+        AppServices.analytics.event(
+            AnalyticsEvents.STUDY_SESSION_COMPLETED,
+            mapOf(
+                AnalyticsParams.EXAM_ID to setup.exam.id,
+                AnalyticsParams.CONTENT_PACK_ID to setup.exam.syllabusPackId,
+                AnalyticsParams.SESSION_TYPE to sessionType,
+                AnalyticsParams.ITEM_COUNT to questions.size,
+                AnalyticsParams.SCORE_PERCENT to scorePercent,
+                AnalyticsParams.DURATION_SECONDS to completedDurationSeconds,
+                AnalyticsParams.XP_EARNED to earnedXp
+            )
+        )
+        if (sessionType == "daily_plan") {
+            AppServices.analytics.event(
+                AnalyticsEvents.DAILY_MISSION_COMPLETED,
+                mapOf(
+                    AnalyticsParams.EXAM_ID to setup.exam.id,
+                    AnalyticsParams.SCORE_PERCENT to scorePercent,
+                    AnalyticsParams.DURATION_SECONDS to completedDurationSeconds
+                )
+            )
+        } else if (sessionType == "mock_exam") {
+            AppServices.analytics.event(
+                AnalyticsEvents.MOCK_COMPLETED,
+                mapOf(
+                    AnalyticsParams.EXAM_ID to setup.exam.id,
+                    AnalyticsParams.SCORE_PERCENT to scorePercent,
+                    AnalyticsParams.DURATION_SECONDS to completedDurationSeconds
+                )
+            )
+        }
+        if (after.streak > before.streak) {
+            AppServices.analytics.event(
+                AnalyticsEvents.STREAK_EXTENDED,
+                mapOf(
+                    AnalyticsParams.STREAK_COUNT to after.streak,
+                    AnalyticsParams.EXAM_ID to setup.exam.id
+                )
+            )
+        }
+
         onSessionCompleted?.invoke()
         completed = true
     }
@@ -170,15 +242,29 @@ fun QuestionSessionScreen(
                         selected = optionIndex
                         if (correct) correctCount++
 
+                        val responseMs = answeredAt - questionStartedAt
+
                         repository.recordAnswer(
                             examId = setup.exam.id,
                             skillId = setup.exam.id + ":" + question.topic.lowercase().replace(" ", "_"),
                             questionId = question.id,
                             correct = correct,
-                            responseTimeMs = answeredAt - questionStartedAt,
+                            responseTimeMs = responseMs,
                             selectedAnswer = option,
                             correctAnswer = question.options[question.correctIndex],
                             errorType = if (correct) "none" else "concept"
+                        )
+                        AppServices.analytics.event(
+                            AnalyticsEvents.QUESTION_ANSWERED,
+                            mapOf(
+                                AnalyticsParams.EXAM_ID to setup.exam.id,
+                                AnalyticsParams.CONTENT_PACK_ID to setup.exam.syllabusPackId,
+                                AnalyticsParams.TOPIC_ID to question.topic.lowercase().replace(" ", "_"),
+                                AnalyticsParams.ANSWER_CORRECT to correct,
+                                AnalyticsParams.RESPONSE_TIME_MS to responseMs,
+                                AnalyticsParams.SESSION_TYPE to sessionType,
+                                AnalyticsParams.ERROR_TYPE to if (correct) "none" else "concept"
+                            )
                         )
                     },
                 shape = RoundedCornerShape(18.dp),
@@ -231,6 +317,14 @@ fun QuestionSessionScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssistChip(
                             onClick = {
+                                AppServices.analytics.event(
+                                    AnalyticsEvents.EXPLANATION_REQUESTED,
+                                    mapOf(
+                                        AnalyticsParams.EXAM_ID to setup.exam.id,
+                                        AnalyticsParams.SOURCE to "simpler_local",
+                                        AnalyticsParams.SESSION_TYPE to sessionType
+                                    )
+                                )
                                 simplerExplanation =
                                     "Think of it in one step: identify what the question asks, isolate the key relationship, then check the answer against the original statement."
                             },
@@ -239,6 +333,14 @@ fun QuestionSessionScreen(
                         AssistChip(
                             onClick = {
                                 if (!helperLoading) {
+                                    AppServices.analytics.event(
+                                        AnalyticsEvents.EXPLANATION_REQUESTED,
+                                        mapOf(
+                                            AnalyticsParams.EXAM_ID to setup.exam.id,
+                                            AnalyticsParams.SOURCE to "ai_tutor",
+                                            AnalyticsParams.SESSION_TYPE to sessionType
+                                        )
+                                    )
                                     helperLoading = true
                                     aiGateway.askTutor(
                                         setup,
