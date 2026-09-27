@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.platform.ai.AIGatewayClient
 import com.kprl.exam.platform.ai.GatewayResult
 import com.kprl.exam.platform.scan.QuestionScanner
@@ -39,6 +40,7 @@ fun AITutorScreen(
     onPaywall: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val gateway = remember { AIGatewayClient() }
     val scanner = remember { QuestionScanner() }
 
@@ -135,21 +137,21 @@ fun AITutorScreen(
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("What do you need help with?", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("what_help"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
 
         TutorAction(
             Icons.Rounded.DocumentScanner,
-            "Solve a question",
-            "Upload a photo · OCR + vision",
+            copy.text("solve_question"),
+            copy.text("solve_question_hint"),
             ExamColors.Primary
         ) { photoPicker.launch("image/*") }
 
         Spacer(Modifier.height(9.dp))
         TutorAction(
             Icons.Rounded.Lightbulb,
-            "Explain a concept",
-            "Simple, visual or from zero",
+            copy.text("explain_concept"),
+            copy.text("explain_concept_hint"),
             ExamColors.Amber
         ) {
             prompt = "Explain this concept simply: "
@@ -158,8 +160,8 @@ fun AITutorScreen(
         Spacer(Modifier.height(9.dp))
         TutorAction(
             Icons.Rounded.FolderOpen,
-            "Study my notes",
-            "Ask questions from indexed Library materials",
+            copy.text("study_notes"),
+            copy.text("study_notes_hint"),
             ExamColors.Mint,
             onStudyNotes
         )
@@ -167,8 +169,8 @@ fun AITutorScreen(
         Spacer(Modifier.height(9.dp))
         TutorAction(
             Icons.Rounded.Image,
-            "Visual explanation",
-            "Generate a study image or video with credits",
+            copy.text("visual_explanation"),
+            copy.text("visual_explanation_hint"),
             ExamColors.Primary,
             onMediaLab
         )
@@ -176,8 +178,8 @@ fun AITutorScreen(
         Spacer(Modifier.height(9.dp))
         TutorAction(
             Icons.Rounded.GraphicEq,
-            "Talk to tutor",
-            "Interactive voice · Premium",
+            copy.text("talk_tutor"),
+            copy.text("talk_tutor_hint"),
             ExamColors.Purple,
             onVoiceTutor
         )
@@ -234,7 +236,7 @@ fun AITutorScreen(
                 TextField(
                     value = prompt,
                     onValueChange = { prompt = it },
-                    placeholder = { Text("Ask anything…", color = ExamColors.TextSecondary) },
+                    placeholder = { Text(copy.text("ask_anything"), color = ExamColors.TextSecondary) },
                     modifier = Modifier.weight(1f),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
