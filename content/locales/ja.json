@@ -175,5 +175,18 @@
   "paywall_voice_title": "理解できるまで会話しながら解決。",
   "paywall_mock_title": "模擬試験を次の1週間の改善につなげよう。",
   "paywall_documents_title": "すべての教材を学習セッションに変換。",
-  "paywall_ai_title": "必要なときにAIチューターを使い続けよう。"
+  "paywall_ai_title": "必要なときにAIチューターを使い続けよう。",
+  "good_morning": "おはようございます",
+  "good_afternoon": "こんにちは",
+  "plan_done_count": "{done}/{total} 完了",
+  "daily_plan_complete": "今日のプラン完了",
+  "tomorrow_adaptive_plan": "次の適応型プランは明日また確認してください。",
+  "personalized_plan_hint": "診断、習熟度、最近の間違いから個別最適化。",
+  "completed": "完了",
+  "minutes_remaining": "{task}分 · 残り{remaining}分",
+  "minutes_short": "{count}分",
+  "start_focus_session": "集中セッションを開始",
+  "error_dna_attention": "エラーDNAの復習が必要です",
+  "personal_offer": "あなた向けオファー",
+  "offer_server_timed": "サーバー基準の期間限定 · 0で終了"
 }
