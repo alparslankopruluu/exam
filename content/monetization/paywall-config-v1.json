@@ -19,17 +19,13 @@
   },
   "creditOnlyFeatures": [
     "ai_video_explanation",
-    "long_media_transcription",
     "premium_visual_generation"
   ],
   "subscriptionFeatures": [
     "unlimited_personalized_practice",
     "advanced_ai_tutor",
     "voice_tutor",
-    "unlimited_study_materials",
-    "mock_exam_analysis",
-    "advanced_progress",
-    "streak_protection"
+    "unlimited_study_materials"
   ],
   "placements": {
     "onboarding": {
@@ -46,10 +42,6 @@
     },
     "document_limit": {
       "template": "study_materials",
-      "allowClose": true
-    },
-    "mock_analysis": {
-      "template": "mock_analysis",
       "allowClose": true
     },
     "winback": {
