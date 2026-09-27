@@ -165,5 +165,15 @@
   "unlimited_materials": "Materiales ilimitados",
   "unlimited_materials_hint": "Convierte apuntes y documentos en práctica.",
   "price_terms": "El precio, prueba y renovación vienen directamente de la tienda para tu cuenta y región.",
-  "continue_price": "Continuar · {price}"
+  "continue_price": "Continuar · {price}",
+  "simpler_explanation": "Piensa en un paso: identifica qué pide la pregunta, aísla la relación clave y comprueba la respuesta con el enunciado.",
+  "result_correct": "{correct}/{total} correctas · {exam}",
+  "time": "Tiempo",
+  "mock_result_strong": "Resultado fuerte. Pasa a sets mixtos más difíciles y cuida el tiempo.",
+  "mock_result_good": "Buena base. Revisa tu ADN de errores y repite un set mixto cronometrado.",
+  "mock_result_review": "Prioriza tus habilidades débiles antes del próximo simulacro cronometrado.",
+  "paywall_voice_title": "Háblalo hasta que lo entiendas de verdad.",
+  "paywall_mock_title": "Convierte cada simulacro en una mejor semana siguiente.",
+  "paywall_documents_title": "Convierte todo tu material en sesiones de estudio.",
+  "paywall_ai_title": "Mantén disponible tu tutor IA cuando lo necesites."
 }
