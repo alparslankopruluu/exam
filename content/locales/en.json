@@ -175,5 +175,18 @@
   "paywall_voice_title": "Talk it through until it clicks.",
   "paywall_mock_title": "Turn every mock exam into a better next week.",
   "paywall_documents_title": "Turn all your material into study sessions.",
-  "paywall_ai_title": "Keep your AI tutor available when you need it."
+  "paywall_ai_title": "Keep your AI tutor available when you need it.",
+  "good_morning": "Good morning",
+  "good_afternoon": "Good afternoon",
+  "plan_done_count": "{done}/{total} done",
+  "daily_plan_complete": "Daily plan complete",
+  "tomorrow_adaptive_plan": "Come back tomorrow for the next adaptive plan.",
+  "personalized_plan_hint": "Personalized from your diagnostic, mastery and recent mistakes.",
+  "completed": "Completed",
+  "minutes_remaining": "{task} min · {remaining} min remaining",
+  "minutes_short": "{count} min",
+  "start_focus_session": "Start a focus session",
+  "error_dna_attention": "Error DNA needs attention",
+  "personal_offer": "Personal offer",
+  "offer_server_timed": "Server-timed offer · ends when the timer reaches zero"
 }
