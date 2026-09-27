@@ -104,13 +104,7 @@ fun TodayScreen(
                 onClose = {
                     premiumPlacement = null
                     dashboardRefresh++
-                },
-                onPaywall = { placement ->
-                    sessionOpen = false
-                    sessionTimeLimit = null
-                    premiumPlacement = placement
-                },
-                timeLimitSeconds = sessionTimeLimit
+                }
             )
             return
         }
@@ -134,7 +128,13 @@ fun TodayScreen(
                         }
                     }
                     dashboardRefresh++
-                }
+                },
+                onPaywall = { placement ->
+                    sessionOpen = false
+                    sessionTimeLimit = null
+                    premiumPlacement = placement
+                },
+                timeLimitSeconds = sessionTimeLimit
             )
             return
         }
