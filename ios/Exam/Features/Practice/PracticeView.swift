@@ -9,6 +9,10 @@ struct PracticeView: View {
     var onCreatePractice: () -> Void = {}
     var onFocus: () -> Void = {}
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     private var pack: ExamContentPack? {
         ContentPackRepository.load(packId: setup.exam.syllabusPackId)
     }
@@ -16,7 +20,7 @@ struct PracticeView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Practice")
+                Text(copy.text("practice"))
                     .font(.system(size: 28, weight: .bold))
                 Text("Built around your \(setup.exam.shortName) content pack")
                     .font(.system(size: 13))
@@ -36,17 +40,17 @@ struct PracticeView: View {
                             .foregroundStyle(.white.opacity(0.85))
                     }
 
-                    Text("Quick Practice")
+                    Text(copy.text("quick_practice"))
                         .font(.system(size: 25, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.top, 22)
-                    Text("A short adaptive set from what matters most right now.")
+                    Text(copy.text("quick_practice_hint"))
                         .font(.system(size: 13))
                         .foregroundStyle(.white.opacity(0.82))
                         .padding(.top, 3)
 
                     Button(action: onQuickPractice) {
-                        Text("Start 5 questions")
+                        Text(copy.text("start_questions", variables: ["count": "5"]))
                             .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(ExamPalette.primary)
                             .frame(maxWidth: .infinity)
@@ -69,7 +73,7 @@ struct PracticeView: View {
                 .padding(.top, 22)
 
                 if let pack, !pack.units.isEmpty {
-                    Text("Your exam")
+                    Text(copy.text("your_exam"))
                         .font(.system(size: 18, weight: .bold))
                         .padding(.top, 22)
 
@@ -88,11 +92,11 @@ struct PracticeView: View {
                 }
 
                 VStack(spacing: 9) {
-                    practiceRow("timer", "Mock Exam", "Use the official-style blueprint", ExamPalette.purple, onMockExam)
-                    practiceRow("arrow.clockwise", "Mistakes", "Review patterns that cost you points", ExamPalette.coral, onMistakes)
-                    practiceRow("rectangle.stack.fill", "Flashcards", "Spaced repetition due today", ExamPalette.mint, onFlashcards)
-                    practiceRow("sparkles", "Create Practice", "Topic, note, PDF or pasted text", ExamPalette.amber, onCreatePractice)
-                    practiceRow("scope", "Focus", "Pomodoro with completion reminder", ExamPalette.primary, onFocus)
+                    practiceRow("timer", copy.text("mock_exam"), copy.text("mock_exam_hint"), ExamPalette.purple, onMockExam)
+                    practiceRow("arrow.clockwise", copy.text("mistakes"), copy.text("mistakes_hint"), ExamPalette.coral, onMistakes)
+                    practiceRow("rectangle.stack.fill", copy.text("flashcards"), copy.text("flashcards_hint"), ExamPalette.mint, onFlashcards)
+                    practiceRow("sparkles", copy.text("create_practice"), copy.text("create_practice_hint"), ExamPalette.amber, onCreatePractice)
+                    practiceRow("scope", copy.text("focus"), copy.text("focus_hint"), ExamPalette.primary, onFocus)
                 }
                 .padding(.top, 14)
                 .padding(.bottom, 20)
