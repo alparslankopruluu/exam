@@ -23,6 +23,9 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.analytics.AnalyticsEvents
+import com.kprl.exam.analytics.AnalyticsParams
+import com.kprl.exam.platform.AppServices
 import com.kprl.exam.domain.StudyQuestion
 import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.platform.ai.AIGatewayClient
@@ -103,6 +106,15 @@ fun LibraryScreen(
             loading = false
             when (result) {
                 is GatewayResult.Success -> {
+                    AppServices.analytics.event(
+                        AnalyticsEvents.MATERIAL_ADDED,
+                        mapOf(
+                            AnalyticsParams.EXAM_ID to setup.exam.id,
+                            AnalyticsParams.MATERIAL_TYPE to (
+                                context.contentResolver.getType(uri)?.substringBefore("/") ?: "unknown"
+                            )
+                        )
+                    )
                     refreshKey++
                 }
                 is GatewayResult.Error -> {
@@ -137,6 +149,14 @@ fun LibraryScreen(
                             if (questions.isEmpty()) {
                                 error = "Could not create a valid quiz from this material."
                             } else {
+                                AppServices.analytics.event(
+                                    AnalyticsEvents.QUIZ_GENERATED,
+                                    mapOf(
+                                        AnalyticsParams.EXAM_ID to setup.exam.id,
+                                        AnalyticsParams.SOURCE to "material",
+                                        AnalyticsParams.ITEM_COUNT to questions.size
+                                    )
+                                )
                                 onStartPractice(questions)
                             }
                         }
@@ -245,7 +265,16 @@ fun LibraryScreen(
                 ) {
                     items(materials, key = { it.id }) { material ->
                         Surface(
-                            modifier = Modifier.fillMaxWidth().clickable { selected = material },
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                AppServices.analytics.event(
+                                    AnalyticsEvents.MATERIAL_OPENED,
+                                    mapOf(
+                                        AnalyticsParams.EXAM_ID to setup.exam.id,
+                                        AnalyticsParams.MATERIAL_TYPE to material.mimeType.substringBefore("/")
+                                    )
+                                )
+                                selected = material
+                            },
                             color = ExamColors.Surface,
                             shape = RoundedCornerShape(18.dp),
                             border = BorderStroke(1.dp, ExamColors.Border)
@@ -389,6 +418,13 @@ private fun MaterialChatScreen(
                         val value = question.trim()
                         if (value.isEmpty() || asking) return@IconButton
                         asking = true
+                        AppServices.analytics.event(
+                            AnalyticsEvents.MATERIAL_QA,
+                            mapOf(
+                                AnalyticsParams.EXAM_ID to setup.exam.id,
+                                AnalyticsParams.MATERIAL_TYPE to material.mimeType.substringBefore("/")
+                            )
+                        )
                         ai.askMaterial(material.id, value, setup.languageCode) { result ->
                             asking = false
                             answer = when (result) {
