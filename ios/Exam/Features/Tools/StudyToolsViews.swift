@@ -329,6 +329,14 @@ struct FlashcardsView: View {
     private func ratingButton(_ title: String, _ rating: FlashcardRating, card: StudyQuestion) -> some View {
         Button {
             FlashcardScheduler().review(cardId: card.id, rating: rating)
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.flashcardReviewed,
+                params: [
+                    AnalyticsParam.examId: setup.exam.id,
+                    AnalyticsParam.topicId: card.topic.lowercased().replacingOccurrences(of: " ", with: "_"),
+                    AnalyticsParam.source: title.lowercased()
+                ]
+            )
             if index < cards.count - 1 {
                 index += 1
                 revealed = false
@@ -513,6 +521,13 @@ struct FocusView: View {
     }
 
     private func start() {
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.focusStarted,
+            params: [
+                AnalyticsParam.examId: setup.exam.id,
+                AnalyticsParam.durationSeconds: remaining
+            ]
+        )
         running = true
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
@@ -520,6 +535,13 @@ struct FocusView: View {
                 if remaining > 0 {
                     remaining -= 1
                 } else {
+                    AppServices.shared.analytics.event(
+                        AnalyticsEvent.focusCompleted,
+                        params: [
+                            AnalyticsParam.examId: setup.exam.id,
+                            AnalyticsParam.durationSeconds: focusMinutes * 60
+                        ]
+                    )
                     pause()
                     let content = UNMutableNotificationContent()
                     content.title = "Focus session complete"
@@ -661,11 +683,35 @@ struct CreditStoreView: View {
 
             Button {
                 loading = true
+                AppServices.shared.analytics.event(
+                    AnalyticsEvent.creditPurchaseStarted,
+                    params: [
+                        AnalyticsParam.examId: setup.exam.id,
+                        AnalyticsParam.productId: StoreKitBillingService.ProductId.creditsSmall
+                    ]
+                )
                 Task { @MainActor in
                     let success = await StoreKitBillingService.shared.purchase(
                         productId: StoreKitBillingService.ProductId.creditsSmall
                     )
                     message = success ? "Credits added." : "Purchase not completed."
+                    if success {
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.creditPurchaseCompleted,
+                            params: [
+                                AnalyticsParam.examId: setup.exam.id,
+                                AnalyticsParam.productId: StoreKitBillingService.ProductId.creditsSmall
+                            ]
+                        )
+                    } else {
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.purchaseFailed,
+                            params: [
+                                AnalyticsParam.placement: "credit_store",
+                                AnalyticsParam.productId: StoreKitBillingService.ProductId.creditsSmall
+                            ]
+                        )
+                    }
                     loading = false
                 }
             } label: {
@@ -684,6 +730,10 @@ struct CreditStoreView: View {
         .padding(.bottom, 12)
         .background(ExamPalette.background.ignoresSafeArea())
         .task {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.creditStoreViewed,
+                params: [AnalyticsParam.examId: setup.exam.id]
+            )
             price = await StoreKitBillingService.shared.loadCreditPrice()
         }
     }
@@ -759,6 +809,13 @@ struct ProfileSettingsView: View {
                     )
                     .onChange(of: reminderHour) { _, value in
                         UserProgressStore().setReminderHour(value)
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.reminderChanged,
+                            params: [
+                                AnalyticsParam.examId: setup.exam.id,
+                                AnalyticsParam.reminderHour: value
+                            ]
+                        )
                         Messaging.messaging().token { token, _ in
                             guard let token else { return }
                             Task { @MainActor in
@@ -810,6 +867,10 @@ struct ProfileSettingsView: View {
                 Task { @MainActor in
                     do {
                         try await AccountService().deleteAccount()
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.accountDeleted,
+                            params: [AnalyticsParam.examId: setup.exam.id]
+                        )
                         StudySetupStore.clear()
                         UserProgressStore().reset()
                         onRestartOnboarding()
@@ -1005,6 +1066,14 @@ struct MediaLabView: View {
         assetURL = nil
         error = nil
         status = "submitting"
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.mediaRequested,
+            params: [
+                AnalyticsParam.examId: setup.exam.id,
+                AnalyticsParam.mediaKind: kind,
+                AnalyticsParam.creditCost: kind == "video_explainer" ? 5 : 1
+            ]
+        )
 
         Task { @MainActor in
             do {
@@ -1017,9 +1086,23 @@ struct MediaLabView: View {
                     status = update.status
                     if let url = update.assetURL {
                         assetURL = url
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.mediaCompleted,
+                            params: [
+                                AnalyticsParam.examId: setup.exam.id,
+                                AnalyticsParam.mediaKind: kind
+                            ]
+                        )
                         break
                     }
                     if update.status == "completed" {
+                        AppServices.shared.analytics.event(
+                            AnalyticsEvent.mediaCompleted,
+                            params: [
+                                AnalyticsParam.examId: setup.exam.id,
+                                AnalyticsParam.mediaKind: kind
+                            ]
+                        )
                         break
                     }
                 }
