@@ -35,6 +35,7 @@ import com.kprl.exam.domain.FlashcardRating
 import com.kprl.exam.domain.FlashcardScheduler
 import com.kprl.exam.domain.SampleQuestionFactory
 import com.kprl.exam.domain.StudyQuestion
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.platform.ai.AIGatewayClient
 import com.kprl.exam.platform.account.AccountService
 import com.kprl.exam.platform.AppServices
@@ -84,6 +85,8 @@ fun MockExamScreen(
     onStart: (List<StudyQuestion>) -> Unit,
     onPaywall: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val gateway = remember { AIGatewayClient() }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -93,7 +96,11 @@ fun MockExamScreen(
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)
     ) {
-        ToolHeader("Mock Exam", "${setup.exam.shortName} · timed mixed set", onClose)
+        ToolHeader(
+            copy.text("mock_exam"),
+            copy.text("mock_timed_set", mapOf("exam" to setup.exam.shortName)),
+            onClose
+        )
         Spacer(Modifier.height(18.dp))
 
         Surface(
@@ -102,9 +109,9 @@ fun MockExamScreen(
             border = BorderStroke(1.dp, ExamColors.Border)
         ) {
             Column(Modifier.padding(18.dp)) {
-                Text("Exam simulation", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(copy.text("exam_simulation"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "Questions are generated against your selected exam context and recorded as a mock session.",
+                    copy.text("mock_desc"),
                     color = ExamColors.TextSecondary,
                     fontSize = 13.sp,
                     lineHeight = 19.sp
@@ -115,7 +122,7 @@ fun MockExamScreen(
                         FilterChip(
                             selected = questionCount == count,
                             onClick = { questionCount = count },
-                            label = { Text("$count questions") }
+                            label = { Text(copy.text("questions_count", mapOf("count" to count.toString()))) }
                         )
                     }
                 }
@@ -170,7 +177,7 @@ fun MockExamScreen(
             if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = Color.White)
             else Icon(Icons.Rounded.Timer, null)
             Spacer(Modifier.width(8.dp))
-            Text(if (loading) "Building mock…" else "Start mock", fontWeight = FontWeight.Bold)
+            Text(if (loading) copy.text("building_mock") else copy.text("start_mock"), fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(12.dp))
     }
@@ -179,6 +186,7 @@ fun MockExamScreen(
 @Composable
 fun MistakesScreen(setup: StudySetup, onClose: () -> Unit, onPractice: () -> Unit) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
     var mistakes by remember { mutableStateOf(repository.mistakes(setup.exam.id)) }
 
@@ -186,7 +194,7 @@ fun MistakesScreen(setup: StudySetup, onClose: () -> Unit, onPractice: () -> Uni
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)
     ) {
-        ToolHeader("Mistakes", "Your unresolved Error DNA", onClose)
+        ToolHeader(copy.text("mistakes"), copy.text("mistakes_subtitle"), onClose)
         Spacer(Modifier.height(14.dp))
 
         if (mistakes.isEmpty()) {
@@ -198,8 +206,8 @@ fun MistakesScreen(setup: StudySetup, onClose: () -> Unit, onPractice: () -> Uni
                 Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Rounded.CheckCircle, null, tint = ExamColors.Mint, modifier = Modifier.size(42.dp))
                     Spacer(Modifier.height(10.dp))
-                    Text("No unresolved mistakes", fontWeight = FontWeight.Bold)
-                    Text("New mistakes will appear here automatically.", color = ExamColors.TextSecondary, fontSize = 12.sp)
+                    Text(copy.text("no_unresolved_mistakes"), fontWeight = FontWeight.Bold)
+                    Text(copy.text("new_mistakes_hint"), color = ExamColors.TextSecondary, fontSize = 12.sp)
                 }
             }
         } else {
@@ -213,19 +221,19 @@ fun MistakesScreen(setup: StudySetup, onClose: () -> Unit, onPractice: () -> Uni
                         Column(Modifier.padding(14.dp)) {
                             Text(item.skillId.substringAfter(":"), fontWeight = FontWeight.SemiBold)
                             Text(
-                                "${item.errorType.replace("_", " ")} · selected: ${item.selectedAnswer ?: "—"}",
+                                item.errorType.replace("_", " ") + " · " + copy.text("selected_answer", mapOf("answer" to (item.selectedAnswer ?: "—"))),
                                 color = ExamColors.TextSecondary,
                                 fontSize = 11.sp
                             )
                             item.correctAnswer?.let {
-                                Text("Correct: $it", color = ExamColors.Mint, fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
+                                Text(copy.text("correct_answer", mapOf("answer" to it)), color = ExamColors.Mint, fontSize = 12.sp, modifier = Modifier.padding(top = 5.dp))
                             }
                             TextButton(
                                 onClick = {
                                     repository.resolveMistake(item.id)
                                     mistakes = repository.mistakes(setup.exam.id)
                                 }
-                            ) { Text("Mark resolved") }
+                            ) { Text(copy.text("mark_resolved")) }
                         }
                     }
                 }
@@ -240,7 +248,7 @@ fun MistakesScreen(setup: StudySetup, onClose: () -> Unit, onPractice: () -> Uni
         ) {
             Icon(Icons.Rounded.Refresh, null)
             Spacer(Modifier.width(8.dp))
-            Text("Practice weak areas", fontWeight = FontWeight.Bold)
+            Text(copy.text("practice_weak_areas"), fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(12.dp))
     }
@@ -249,6 +257,7 @@ fun MistakesScreen(setup: StudySetup, onClose: () -> Unit, onPractice: () -> Uni
 @Composable
 fun FlashcardsScreen(setup: StudySetup, onClose: () -> Unit) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val scheduler = remember { FlashcardScheduler(context.applicationContext) }
     val allCards = remember(setup.exam.id) { SampleQuestionFactory.forSetup(setup) }
     var cards by remember { mutableStateOf(allCards.filter { scheduler.isDue(it.id) }.ifEmpty { allCards }) }
@@ -259,11 +268,11 @@ fun FlashcardsScreen(setup: StudySetup, onClose: () -> Unit) {
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)
     ) {
-        ToolHeader("Flashcards", "Spaced repetition", onClose)
+        ToolHeader(copy.text("flashcards"), copy.text("spaced_repetition"), onClose)
         Spacer(Modifier.height(24.dp))
 
         if (cards.isEmpty()) {
-            Text("Nothing due right now.", color = ExamColors.TextSecondary)
+            Text(copy.text("nothing_due"), color = ExamColors.TextSecondary)
         } else {
             val card = cards[index.coerceAtMost(cards.lastIndex)]
             Surface(
@@ -286,7 +295,7 @@ fun FlashcardsScreen(setup: StudySetup, onClose: () -> Unit) {
                         fontWeight = if (revealed) FontWeight.Medium else FontWeight.Bold
                     )
                     Spacer(Modifier.height(18.dp))
-                    Text(if (revealed) "Rate your recall" else "Tap to reveal", color = ExamColors.TextSecondary, fontSize = 12.sp)
+                    Text(if (revealed) copy.text("rate_recall") else copy.text("tap_reveal"), color = ExamColors.TextSecondary, fontSize = 12.sp)
                 }
             }
 
@@ -294,10 +303,10 @@ fun FlashcardsScreen(setup: StudySetup, onClose: () -> Unit) {
                 Spacer(Modifier.height(18.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     val ratings = listOf(
-                        "Again" to FlashcardRating.AGAIN,
-                        "Hard" to FlashcardRating.HARD,
-                        "Good" to FlashcardRating.GOOD,
-                        "Easy" to FlashcardRating.EASY
+                        copy.text("again") to FlashcardRating.AGAIN,
+                        copy.text("hard") to FlashcardRating.HARD,
+                        copy.text("good") to FlashcardRating.GOOD,
+                        copy.text("easy") to FlashcardRating.EASY
                     )
                     ratings.forEach { (label, rating) ->
                         OutlinedButton(
@@ -308,7 +317,7 @@ fun FlashcardsScreen(setup: StudySetup, onClose: () -> Unit) {
                                     mapOf(
                                         AnalyticsParams.EXAM_ID to setup.exam.id,
                                         AnalyticsParams.TOPIC_ID to card.topic.lowercase().replace(" ", "_"),
-                                        AnalyticsParams.SOURCE to label.lowercase()
+                                        AnalyticsParams.SOURCE to rating.name.lowercase()
                                     )
                                 )
                                 if (index < cards.lastIndex) {
@@ -335,6 +344,8 @@ fun CreatePracticeScreen(
     onStart: (List<StudyQuestion>) -> Unit,
     onPaywall: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val gateway = remember { AIGatewayClient() }
     var topic by remember { mutableStateOf("") }
     var count by remember { mutableIntStateOf(5) }
@@ -345,15 +356,15 @@ fun CreatePracticeScreen(
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)
     ) {
-        ToolHeader("Create Practice", "Generate a focused set", onClose)
+        ToolHeader(copy.text("create_practice"), copy.text("create_practice_hint"), onClose)
         Spacer(Modifier.height(18.dp))
 
         OutlinedTextField(
             value = topic,
             onValueChange = { topic = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Topic or instruction") },
-            placeholder = { Text("e.g. Algebra inequalities, inference questions…") },
+            label = { Text(copy.text("topic_instruction")) },
+            placeholder = { Text(copy.text("topic_placeholder")) },
             minLines = 3,
             shape = RoundedCornerShape(18.dp)
         )
@@ -376,7 +387,7 @@ fun CreatePracticeScreen(
                         is GatewayResult.Success -> {
                             val questions = parseGeneratedQuestions(result.value)
                             if (questions.isNotEmpty()) onStart(questions)
-                            else error = "The generated set was invalid. Try a more specific topic."
+                            else error = copy.text("generated_set_invalid")
                         }
                         is GatewayResult.Error -> {
                             if (result.message.contains("Daily AI limit", ignoreCase = true)) onPaywall("ai_limit")
@@ -393,7 +404,7 @@ fun CreatePracticeScreen(
             if (loading) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
             else Icon(Icons.Rounded.AutoAwesome, null)
             Spacer(Modifier.width(8.dp))
-            Text(if (loading) "Generating…" else "Generate practice", fontWeight = FontWeight.Bold)
+            Text(if (loading) copy.text("generating") else copy.text("generate_practice"), fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(12.dp))
     }
@@ -402,6 +413,7 @@ fun CreatePracticeScreen(
 @Composable
 fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     var focusMinutes by remember { mutableIntStateOf(25) }
     var remaining by remember { mutableIntStateOf(25 * 60) }
     var running by remember { mutableStateOf(false) }
@@ -419,7 +431,11 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
                     AnalyticsParams.DURATION_SECONDS to focusMinutes * 60
                 )
             )
-            sendFocusNotification(context, setup.exam.shortName)
+            sendFocusNotification(
+                context,
+                copy.text("focus_complete"),
+                copy.text("focus_break", mapOf("exam" to setup.exam.shortName))
+            )
         }
     }
 
@@ -434,7 +450,7 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ToolHeader("Focus", "${setup.exam.shortName} Pomodoro", onClose)
+        ToolHeader(copy.text("focus"), copy.text("focus_pomodoro", mapOf("exam" to setup.exam.shortName)), onClose)
         Spacer(Modifier.height(28.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(25, 40, 50).forEach { minutes ->
@@ -452,7 +468,7 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
                     fontSize = 46.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(if (running) "Stay with it" else "Ready", color = ExamColors.TextSecondary)
+                Text(if (running) copy.text("stay_with_it") else copy.text("ready"), color = ExamColors.TextSecondary)
             }
         }
         Spacer(Modifier.height(32.dp))
@@ -475,18 +491,18 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
         ) {
             Icon(if (running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null)
             Spacer(Modifier.width(8.dp))
-            Text(if (running) "Pause" else "Start focus", fontWeight = FontWeight.Bold)
+            Text(if (running) copy.text("pause") else copy.text("start_focus"), fontWeight = FontWeight.Bold)
         }
-        TextButton(onClick = { reset(focusMinutes) }) { Text("Reset") }
+        TextButton(onClick = { reset(focusMinutes) }) { Text(copy.text("reset")) }
     }
 }
 
-private fun sendFocusNotification(context: Context, examName: String) {
+private fun sendFocusNotification(context: Context, title: String, body: String) {
     val manager = context.getSystemService(NotificationManager::class.java)
     val channelId = "focus_complete"
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         manager.createNotificationChannel(
-            NotificationChannel(channelId, "Focus timer", NotificationManager.IMPORTANCE_DEFAULT)
+            NotificationChannel(channelId, title, NotificationManager.IMPORTANCE_DEFAULT)
         )
     }
     val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -496,8 +512,8 @@ private fun sendFocusNotification(context: Context, examName: String) {
     manager.notify(
         4201,
         builder.setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Focus session complete")
-            .setContentText("$examName · Nice work. Take a short break.")
+            .setContentTitle(title)
+            .setContentText(body)
             .setAutoCancel(true)
             .build()
     )
@@ -506,6 +522,7 @@ private fun sendFocusNotification(context: Context, examName: String) {
 @Composable
 fun ProgressScreen(setup: StudySetup, onClose: () -> Unit) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
     val progress = remember { repository.progressSummary(setup.exam.id) }
     val errorDNA = remember { repository.errorDNA(setup.exam.id) }
@@ -518,24 +535,24 @@ fun ProgressScreen(setup: StudySetup, onClose: () -> Unit) {
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { ToolHeader("Progress", "${setup.exam.shortName} learning profile", onClose) }
+        item { ToolHeader(copy.text("progress"), copy.text("learning_profile", mapOf("exam" to setup.exam.shortName)), onClose) }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricCard("$mastery%", "Mastery", Modifier.weight(1f))
-                MetricCard("${user.streak}", "Streak", Modifier.weight(1f))
-                MetricCard("${user.xp}", "XP", Modifier.weight(1f))
+                MetricCard("$mastery%", copy.text("mastery"), Modifier.weight(1f))
+                MetricCard("${user.streak}", copy.text("streak"), Modifier.weight(1f))
+                MetricCard("${user.xp}", copy.text("xp"), Modifier.weight(1f))
             }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricCard("${progress.sessions}", "Sessions", Modifier.weight(1f))
-                MetricCard("$accuracy%", "Accuracy", Modifier.weight(1f))
-                MetricCard("${progress.studyMinutes}m", "Study", Modifier.weight(1f))
+                MetricCard("${progress.sessions}", copy.text("sessions"), Modifier.weight(1f))
+                MetricCard("$accuracy%", copy.text("accuracy"), Modifier.weight(1f))
+                MetricCard("${progress.studyMinutes}m", copy.text("study_time"), Modifier.weight(1f))
             }
         }
-        item { Text("Error DNA", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp)) }
+        item { Text(copy.text("error_dna"), fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp)) }
         if (errorDNA.isEmpty()) {
-            item { Text("No active error pattern yet.", color = ExamColors.TextSecondary) }
+            item { Text(copy.text("no_error_pattern"), color = ExamColors.TextSecondary) }
         } else {
             items(errorDNA.take(8)) { item ->
                 Surface(
@@ -571,6 +588,7 @@ private fun MetricCard(value: String, label: String, modifier: Modifier = Modifi
 @Composable
 fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val activity = remember(context) { context.findActivity() }
     val billing = remember { GooglePlayBillingService(context.applicationContext) }
     var price by remember { mutableStateOf<String?>(null) }
@@ -593,14 +611,14 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)
     ) {
-        ToolHeader("AI Credits", "For high-cost image & video generation", onClose)
+        ToolHeader(copy.text("ai_credits"), copy.text("credits_subtitle"), onClose)
         Spacer(Modifier.height(20.dp))
         Surface(color = ExamColors.Surface, shape = RoundedCornerShape(24.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
             Column(Modifier.padding(20.dp)) {
-                Text("25 credits", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                Text("Use credits only for expensive generated visuals/video. Core study stays subscription/free-limit based.", color = ExamColors.TextSecondary, fontSize = 13.sp)
+                Text(copy.text("credits_count"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(copy.text("credits_desc"), color = ExamColors.TextSecondary, fontSize = 13.sp)
                 Spacer(Modifier.height(18.dp))
-                Text(price ?: "Loading local price…", color = ExamColors.Primary, fontWeight = FontWeight.Bold)
+                Text(price ?: copy.text("loading_price"), color = ExamColors.Primary, fontWeight = FontWeight.Bold)
             }
         }
         message?.let { Text(it, color = ExamColors.TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp)) }
@@ -618,7 +636,7 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
                 )
                 billing.purchase(host, GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL) { success, detail ->
                     loading = false
-                    message = if (success) "Credits added." else detail ?: "Purchase not completed."
+                    message = if (success) copy.text("credits_added") else detail ?: copy.text("purchase_not_completed")
                     if (success) {
                         AppServices.analytics.event(
                             AnalyticsEvents.CREDIT_PURCHASE_COMPLETED,
@@ -643,7 +661,7 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
             shape = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
         ) {
-            Text(if (loading) "Processing…" else "Buy 25 credits", fontWeight = FontWeight.Bold)
+            Text(if (loading) copy.text("processing") else copy.text("buy_credits"), fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(12.dp))
     }
@@ -659,6 +677,7 @@ fun ProfileSettingsScreen(
     onRestartOnboarding: () -> Unit
 ) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val setupStore = remember { StudySetupStore(context.applicationContext) }
     val progressStore = remember { UserProgressStore(context.applicationContext) }
     val accountService = remember { AccountService() }
@@ -677,13 +696,13 @@ fun ProfileSettingsScreen(
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { ToolHeader("Profile & Settings", setup.exam.shortName, onClose) }
-        item { SettingsRow(Icons.Rounded.Insights, "Progress", "Mastery, streak, XP and Error DNA", onProgress) }
-        item { SettingsRow(Icons.Rounded.Diamond, "AI Credits", "High-cost image/video credits", onCredits) }
+        item { ToolHeader(copy.text("profile_settings"), setup.exam.shortName, onClose) }
+        item { SettingsRow(Icons.Rounded.Insights, copy.text("progress"), copy.text("progress_hint"), onProgress) }
+        item { SettingsRow(Icons.Rounded.Diamond, copy.text("ai_credits"), copy.text("credits_hint"), onCredits) }
         item {
             Surface(color = ExamColors.Surface, shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
                 Column(Modifier.padding(14.dp)) {
-                    Text("App language", fontWeight = FontWeight.SemiBold)
+                    Text(copy.text("app_language"), fontWeight = FontWeight.SemiBold)
                     Box {
                         TextButton(onClick = { languageExpanded = true }) {
                             Text(languages.firstOrNull { it.first == setup.languageCode }?.second ?: setup.languageCode)
@@ -709,8 +728,8 @@ fun ProfileSettingsScreen(
         item {
             Surface(color = ExamColors.Surface, shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
                 Column(Modifier.padding(14.dp)) {
-                    Text("Daily reminder", fontWeight = FontWeight.SemiBold)
-                    Text("$reminderHour:00 local time", color = ExamColors.TextSecondary, fontSize = 12.sp)
+                    Text(copy.text("daily_reminder"), fontWeight = FontWeight.SemiBold)
+                    Text(copy.text("local_time", mapOf("hour" to reminderHour.toString())), color = ExamColors.TextSecondary, fontSize = 12.sp)
                     Slider(
                         value = reminderHour.toFloat(),
                         onValueChange = { reminderHour = it.toInt().coerceIn(6, 23) },
@@ -740,18 +759,18 @@ fun ProfileSettingsScreen(
             }
         }
         item {
-            SettingsRow(Icons.Rounded.Restore, "Restore purchases", "Ask the store to restore active purchases") {
+            SettingsRow(Icons.Rounded.Restore, copy.text("restore_purchases"), copy.text("restore_hint")) {
                 GooglePlayBillingService(context.applicationContext).apply {
                     start { restorePurchases() }
                 }
             }
         }
-        item { SettingsRow(Icons.Rounded.RestartAlt, "Choose another exam", "Restart onboarding and build a new plan", onRestartOnboarding) }
+        item { SettingsRow(Icons.Rounded.RestartAlt, copy.text("choose_another_exam"), copy.text("choose_exam_hint"), onRestartOnboarding) }
         item {
             SettingsRow(
                 Icons.Rounded.DeleteForever,
-                "Delete account",
-                "Permanently delete cloud study data and account"
+                copy.text("delete_account"),
+                copy.text("delete_account_hint")
             ) { deleteConfirm = true }
         }
         deleteError?.let { message ->
@@ -759,7 +778,7 @@ fun ProfileSettingsScreen(
         }
         item {
             Text(
-                "Privacy: study files stay scoped to your authenticated account. AI provider keys are server-side and are never shipped in the app.",
+                copy.text("privacy_note"),
                 color = ExamColors.TextSecondary,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
@@ -771,9 +790,9 @@ fun ProfileSettingsScreen(
     if (deleteConfirm) {
         AlertDialog(
             onDismissRequest = { if (!deletingAccount) deleteConfirm = false },
-            title = { Text("Delete account?") },
+            title = { Text(copy.text("delete_confirm_title")) },
             text = {
-                Text("This permanently deletes your cloud study files, AI jobs, push token and account. This cannot be undone.")
+                Text(copy.text("delete_confirm_body"))
             },
             confirmButton = {
                 TextButton(
@@ -798,14 +817,14 @@ fun ProfileSettingsScreen(
                         }
                     }
                 ) {
-                    Text(if (deletingAccount) "Deleting…" else "Delete permanently", color = ExamColors.Coral)
+                    Text(if (deletingAccount) copy.text("deleting") else copy.text("delete_permanently"), color = ExamColors.Coral)
                 }
             },
             dismissButton = {
                 TextButton(
                     enabled = !deletingAccount,
                     onClick = { deleteConfirm = false }
-                ) { Text("Cancel") }
+                ) { Text(copy.text("cancel")) }
             }
         )
     }
@@ -845,6 +864,7 @@ fun MediaLabScreen(
     onNeedCredits: () -> Unit
 ) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val ai = remember { AIGatewayClient() }
 
     var prompt by remember { mutableStateOf("") }
@@ -924,15 +944,19 @@ fun MediaLabScreen(
             .navigationBarsPadding()
             .padding(horizontal = 20.dp)
     ) {
-        ToolHeader("Visual Explanation", setup.exam.shortName + " · credit-based AI media", onClose)
+        ToolHeader(
+            copy.text("visual_explanation"),
+            copy.text("visual_media_subtitle", mapOf("exam" to setup.exam.shortName)),
+            onClose
+        )
         Spacer(Modifier.height(18.dp))
 
         OutlinedTextField(
             value = prompt,
             onValueChange = { prompt = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("What should the visual explain?") },
-            placeholder = { Text("e.g. Explain mitosis as a clean study diagram") },
+            label = { Text(copy.text("visual_prompt_label")) },
+            placeholder = { Text(copy.text("visual_prompt_placeholder")) },
             minLines = 4,
             shape = RoundedCornerShape(18.dp)
         )
@@ -947,7 +971,7 @@ fun MediaLabScreen(
             ) {
                 Icon(Icons.Rounded.Image, null)
                 Spacer(Modifier.width(6.dp))
-                Text("Image · 1")
+                Text(copy.text("image_credit"))
             }
 
             Button(
@@ -958,7 +982,7 @@ fun MediaLabScreen(
             ) {
                 Icon(Icons.Rounded.Movie, null)
                 Spacer(Modifier.width(6.dp))
-                Text("Video · 5")
+                Text(copy.text("video_credit"))
             }
         }
 
@@ -994,9 +1018,9 @@ fun MediaLabScreen(
                 Column(Modifier.padding(18.dp)) {
                     Icon(Icons.Rounded.CheckCircle, null, tint = ExamColors.Mint)
                     Spacer(Modifier.height(8.dp))
-                    Text("Media ready", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(copy.text("media_ready"), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Text(
-                        "The generated asset is ready to review.",
+                        copy.text("generated_asset_ready"),
                         color = ExamColors.TextSecondary,
                         fontSize = 12.sp
                     )
@@ -1011,7 +1035,7 @@ fun MediaLabScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
                     ) {
-                        Text("Open generated asset")
+                        Text(copy.text("open_generated_asset"))
                     }
                 }
             }
@@ -1019,7 +1043,7 @@ fun MediaLabScreen(
 
         Spacer(Modifier.weight(1f))
         Text(
-            "Image/video generation is optional and uses credits because provider costs are materially higher than normal tutoring.",
+            copy.text("media_cost_note"),
             color = ExamColors.TextSecondary,
             fontSize = 11.sp,
             lineHeight = 16.sp
