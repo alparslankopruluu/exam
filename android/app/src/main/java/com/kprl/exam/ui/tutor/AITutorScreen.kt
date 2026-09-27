@@ -23,6 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.analytics.AnalyticsEvents
+import com.kprl.exam.analytics.AnalyticsParams
+import com.kprl.exam.platform.AppServices
 import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.platform.ai.AIGatewayClient
 import com.kprl.exam.platform.ai.GatewayResult
@@ -49,10 +52,27 @@ fun AITutorScreen(
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    fun solveBitmap(bitmap: Bitmap) {
+    LaunchedEffect(Unit) {
+        AppServices.analytics.event(
+            AnalyticsEvents.AI_TUTOR_STARTED,
+            mapOf(
+                AnalyticsParams.EXAM_ID to setup.exam.id,
+                AnalyticsParams.CONTENT_PACK_ID to setup.exam.syllabusPackId
+            )
+        )
+    }
+
+    fun solveBitmap(bitmap: Bitmap, source: String) {
         loading = true
         error = null
         answer = null
+        AppServices.analytics.event(
+            AnalyticsEvents.SCAN_STARTED,
+            mapOf(
+                AnalyticsParams.EXAM_ID to setup.exam.id,
+                AnalyticsParams.SOURCE to source
+            )
+        )
 
         scanner.recognize(bitmap, setup.languageCode) { ocrResult ->
             val extracted = ocrResult.getOrNull().orEmpty()
@@ -63,7 +83,16 @@ fun AITutorScreen(
             ) { result ->
                 loading = false
                 when (result) {
-                    is GatewayResult.Success -> answer = result.value
+                    is GatewayResult.Success -> {
+                        answer = result.value
+                        AppServices.analytics.event(
+                            AnalyticsEvents.SCAN_COMPLETED,
+                            mapOf(
+                                AnalyticsParams.EXAM_ID to setup.exam.id,
+                                AnalyticsParams.SOURCE to source
+                            )
+                        )
+                    }
                     is GatewayResult.Error -> {
                         if (result.message.contains("Daily AI limit", ignoreCase = true)) onPaywall("ai_limit")
                         else error = result.message
@@ -82,13 +111,13 @@ fun AITutorScreen(
         }.getOrNull()
 
         if (bitmap == null) error = "Could not read the selected image."
-        else solveBitmap(bitmap)
+        else solveBitmap(bitmap, "gallery")
     }
 
     val camera = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
-        if (bitmap != null) solveBitmap(bitmap)
+        if (bitmap != null) solveBitmap(bitmap, "camera")
     }
 
     fun sendPrompt() {
@@ -98,6 +127,13 @@ fun AITutorScreen(
         loading = true
         error = null
         answer = null
+        AppServices.analytics.event(
+            AnalyticsEvents.AI_MESSAGE_SENT,
+            mapOf(
+                AnalyticsParams.EXAM_ID to setup.exam.id,
+                AnalyticsParams.SOURCE to "text"
+            )
+        )
 
         gateway.askTutor(setup, message) { result ->
             loading = false
@@ -180,9 +216,14 @@ fun AITutorScreen(
             Icons.Rounded.GraphicEq,
             copy.text("talk_tutor"),
             copy.text("talk_tutor_hint"),
-            ExamColors.Purple,
-            onVoiceTutor
-        )
+            ExamColors.Purple
+        ) {
+            AppServices.analytics.event(
+                AnalyticsEvents.VOICE_TUTOR_STARTED,
+                mapOf(AnalyticsParams.EXAM_ID to setup.exam.id)
+            )
+            onVoiceTutor()
+        }
 
         if (loading || answer != null || error != null) {
             Spacer(Modifier.height(16.dp))
