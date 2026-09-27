@@ -165,5 +165,15 @@
   "unlimited_materials": "무제한 학습 자료",
   "unlimited_materials_hint": "노트와 문서를 연습으로 변환.",
   "price_terms": "가격, 체험 자격, 갱신 조건은 계정/지역에 따라 스토어에서 직접 제공됩니다.",
-  "continue_price": "계속 · {price}"
+  "continue_price": "계속 · {price}",
+  "simpler_explanation": "한 단계로 생각하세요. 문제의 요구를 찾고 핵심 관계를 분리한 뒤 원문에 대입해 답을 확인하세요.",
+  "result_correct": "{correct}/{total} 정답 · {exam}",
+  "time": "시간",
+  "mock_result_strong": "강한 결과예요. 더 어려운 혼합 세트로 이동하고 시간 관리를 유지하세요.",
+  "mock_result_good": "좋은 기반입니다. 오류 DNA를 복습한 뒤 시간 제한 혼합 세트를 다시 풀어보세요.",
+  "mock_result_review": "다음 시간 제한 모의고사 전에 약한 영역 복습을 우선하세요.",
+  "paywall_voice_title": "이해될 때까지 말로 풀어보세요.",
+  "paywall_mock_title": "모든 모의고사를 더 나은 다음 주로 연결하세요.",
+  "paywall_documents_title": "모든 자료를 학습 세션으로 바꾸세요.",
+  "paywall_ai_title": "필요할 때 언제든 AI 튜터를 이용하세요."
 }
