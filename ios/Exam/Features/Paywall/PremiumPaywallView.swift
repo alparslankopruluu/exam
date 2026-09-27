@@ -203,6 +203,7 @@ struct PremiumPaywallView: View {
 
     private func planCard(
         _ plan: StorePlanPresentation,
+        displayTitle: String,
         selected: Bool,
         action: @escaping () -> Void
     ) -> some View {
