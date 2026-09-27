@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kprl.exam.content.ContentPackRepository
 import com.kprl.exam.data.StudySetup
+import com.kprl.exam.localization.LocalizedCopy
 import com.kprl.exam.ui.theme.ExamColors
 
 @Composable
@@ -34,6 +35,7 @@ fun PracticeScreen(
     onFocus: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val pack = remember(setup.exam.syllabusPackId) {
         ContentPackRepository.load(context, setup.exam.syllabusPackId)
     }
@@ -42,7 +44,7 @@ fun PracticeScreen(
         modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)
     ) {
         Spacer(Modifier.height(12.dp))
-        Text("Practice", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("practice"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text("Built around your ${setup.exam.shortName} content pack", color = ExamColors.TextSecondary, fontSize = 13.sp)
 
         Spacer(Modifier.height(22.dp))
@@ -65,8 +67,8 @@ fun PracticeScreen(
                 Text("5 MIN", color = Color.White.copy(alpha = .85f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(22.dp))
-            Text("Quick Practice", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
-            Text("A short adaptive set from what matters most right now.", color = Color.White.copy(alpha = .82f), fontSize = 13.sp)
+            Text(copy.text("quick_practice"), color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Text(copy.text("quick_practice_hint"), color = Color.White.copy(alpha = .82f), fontSize = 13.sp)
             Spacer(Modifier.height(18.dp))
             Surface(
                 onClick = onQuickPractice,
@@ -74,13 +76,13 @@ fun PracticeScreen(
                 contentColor = ExamColors.Primary,
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text("Start 5 questions", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().padding(16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(copy.text("start_questions", mapOf("count" to "5")), fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().padding(16.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
 
         if (!pack?.units.isNullOrEmpty()) {
             Spacer(Modifier.height(22.dp))
-            Text("Your exam", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(copy.text("your_exam"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(9.dp))
             pack!!.units.take(4).forEach { unit ->
                 val detail = buildString {
@@ -95,15 +97,15 @@ fun PracticeScreen(
         }
 
         Spacer(Modifier.height(14.dp))
-        PracticeRow(Icons.Rounded.Timer, "Mock Exam", "Use the official-style blueprint", ExamColors.Purple, onMockExam)
+        PracticeRow(Icons.Rounded.Timer, copy.text("mock_exam"), copy.text("mock_exam_hint"), ExamColors.Purple, onMockExam)
         Spacer(Modifier.height(9.dp))
-        PracticeRow(Icons.Rounded.Refresh, "Mistakes", "Review patterns that cost you points", ExamColors.Coral, onMistakes)
+        PracticeRow(Icons.Rounded.Refresh, copy.text("mistakes"), copy.text("mistakes_hint"), ExamColors.Coral, onMistakes)
         Spacer(Modifier.height(9.dp))
-        PracticeRow(Icons.Rounded.Style, "Flashcards", "Spaced repetition due today", ExamColors.Mint, onFlashcards)
+        PracticeRow(Icons.Rounded.Style, copy.text("flashcards"), copy.text("flashcards_hint"), ExamColors.Mint, onFlashcards)
         Spacer(Modifier.height(9.dp))
-        PracticeRow(Icons.Rounded.AutoAwesome, "Create Practice", "Topic, note, PDF or pasted text", ExamColors.Amber, onCreatePractice)
+        PracticeRow(Icons.Rounded.AutoAwesome, copy.text("create_practice"), copy.text("create_practice_hint"), ExamColors.Amber, onCreatePractice)
         Spacer(Modifier.height(9.dp))
-        PracticeRow(Icons.Rounded.CenterFocusStrong, "Focus", "Pomodoro with completion reminder", ExamColors.Primary, onFocus)
+        PracticeRow(Icons.Rounded.CenterFocusStrong, copy.text("focus"), copy.text("focus_hint"), ExamColors.Primary, onFocus)
     }
 }
 
