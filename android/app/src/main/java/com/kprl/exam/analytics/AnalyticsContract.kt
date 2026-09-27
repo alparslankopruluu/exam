@@ -16,6 +16,8 @@ object AnalyticsEvents {
     const val PURCHASE_FAILED = "purchase_failed"
     const val PAYWALL_CLOSED = "paywall_closed"
 
+    const val STUDY_SESSION_STARTED = "study_session_started"
+    const val STUDY_SESSION_COMPLETED = "study_session_completed"
     const val DAILY_MISSION_STARTED = "daily_mission_started"
     const val DAILY_MISSION_COMPLETED = "daily_mission_completed"
     const val QUESTION_ANSWERED = "question_answered"
