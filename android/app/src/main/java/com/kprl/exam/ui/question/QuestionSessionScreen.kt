@@ -53,6 +53,7 @@ fun QuestionSessionScreen(
     var correctCount by remember { mutableIntStateOf(0) }
     var completed by remember { mutableStateOf(false) }
     var earnedXp by remember { mutableIntStateOf(0) }
+    var completedDurationSeconds by remember { mutableIntStateOf(0) }
     var simplerExplanation by remember { mutableStateOf<String?>(null) }
     var tutorAnswer by remember { mutableStateOf<String?>(null) }
     var helperLoading by remember { mutableStateOf(false) }
@@ -71,6 +72,7 @@ fun QuestionSessionScreen(
             correctCount = correctCount,
             totalCount = questions.size
         )
+        completedDurationSeconds = ((completedAt - sessionStartedAt) / 1000L).toInt().coerceAtLeast(0)
         val before = progressStore.snapshot()
         val after = progressStore.recordSession(
             correct = correctCount,
@@ -100,6 +102,8 @@ fun QuestionSessionScreen(
             correct = correctCount,
             total = questions.size,
             earnedXp = earnedXp,
+            sessionType = sessionType,
+            durationSeconds = completedDurationSeconds,
             onDone = onClose
         )
         return
@@ -286,7 +290,15 @@ fun QuestionSessionScreen(
 }
 
 @Composable
-private fun SessionCompleteScreen(examName: String, correct: Int, total: Int, earnedXp: Int, onDone: () -> Unit) {
+private fun SessionCompleteScreen(
+    examName: String,
+    correct: Int,
+    total: Int,
+    earnedXp: Int,
+    sessionType: String,
+    durationSeconds: Int,
+    onDone: () -> Unit
+) {
     Column(
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(24.dp),
@@ -311,6 +323,41 @@ private fun SessionCompleteScreen(examName: String, correct: Int, total: Int, ea
                 Stat("+$earnedXp", "XP")
             }
         }
+        if (sessionType == "mock_exam") {
+            Spacer(Modifier.height(14.dp))
+            val accuracy = if (total == 0) 0 else correct * 100 / total
+            val minutes = durationSeconds / 60
+            val seconds = durationSeconds % 60
+            Surface(
+                color = ExamColors.Surface,
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(1.dp, ExamColors.Border),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Mock analysis", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    Spacer(Modifier.height(10.dp))
+                    Text("Accuracy · " + accuracy + "%", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Time · %02d:%02d".format(minutes, seconds),
+                        color = ExamColors.TextSecondary,
+                        fontSize = 12.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        when {
+                            accuracy >= 85 -> "Strong result. Move to harder mixed sets and protect timing."
+                            accuracy >= 65 -> "Good base. Review your Error DNA, then repeat a timed mixed set."
+                            else -> "Prioritize weak-skill review before the next timed mock."
+                        },
+                        color = ExamColors.TextSecondary,
+                        fontSize = 12.sp,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
+        }
+
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = onDone,
