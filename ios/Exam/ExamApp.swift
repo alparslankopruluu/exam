@@ -8,6 +8,7 @@ struct ExamApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .onOpenURL { url in _ = AuthService.shared.handleOpenURL(url) }
         }
         .modelContainer(for: [
             MasteryRecord.self,

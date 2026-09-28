@@ -56,6 +56,10 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-firestore")
 
+    implementation("androidx.credentials:credentials:1.6.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.2.1")
+
     implementation("com.android.billingclient:billing-ktx:9.1.0")
 
     implementation("com.google.mlkit:text-recognition:16.0.1")

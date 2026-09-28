@@ -20,6 +20,7 @@ object AppServices {
         analytics = FirebaseAppAnalytics.create(context, firebaseReady)
         flags = RemoteFeatureFlags.create(firebaseReady)
         flags.refresh()
+        com.kprl.exam.platform.account.AuthService.start()
         FirebaseBootstrap.ensureAnonymousSession(firebaseReady) {
             FirebaseMessaging.getInstance().token
                 .addOnSuccessListener { token ->

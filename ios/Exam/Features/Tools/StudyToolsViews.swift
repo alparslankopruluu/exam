@@ -801,6 +801,8 @@ struct ProfileSettingsView: View {
     @State private var confirmDelete = false
     @State private var deletingAccount = false
     @State private var deleteError: String?
+    @State private var showAccount = false
+    @ObservedObject private var auth = AuthService.shared
 
     private var copy: LocalizedCopy {
         LocalizedCopy.load(languageCode: setup.languageCode)
@@ -816,6 +818,14 @@ struct ProfileSettingsView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 10) {
                 ToolHeader(copy.text("profile_settings"), setup.exam.shortName, onClose: onClose)
+
+                settingsRow(
+                    auth.account.isAnonymous ? "person.crop.circle.badge.plus" : "person.crop.circle.badge.checkmark",
+                    copy.text(auth.account.isAnonymous ? "account_save_progress" : "account_title_linked"),
+                    auth.account.isAnonymous ? copy.text("account_save_progress_hint") : (auth.account.email ?? "")
+                ) {
+                    showAccount = true
+                }
 
                 settingsRow("chart.xyaxis.line", copy.text("progress"), copy.text("progress_hint"), action: onProgress)
                 settingsRow("diamond.fill", copy.text("ai_credits"), copy.text("credits_hint"), action: onCredits)
@@ -913,6 +923,9 @@ struct ProfileSettingsView: View {
             .padding(.bottom, 20)
         }
         .background(ExamPalette.background.ignoresSafeArea())
+        .sheet(isPresented: $showAccount) {
+            AccountView(copy: copy) { showAccount = false }
+        }
         .alert(copy.text("delete_confirm_title"), isPresented: $confirmDelete) {
             Button(copy.text("cancel"), role: .cancel) {}
             Button(copy.text("delete_permanently"), role: .destructive) {
