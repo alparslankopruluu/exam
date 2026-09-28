@@ -206,5 +206,14 @@
   "account_saved_title": "Dein Fortschritt ist gesichert",
   "account_saved_subtitle": "Angemeldet",
   "account_title_linked": "Konto",
-  "account_sign_out": "Abmelden"
+  "account_sign_out": "Abmelden",
+  "paywall_trial_available": "Gratis-Testphase inklusive",
+  "offer_badge": "{percent} % RABATT",
+  "offer_title_welcome": "Willkommensangebot",
+  "offer_title_exam_sprint": "Prüfungs-Endspurt-Angebot",
+  "offer_title_winback": "Willkommen-zurück-Angebot",
+  "offer_first_year": "Jahresplan · erstes Jahr reduziert",
+  "credits_balance": "{count} Credits",
+  "credits_pack": "{count} Credits",
+  "most_popular": "BELIEBTESTE"
 }

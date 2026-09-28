@@ -21,6 +21,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import com.kprl.exam.billing.GooglePlayBillingService
+import com.kprl.exam.billing.OfferPresentation
+import com.kprl.exam.billing.OfferService
+import kotlinx.coroutines.delay
 import com.kprl.exam.analytics.AnalyticsEvents
 import com.kprl.exam.analytics.AnalyticsParams
 import com.kprl.exam.platform.AppServices
@@ -42,18 +45,39 @@ fun PremiumPaywallScreen(
     val billing = remember { GooglePlayBillingService(context.applicationContext) }
 
     var offer by remember { mutableStateOf(StoreOfferPresentation()) }
-    var annualSelected by remember { mutableStateOf(true) }
+    var special by remember { mutableStateOf<OfferPresentation?>(null) }
+    var selection by remember { mutableStateOf(PlanChoice.ANNUAL) }
     var purchasing by remember { mutableStateOf(false) }
     var purchaseError by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(billing) {
         billing.start {
-            billing.loadOffer { loaded -> offer = loaded }
+            billing.loadOffer { loaded ->
+                offer = loaded
+                OfferService.fetch { active ->
+                    val presented = active?.let(billing::present) ?: return@fetch
+                    special = presented
+                    selection = PlanChoice.SPECIAL
+                    AppServices.analytics.event(
+                        "offer_viewed",
+                        mapOf(AnalyticsParams.PLACEMENT to placement, "offer_kind" to presented.offer.kind)
+                    )
+                }
+            }
         }
         onDispose { billing.close() }
     }
 
-    val selectedPlan = if (annualSelected) offer.annual else offer.monthly
+    val selectedProductId = when (selection) {
+        PlanChoice.SPECIAL -> special?.offer?.productId ?: offer.annual.productId
+        PlanChoice.ANNUAL -> offer.annual.productId
+        PlanChoice.MONTHLY -> offer.monthly.productId
+    }
+    val selectedPrice = when (selection) {
+        PlanChoice.SPECIAL -> special?.localizedPrice
+        PlanChoice.ANNUAL -> offer.annual.localizedPrice
+        PlanChoice.MONTHLY -> offer.monthly.localizedPrice
+    }
 
     LaunchedEffect(placement) {
         AppServices.analytics.event(
@@ -139,16 +163,20 @@ fun PremiumPaywallScreen(
         Benefit(Icons.Rounded.Bolt, copy.text("quick_practice"), copy.text("quick_practice_hint"))
 
         Spacer(Modifier.height(18.dp))
-        PlanCard(offer.annual, copy.text("annual"), copy.text("best_value"), annualSelected) {
-            annualSelected = true
+        special?.let { presented ->
+            SpecialOfferCard(presented, copy, selection == PlanChoice.SPECIAL) { selection = PlanChoice.SPECIAL }
+            Spacer(Modifier.height(9.dp))
+        }
+        PlanCard(offer.annual, copy.text("annual"), copy.text("best_value"), copy.text("paywall_trial_available"), selection == PlanChoice.ANNUAL) {
+            selection = PlanChoice.ANNUAL
             AppServices.analytics.event(
                 AnalyticsEvents.PLAN_SELECTED,
                 mapOf(AnalyticsParams.PRODUCT_ID to offer.annual.productId)
             )
         }
         Spacer(Modifier.height(9.dp))
-        PlanCard(offer.monthly, copy.text("monthly"), copy.text("best_value"), !annualSelected) {
-            annualSelected = false
+        PlanCard(offer.monthly, copy.text("monthly"), copy.text("best_value"), copy.text("paywall_trial_available"), selection == PlanChoice.MONTHLY) {
+            selection = PlanChoice.MONTHLY
             AppServices.analytics.event(
                 AnalyticsEvents.PLAN_SELECTED,
                 mapOf(AnalyticsParams.PRODUCT_ID to offer.monthly.productId)
@@ -165,14 +193,15 @@ fun PremiumPaywallScreen(
                 }
                 purchasing = true
                 purchaseError = null
-                billing.purchase(host, selectedPlan.productId) { success, message ->
+                val offerTag = if (selection == PlanChoice.SPECIAL) special?.offer?.googleOfferTag else null
+                billing.purchase(host, selectedProductId, offerTag) { success, message ->
                     purchasing = false
                     if (success) {
                         AppServices.analytics.event(
                             AnalyticsEvents.PURCHASE_COMPLETED,
                             mapOf(
                                 AnalyticsParams.PLACEMENT to placement,
-                                AnalyticsParams.PRODUCT_ID to selectedPlan.productId
+                                AnalyticsParams.PRODUCT_ID to selectedProductId
                             )
                         )
                         onClose()
@@ -182,13 +211,13 @@ fun PremiumPaywallScreen(
                             AnalyticsEvents.PURCHASE_FAILED,
                             mapOf(
                                 AnalyticsParams.PLACEMENT to placement,
-                                AnalyticsParams.PRODUCT_ID to selectedPlan.productId
+                                AnalyticsParams.PRODUCT_ID to selectedProductId
                             )
                         )
                     }
                 }
             },
-            enabled = selectedPlan.localizedPrice != null && !purchasing,
+            enabled = selectedPrice != null && !purchasing,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(
@@ -200,9 +229,9 @@ fun PremiumPaywallScreen(
             Text(
                 when {
                     purchasing -> copy.text("processing")
-                    selectedPlan.localizedPrice != null -> copy.text(
+                    selectedPrice != null -> copy.text(
                         "continue_price",
-                        mapOf("price" to selectedPlan.localizedPrice)
+                        mapOf("price" to selectedPrice)
                     )
                     else -> copy.text("loading_price")
                 },
@@ -247,6 +276,7 @@ private fun PlanCard(
     plan: StorePlanPresentation,
     displayTitle: String,
     recommendedLabel: String,
+    trialLabel: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -281,8 +311,8 @@ private fun PlanCard(
                         )
                     }
                 }
-                plan.trialText?.let {
-                    Text(it, color = ExamColors.TextSecondary, fontSize = 11.sp)
+                if (plan.hasTrial) {
+                    Text(trialLabel, color = ExamColors.TextSecondary, fontSize = 11.sp)
                 }
             }
             Text(plan.localizedPrice ?: "—", color = ExamColors.TextPrimary, fontWeight = FontWeight.SemiBold)
@@ -290,6 +320,74 @@ private fun PlanCard(
     }
 }
 
+private enum class PlanChoice { SPECIAL, ANNUAL, MONTHLY }
+
+@Composable
+private fun SpecialOfferCard(
+    presented: OfferPresentation,
+    copy: LocalizedCopy,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(presented.offer.expiresAtMillis) {
+        while (now < presented.offer.expiresAtMillis) {
+            delay(1_000)
+            now = System.currentTimeMillis()
+        }
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        color = ExamColors.Surface,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(if (selected) 1.5.dp else 1.dp, if (selected) ExamColors.Coral else ExamColors.Border)
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    copy.text("offer_badge", mapOf("percent" to presented.offer.discountPercent.toString())),
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.background(ExamColors.Coral, RoundedCornerShape(50)).padding(horizontal = 9.dp, vertical = 5.dp)
+                )
+                Spacer(Modifier.weight(1f))
+                Text(countdown(presented.offer.expiresAtMillis - now), color = ExamColors.Coral, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(22.dp).background(if (selected) ExamColors.Primary else ExamColors.Background, RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (selected) Text("✓", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+                Spacer(Modifier.width(11.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(copy.text("offer_title_${presented.offer.kind}"), fontWeight = FontWeight.Bold)
+                    Text(copy.text("offer_first_year"), color = ExamColors.TextSecondary, fontSize = 11.sp)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(presented.localizedPrice, fontWeight = FontWeight.Bold)
+                    Text(
+                        presented.regularPrice,
+                        color = ExamColors.TextSecondary,
+                        fontSize = 11.sp,
+                        textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun countdown(remainingMillis: Long): String {
+    val seconds = (remainingMillis / 1000).coerceAtLeast(0)
+    val days = seconds / 86_400
+    val clock = "%02d:%02d:%02d".format((seconds % 86_400) / 3600, (seconds % 3600) / 60, seconds % 60)
+    return if (days > 0) "${days}d $clock" else clock
+}
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this

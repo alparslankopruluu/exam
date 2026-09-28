@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.messaging.FirebaseMessaging
 import com.kprl.exam.billing.GooglePlayBillingService
+import com.kprl.exam.billing.CreditPackPresentation
+import com.kprl.exam.platform.entitlements.EntitlementService
 import com.kprl.exam.analytics.AnalyticsEvents
 import com.kprl.exam.analytics.AnalyticsParams
 import com.kprl.exam.data.StudySetup
@@ -596,7 +598,10 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
     val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val activity = remember(context) { context.findActivity() }
     val billing = remember { GooglePlayBillingService(context.applicationContext) }
-    var price by remember { mutableStateOf<String?>(null) }
+    val entitlements = remember { EntitlementService() }
+    var packs by remember { mutableStateOf<List<CreditPackPresentation>>(emptyList()) }
+    var selectedId by remember { mutableStateOf(GooglePlayBillingService.ProductIds.AI_CREDITS_MEDIUM) }
+    var balance by remember { mutableStateOf<Int?>(null) }
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
@@ -605,10 +610,11 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
             AnalyticsEvents.CREDIT_STORE_VIEWED,
             mapOf(AnalyticsParams.EXAM_ID to setup.exam.id)
         )
+        entitlements.fetch { balance = it.credits }
     }
 
     DisposableEffect(billing) {
-        billing.start { billing.loadCreditPrice { price = it } }
+        billing.start { billing.loadCreditPacks { packs = it } }
         onDispose { billing.close() }
     }
 
@@ -617,51 +623,61 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp)
     ) {
         ToolHeader(copy.text("ai_credits"), copy.text("credits_subtitle"), onClose)
-        Spacer(Modifier.height(20.dp))
-        Surface(color = ExamColors.Surface, shape = RoundedCornerShape(24.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
-            Column(Modifier.padding(20.dp)) {
-                Text(copy.text("credits_count"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
-                Text(copy.text("credits_desc"), color = ExamColors.TextSecondary, fontSize = 13.sp)
-                Spacer(Modifier.height(18.dp))
-                Text(price ?: copy.text("loading_price"), color = ExamColors.Primary, fontWeight = FontWeight.Bold)
+        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            item {
+                Spacer(Modifier.height(10.dp))
+                Surface(color = ExamColors.Surface, shape = RoundedCornerShape(24.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
+                    Column(Modifier.fillMaxWidth().padding(20.dp)) {
+                        Text(
+                            copy.text("credits_balance", mapOf("count" to (balance?.toString() ?: "—"))),
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(copy.text("credits_desc"), color = ExamColors.TextSecondary, fontSize = 13.sp)
+                    }
+                }
             }
+            if (packs.isEmpty()) {
+                item { Text(copy.text("loading_price"), color = ExamColors.TextSecondary, fontSize = 13.sp) }
+            }
+            items(packs, key = { it.productId }) { pack ->
+                CreditPackCard(
+                    pack = pack,
+                    title = copy.text("credits_pack", mapOf("count" to (CREDIT_AMOUNTS[pack.productId] ?: 0).toString())),
+                    popularLabel = copy.text("most_popular").takeIf {
+                        pack.productId == GooglePlayBillingService.ProductIds.AI_CREDITS_MEDIUM
+                    },
+                    selected = pack.productId == selectedId
+                ) { selectedId = pack.productId }
+            }
+            message?.let { item { Text(it, color = ExamColors.TextSecondary, fontSize = 12.sp) } }
         }
-        message?.let { Text(it, color = ExamColors.TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp)) }
-        Spacer(Modifier.weight(1f))
         Button(
             onClick = {
                 val host = activity ?: return@Button
+                val productId = selectedId
                 loading = true
+                message = null
                 AppServices.analytics.event(
                     AnalyticsEvents.CREDIT_PURCHASE_STARTED,
-                    mapOf(
-                        AnalyticsParams.EXAM_ID to setup.exam.id,
-                        AnalyticsParams.PRODUCT_ID to GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL
-                    )
+                    mapOf(AnalyticsParams.EXAM_ID to setup.exam.id, AnalyticsParams.PRODUCT_ID to productId)
                 )
-                billing.purchase(host, GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL) { success, detail ->
+                billing.purchase(host, productId) { success, detail ->
                     loading = false
-                    message = if (success) copy.text("credits_added") else detail ?: copy.text("purchase_not_completed")
-                    if (success) {
-                        AppServices.analytics.event(
-                            AnalyticsEvents.CREDIT_PURCHASE_COMPLETED,
-                            mapOf(
-                                AnalyticsParams.EXAM_ID to setup.exam.id,
-                                AnalyticsParams.PRODUCT_ID to GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL
-                            )
-                        )
-                    } else {
-                        AppServices.analytics.event(
-                            AnalyticsEvents.PURCHASE_FAILED,
-                            mapOf(
-                                AnalyticsParams.PLACEMENT to "credit_store",
-                                AnalyticsParams.PRODUCT_ID to GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL
-                            )
-                        )
-                    }
+                    if (detail == "cancelled") return@purchase
+                    message = if (success) copy.text("credits_added") else copy.text("purchase_not_completed")
+                    AppServices.analytics.event(
+                        if (success) AnalyticsEvents.CREDIT_PURCHASE_COMPLETED else AnalyticsEvents.PURCHASE_FAILED,
+                        if (success) {
+                            mapOf(AnalyticsParams.EXAM_ID to setup.exam.id, AnalyticsParams.PRODUCT_ID to productId)
+                        } else {
+                            mapOf(AnalyticsParams.PLACEMENT to "credit_store", AnalyticsParams.PRODUCT_ID to productId)
+                        }
+                    )
+                    if (success) entitlements.fetch { balance = it.credits }
                 }
             },
-            enabled = price != null && !loading,
+            enabled = !loading && packs.any { it.productId == selectedId },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
@@ -669,6 +685,52 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
             Text(if (loading) copy.text("processing") else copy.text("buy_credits"), fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(12.dp))
+    }
+}
+
+// Display only; the backend catalog decides what a verified purchase grants.
+private val CREDIT_AMOUNTS = mapOf(
+    GooglePlayBillingService.ProductIds.AI_CREDITS_SMALL to 50,
+    GooglePlayBillingService.ProductIds.AI_CREDITS_MEDIUM to 150,
+    GooglePlayBillingService.ProductIds.AI_CREDITS_LARGE to 500
+)
+
+@Composable
+private fun CreditPackCard(
+    pack: CreditPackPresentation,
+    title: String,
+    popularLabel: String?,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        color = ExamColors.Surface,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(if (selected) 1.5.dp else 1.dp, if (selected) ExamColors.Primary else ExamColors.Border)
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(40.dp).background(ExamColors.SoftPurple, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.Diamond, null, tint = ExamColors.Purple)
+            }
+            Spacer(Modifier.width(12.dp))
+            Text(title, fontWeight = FontWeight.Bold)
+            popularLabel?.let {
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    it,
+                    color = ExamColors.Primary,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.background(ExamColors.SoftBlue, RoundedCornerShape(50)).padding(horizontal = 7.dp, vertical = 4.dp)
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            Text(pack.localizedPrice, fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 

@@ -8,7 +8,13 @@ final class StoreKitBillingService {
     enum ProductId {
         static let annual = "premium_annual"
         static let monthly = "premium_monthly"
+        static let annualOffer = "premium_annual_offer"
         static let creditsSmall = "ai_credits_small"
+        static let creditsMedium = "ai_credits_medium"
+        static let creditsLarge = "ai_credits_large"
+
+        static let creditPacks = [creditsSmall, creditsMedium, creditsLarge]
+        static let all = [annual, monthly, annualOffer] + creditPacks
     }
 
     private var products: [String: Product] = [:]
@@ -24,11 +30,7 @@ final class StoreKitBillingService {
 
     func loadOffer() async -> StoreOfferPresentation {
         do {
-            let loaded = try await Product.products(for: [
-                ProductId.annual,
-                ProductId.monthly,
-                ProductId.creditsSmall
-            ])
+            let loaded = try await Product.products(for: ProductId.all)
             products = Dictionary(uniqueKeysWithValues: loaded.map { ($0.id, $0) })
 
             return StoreOfferPresentation(
@@ -48,22 +50,57 @@ final class StoreKitBillingService {
         }
     }
 
-    func loadCreditPrice() async -> String? {
+    func loadCreditPacks() async -> [CreditPackPresentation] {
         if products[ProductId.creditsSmall] == nil {
             _ = await loadOffer()
         }
-        return products[ProductId.creditsSmall]?.displayPrice
+        return ProductId.creditPacks.compactMap { id in
+            guard let product = products[id] else { return nil }
+            return CreditPackPresentation(productId: id, localizedPrice: product.displayPrice)
+        }
     }
 
-    func purchase(productId: String) async -> Bool {
+    /// Resolves store prices for a server-issued offer. Returns nil when the
+    /// store does not have the matching product or promotional offer, so the
+    /// paywall never advertises a discount it cannot charge.
+    func present(_ offer: ActiveOffer) async -> OfferPresentation? {
+        if products[offer.productId] == nil {
+            _ = await loadOffer()
+        }
+        guard let product = products[offer.productId],
+              let regular = products[ProductId.annual] else { return nil }
+
+        if let promo = offer.applePromotionalOffer {
+            guard let storeOffer = product.subscription?.promotionalOffers.first(where: { $0.id == promo.offerId }) else {
+                return nil
+            }
+            return OfferPresentation(offer: offer, localizedPrice: storeOffer.displayPrice, regularPrice: regular.displayPrice)
+        }
+        return OfferPresentation(offer: offer, localizedPrice: product.displayPrice, regularPrice: regular.displayPrice)
+    }
+
+    func purchase(productId: String, offer: ActiveOffer? = nil) async -> Bool {
         if products[productId] == nil {
             _ = await loadOffer()
         }
 
         guard let product = products[productId] else { return false }
 
+        var options: Set<Product.PurchaseOption> = []
+        if let promo = offer?.applePromotionalOffer, offer?.productId == productId,
+           let signature = Data(base64Encoded: promo.signature),
+           let nonce = UUID(uuidString: promo.nonce) {
+            options.insert(.promotionalOffer(
+                offerID: promo.offerId,
+                keyID: promo.keyId,
+                nonce: nonce,
+                signature: signature,
+                timestamp: promo.timestamp
+            ))
+        }
+
         do {
-            let result = try await product.purchase()
+            let result = try await product.purchase(options: options)
 
             switch result {
             case .success(let verification):
@@ -139,7 +176,7 @@ final class StoreKitBillingService {
                 productId: recommended ? ProductId.annual : ProductId.monthly,
                 title: title,
                 localizedPrice: nil,
-                trialText: nil,
+                hasTrial: false,
                 recommended: recommended
             )
         }
@@ -150,7 +187,7 @@ final class StoreKitBillingService {
             productId: product.id,
             title: title,
             localizedPrice: product.displayPrice,
-            trialText: hasTrial ? "Free trial available" : nil,
+            hasTrial: hasTrial,
             recommended: recommended
         )
     }

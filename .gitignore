@@ -18,3 +18,7 @@ google-services.json
 .env
 ios/build/
 ios/*.xcodeproj/
+# Backend
+backend/functions/node_modules/
+backend/functions/lib/
+backend/functions/package-lock.json

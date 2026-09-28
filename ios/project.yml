@@ -22,7 +22,9 @@ targets:
     type: application
     platform: iOS
     sources:
-      - Exam
+      - path: Exam
+        excludes:
+          - "*.storekit"
       - path: ../content/locales
         type: folder
         buildPhase: resources
@@ -96,3 +98,14 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: ExamNotificationService/Info.plist
         SKIP_INSTALL: YES
+
+schemes:
+  Exam:
+    build:
+      targets:
+        Exam: all
+    run:
+      config: Debug
+      storeKitConfiguration: Exam/Exam.storekit
+    archive:
+      config: Release

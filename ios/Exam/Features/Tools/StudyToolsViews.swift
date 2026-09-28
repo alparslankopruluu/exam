@@ -695,7 +695,16 @@ struct CreditStoreView: View {
     let setup: StudySetup
     let onClose: () -> Void
 
-    @State private var price: String?
+    // Display only; the backend catalog decides what a verified purchase grants.
+    private static let creditAmounts = [
+        StoreKitBillingService.ProductId.creditsSmall: 50,
+        StoreKitBillingService.ProductId.creditsMedium: 150,
+        StoreKitBillingService.ProductId.creditsLarge: 500
+    ]
+
+    @State private var packs: [CreditPackPresentation] = []
+    @State private var selectedId = StoreKitBillingService.ProductId.creditsMedium
+    @State private var balance: Int?
     @State private var loading = false
     @State private var message: String?
 
@@ -707,74 +716,45 @@ struct CreditStoreView: View {
         VStack(spacing: 0) {
             ToolHeader(copy.text("ai_credits"), copy.text("credits_subtitle"), onClose: onClose)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(copy.text("credits_count"))
-                    .font(.system(size: 28, weight: .bold))
-                Text(copy.text("credits_desc"))
-                    .font(.system(size: 13))
-                    .foregroundStyle(ExamPalette.textSecondary)
-                Text(price ?? copy.text("loading_price"))
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(ExamPalette.primary)
-                    .padding(.top, 10)
-            }
-            .padding(20)
-            .examCard(radius: 24)
-            .padding(.top, 20)
-
-            if let message {
-                Text(message)
-                    .font(.system(size: 12))
-                    .foregroundStyle(ExamPalette.textSecondary)
-                    .padding(.top, 10)
-            }
-
-            Spacer()
-
-            Button {
-                loading = true
-                AppServices.shared.analytics.event(
-                    AnalyticsEvent.creditPurchaseStarted,
-                    params: [
-                        AnalyticsParam.examId: setup.exam.id,
-                        AnalyticsParam.productId: StoreKitBillingService.ProductId.creditsSmall
-                    ]
-                )
-                Task { @MainActor in
-                    let success = await StoreKitBillingService.shared.purchase(
-                        productId: StoreKitBillingService.ProductId.creditsSmall
-                    )
-                    message = success ? copy.text("credits_added") : copy.text("purchase_not_completed")
-                    if success {
-                        AppServices.shared.analytics.event(
-                            AnalyticsEvent.creditPurchaseCompleted,
-                            params: [
-                                AnalyticsParam.examId: setup.exam.id,
-                                AnalyticsParam.productId: StoreKitBillingService.ProductId.creditsSmall
-                            ]
-                        )
-                    } else {
-                        AppServices.shared.analytics.event(
-                            AnalyticsEvent.purchaseFailed,
-                            params: [
-                                AnalyticsParam.placement: "credit_store",
-                                AnalyticsParam.productId: StoreKitBillingService.ProductId.creditsSmall
-                            ]
-                        )
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(copy.text("credits_balance", variables: ["count": balance.map(String.init) ?? "—"]))
+                            .font(.system(size: 26, weight: .bold))
+                        Text(copy.text("credits_desc"))
+                            .font(.system(size: 13))
+                            .foregroundStyle(ExamPalette.textSecondary)
                     }
-                    loading = false
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
+                    .examCard(radius: 24)
+
+                    if packs.isEmpty {
+                        Text(copy.text("loading_price"))
+                            .font(.system(size: 13))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                            .padding(.top, 8)
+                    }
+
+                    ForEach(packs) { pack in
+                        packCard(pack)
+                    }
+
+                    if let message {
+                        Text(message)
+                            .font(.system(size: 12))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                    }
                 }
-            } label: {
-                Text(loading ? copy.text("processing") : copy.text("buy_credits"))
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(ExamPalette.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .padding(.top, 20)
             }
-            .buttonStyle(.plain)
-            .disabled(price == nil || loading)
+
+            ExamPrimaryButton(
+                title: loading ? copy.text("processing") : copy.text("buy_credits"),
+                enabled: !loading && packs.contains { $0.productId == selectedId }
+            ) {
+                buy(selectedId)
+            }
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 12)
@@ -784,7 +764,75 @@ struct CreditStoreView: View {
                 AnalyticsEvent.creditStoreViewed,
                 params: [AnalyticsParam.examId: setup.exam.id]
             )
-            price = await StoreKitBillingService.shared.loadCreditPrice()
+            packs = await StoreKitBillingService.shared.loadCreditPacks()
+            balance = await EntitlementService().fetch().credits
+        }
+    }
+
+    private func packCard(_ pack: CreditPackPresentation) -> some View {
+        let selected = pack.productId == selectedId
+        let popular = pack.productId == StoreKitBillingService.ProductId.creditsMedium
+        return Button {
+            selectedId = pack.productId
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "diamond.fill")
+                    .foregroundStyle(ExamPalette.purple)
+                    .frame(width: 40, height: 40)
+                    .background(ExamPalette.softPurple)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(copy.text("credits_pack", variables: ["count": String(Self.creditAmounts[pack.productId] ?? 0)]))
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(ExamPalette.textPrimary)
+                        if popular {
+                            Text(copy.text("most_popular"))
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(ExamPalette.primary)
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 4)
+                                .background(ExamPalette.softBlue)
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+                Spacer()
+                Text(pack.localizedPrice)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ExamPalette.textPrimary)
+            }
+            .padding(14)
+            .background(ExamPalette.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(selected ? ExamPalette.primary : ExamPalette.border, lineWidth: selected ? 1.5 : 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func buy(_ productId: String) {
+        loading = true
+        message = nil
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.creditPurchaseStarted,
+            params: [AnalyticsParam.examId: setup.exam.id, AnalyticsParam.productId: productId]
+        )
+        Task { @MainActor in
+            let success = await StoreKitBillingService.shared.purchase(productId: productId)
+            message = success ? copy.text("credits_added") : copy.text("purchase_not_completed")
+            AppServices.shared.analytics.event(
+                success ? AnalyticsEvent.creditPurchaseCompleted : AnalyticsEvent.purchaseFailed,
+                params: success
+                    ? [AnalyticsParam.examId: setup.exam.id, AnalyticsParam.productId: productId]
+                    : [AnalyticsParam.placement: "credit_store", AnalyticsParam.productId: productId]
+            )
+            if success {
+                balance = await EntitlementService().fetch().credits
+            }
+            loading = false
         }
     }
 }

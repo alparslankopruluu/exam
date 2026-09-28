@@ -206,5 +206,14 @@
   "account_saved_title": "進捗は保存されています",
   "account_saved_subtitle": "サインイン済み",
   "account_title_linked": "アカウント",
-  "account_sign_out": "サインアウト"
+  "account_sign_out": "サインアウト",
+  "paywall_trial_available": "無料トライアル付き",
+  "offer_badge": "{percent}%オフ",
+  "offer_title_welcome": "ウェルカム特典",
+  "offer_title_exam_sprint": "試験直前スパート特典",
+  "offer_title_winback": "おかえり特典",
+  "offer_first_year": "年額プラン・初年度割引",
+  "credits_balance": "{count} クレジット",
+  "credits_pack": "{count} クレジット",
+  "most_popular": "一番人気"
 }

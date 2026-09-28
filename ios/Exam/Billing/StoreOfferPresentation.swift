@@ -4,7 +4,7 @@ struct StorePlanPresentation: Hashable {
     let productId: String
     let title: String
     let localizedPrice: String?
-    let trialText: String?
+    let hasTrial: Bool
     let recommended: Bool
 }
 
@@ -17,15 +17,29 @@ struct StoreOfferPresentation: Hashable {
             productId: "premium_annual",
             title: "Annual",
             localizedPrice: nil,
-            trialText: nil,
+            hasTrial: false,
             recommended: true
         ),
         monthly: StorePlanPresentation(
             productId: "premium_monthly",
             title: "Monthly",
             localizedPrice: nil,
-            trialText: nil,
+            hasTrial: false,
             recommended: false
         )
     )
+}
+
+struct CreditPackPresentation: Hashable, Identifiable {
+    let productId: String
+    let localizedPrice: String
+
+    var id: String { productId }
+}
+
+/// A server-issued offer with store-resolved prices, ready for the paywall.
+struct OfferPresentation: Hashable {
+    let offer: ActiveOffer
+    let localizedPrice: String
+    let regularPrice: String
 }

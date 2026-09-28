@@ -206,5 +206,14 @@
   "account_saved_title": "İlerlemen kaydedildi",
   "account_saved_subtitle": "Giriş yapıldı",
   "account_title_linked": "Hesap",
-  "account_sign_out": "Çıkış yap"
+  "account_sign_out": "Çıkış yap",
+  "paywall_trial_available": "Ücretsiz deneme dahil",
+  "offer_badge": "%{percent} İNDİRİM",
+  "offer_title_welcome": "Hoş geldin teklifi",
+  "offer_title_exam_sprint": "Sınav sprinti teklifi",
+  "offer_title_winback": "Tekrar hoş geldin teklifi",
+  "offer_first_year": "Yıllık plan · ilk yıl indirimli",
+  "credits_balance": "{count} kredi",
+  "credits_pack": "{count} kredi",
+  "most_popular": "EN POPÜLER"
 }

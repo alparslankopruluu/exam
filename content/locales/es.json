@@ -206,5 +206,14 @@
   "account_saved_title": "Tu progreso está guardado",
   "account_saved_subtitle": "Sesión iniciada",
   "account_title_linked": "Cuenta",
-  "account_sign_out": "Cerrar sesión"
+  "account_sign_out": "Cerrar sesión",
+  "paywall_trial_available": "Prueba gratuita incluida",
+  "offer_badge": "{percent} % DTO.",
+  "offer_title_welcome": "Oferta de bienvenida",
+  "offer_title_exam_sprint": "Oferta sprint de examen",
+  "offer_title_winback": "Oferta de regreso",
+  "offer_first_year": "Plan anual · primer año con descuento",
+  "credits_balance": "{count} créditos",
+  "credits_pack": "{count} créditos",
+  "most_popular": "MÁS POPULAR"
 }

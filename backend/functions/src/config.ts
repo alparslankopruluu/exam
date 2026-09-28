@@ -21,8 +21,10 @@ export const APPLE_APP_ID = defineString("APPLE_APP_ID", { default: "0" });
 export const APPLE_ENVIRONMENT = defineString("APPLE_ENVIRONMENT", { default: "Sandbox" });
 
 export const FREE_AI_CALLS_PER_DAY = defineString("FREE_AI_CALLS_PER_DAY", { default: "5" });
-export const SMALL_CREDIT_PACK_AMOUNT = defineString("SMALL_CREDIT_PACK_AMOUNT", { default: "25" });
 
 export const REMINDER_IMAGE_URL = defineString("REMINDER_IMAGE_URL", { default: "" });
 
 export const FREE_MATERIALS_LIMIT = defineString("FREE_MATERIALS_LIMIT", { default: "3" });
+
+// Kill switch for server-issued paywall offers.
+export const OFFERS_ENABLED = defineString("OFFERS_ENABLED", { default: "true" });

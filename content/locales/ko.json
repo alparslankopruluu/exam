@@ -206,5 +206,14 @@
   "account_saved_title": "학습 기록이 저장되었어요",
   "account_saved_subtitle": "로그인됨",
   "account_title_linked": "계정",
-  "account_sign_out": "로그아웃"
+  "account_sign_out": "로그아웃",
+  "paywall_trial_available": "무료 체험 포함",
+  "offer_badge": "{percent}% 할인",
+  "offer_title_welcome": "웰컴 혜택",
+  "offer_title_exam_sprint": "시험 막판 스퍼트 혜택",
+  "offer_title_winback": "복귀 환영 혜택",
+  "offer_first_year": "연간 플랜 · 첫해 할인",
+  "credits_balance": "{count} 크레딧",
+  "credits_pack": "{count} 크레딧",
+  "most_popular": "가장 인기"
 }
