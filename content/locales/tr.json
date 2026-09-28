@@ -215,5 +215,13 @@
   "offer_first_year": "Yıllık plan · ilk yıl indirimli",
   "credits_balance": "{count} kredi",
   "credits_pack": "{count} kredi",
-  "most_popular": "EN POPÜLER"
+  "most_popular": "EN POPÜLER",
+  "widget_streak": "günlük seri",
+  "widget_tasks_done": "görev tamam",
+  "widget_reviews_due": "konu tekrar bekliyor",
+  "widget_all_done": "Bugünlük hepsi tamam 🎉",
+  "widget_question_title": "Günün sorusu",
+  "widget_correct": "Doğru! ✅",
+  "widget_incorrect": "Olmadı, nedenini görmek için uygulamayı aç",
+  "widget_open_app": "Günün sorusu için uygulamayı aç"
 }

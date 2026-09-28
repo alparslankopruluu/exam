@@ -29,5 +29,29 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".widget.StudyProgressWidgetReceiver"
+            android:exported="true"
+            android:label="Study progress">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/study_progress_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.DailyQuestionWidgetReceiver"
+            android:exported="true"
+            android:label="Question of the day">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/daily_question_widget_info" />
+        </receiver>
     </application>
 </manifest>

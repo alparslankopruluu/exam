@@ -215,5 +215,13 @@
   "offer_first_year": "Jahresplan · erstes Jahr reduziert",
   "credits_balance": "{count} Credits",
   "credits_pack": "{count} Credits",
-  "most_popular": "BELIEBTESTE"
+  "most_popular": "BELIEBTESTE",
+  "widget_streak": "Tage in Folge",
+  "widget_tasks_done": "Aufgaben erledigt",
+  "widget_reviews_due": "Wiederholungen fällig",
+  "widget_all_done": "Für heute alles erledigt 🎉",
+  "widget_question_title": "Frage des Tages",
+  "widget_correct": "Richtig! ✅",
+  "widget_incorrect": "Nicht ganz – öffne die App für die Erklärung",
+  "widget_open_app": "Öffne die App für die heutige Frage"
 }

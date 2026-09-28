@@ -215,5 +215,13 @@
   "offer_first_year": "年額プラン・初年度割引",
   "credits_balance": "{count} クレジット",
   "credits_pack": "{count} クレジット",
-  "most_popular": "一番人気"
+  "most_popular": "一番人気",
+  "widget_streak": "日連続",
+  "widget_tasks_done": "タスク完了",
+  "widget_reviews_due": "件の復習",
+  "widget_all_done": "今日の分は完了 🎉",
+  "widget_question_title": "今日の問題",
+  "widget_correct": "正解! ✅",
+  "widget_incorrect": "惜しい!アプリで解説を確認",
+  "widget_open_app": "アプリを開いて今日の問題を受け取ろう"
 }

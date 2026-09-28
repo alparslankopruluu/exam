@@ -8,7 +8,13 @@ struct ExamApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                .onOpenURL { url in _ = AuthService.shared.handleOpenURL(url) }
+                .onOpenURL { url in
+                    if url.scheme == "exam" {
+                        DeepLinkRouter.shared.pending = url.host
+                    } else {
+                        _ = AuthService.shared.handleOpenURL(url)
+                    }
+                }
         }
         .modelContainer(for: [
             MasteryRecord.self,

@@ -215,5 +215,13 @@
   "offer_first_year": "Formule annuelle · 1re année à prix réduit",
   "credits_balance": "{count} crédits",
   "credits_pack": "{count} crédits",
-  "most_popular": "LE PLUS POPULAIRE"
+  "most_popular": "LE PLUS POPULAIRE",
+  "widget_streak": "jours de série",
+  "widget_tasks_done": "tâches faites",
+  "widget_reviews_due": "révisions à faire",
+  "widget_all_done": "Tout est fait pour aujourd’hui 🎉",
+  "widget_question_title": "Question du jour",
+  "widget_correct": "Correct ! ✅",
+  "widget_incorrect": "Presque – ouvre l’app pour comprendre",
+  "widget_open_app": "Ouvre l’app pour la question du jour"
 }

@@ -6,6 +6,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 object FirebaseBootstrap {
+    /** False when the build has no google-services.json (local/dev builds). */
+    fun isConfigured(): Boolean = runCatching { FirebaseApp.getInstance() }.isSuccess
+
     fun initialize(context: Context): Boolean {
         return try {
             val app = FirebaseApp.initializeApp(context)
