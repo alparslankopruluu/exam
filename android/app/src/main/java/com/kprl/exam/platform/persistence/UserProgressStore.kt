@@ -23,6 +23,9 @@ class UserProgressStore(context: Context) {
         reminderHour = prefs.getInt("reminder_hour", 19)
     )
 
+    /** ISO local date (yyyy-MM-dd) of the last completed study session. */
+    fun lastStudyDay(): String? = prefs.getString("last_study_day", null)
+
     fun recordSession(correct: Int, total: Int, durationSeconds: Int): UserProgressSnapshot {
         val previousDay = prefs.getString("last_study_day", null)
         val today = LocalDate.now()

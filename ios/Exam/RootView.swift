@@ -4,6 +4,8 @@ import SwiftUI
 struct RootView: View {
     @State private var setup: StudySetup? = StudySetupStore.load()
     @State private var onboardingPaywallSeen = StudySetupStore.onboardingPaywallSeen()
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         Group {
@@ -49,6 +51,27 @@ struct RootView: View {
             }
         }
         .background(ExamPalette.background)
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, let setup, StudySetupStore.notificationPrompted() else { return }
+            syncStudyState(for: setup)
+        }
+    }
+
+    /// Refreshes the study state the reminder scheduler relies on.
+    @MainActor
+    private func syncStudyState(for setup: StudySetup) {
+        let due = (try? LearningStore(context: modelContext).dueSkills(examId: setup.exam.id).count) ?? 0
+        Messaging.messaging().token { token, _ in
+            guard let token else { return }
+            Task { @MainActor in
+                PushTokenRegistrar.register(
+                    token: token,
+                    examId: setup.exam.id,
+                    examName: setup.exam.shortName,
+                    dueReviews: due
+                )
+            }
+        }
     }
 
     @MainActor

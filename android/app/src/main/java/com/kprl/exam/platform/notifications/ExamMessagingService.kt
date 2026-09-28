@@ -10,6 +10,7 @@ import android.os.Build
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.kprl.exam.MainActivity
+import com.kprl.exam.R
 import com.kprl.exam.platform.AppServices
 import java.net.HttpURLConnection
 import java.net.URL
@@ -24,10 +25,10 @@ class ExamMessagingService : FirebaseMessagingService() {
         val title = message.data["title"] ?: message.notification?.title ?: "exam"
         val body = message.data["body"] ?: message.notification?.body ?: ""
         val imageUrl = message.data["imageUrl"] ?: message.notification?.imageUrl?.toString()
-        showNotification(title, body, imageUrl)
+        showNotification(title, body, imageUrl, message.data[DeepLinkRouter.EXTRA_ROUTE], message.data["type"])
     }
 
-    private fun showNotification(title: String, body: String, imageUrl: String?) {
+    private fun showNotification(title: String, body: String, imageUrl: String?, route: String?, type: String?) {
         val manager = getSystemService(NotificationManager::class.java)
         val channelId = "study_updates"
 
@@ -43,6 +44,8 @@ class ExamMessagingService : FirebaseMessagingService() {
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            route?.let { putExtra(DeepLinkRouter.EXTRA_ROUTE, it) }
+            type?.let { putExtra("type", it) }
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -56,7 +59,7 @@ class ExamMessagingService : FirebaseMessagingService() {
         } else {
             android.app.Notification.Builder(this)
         }
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)

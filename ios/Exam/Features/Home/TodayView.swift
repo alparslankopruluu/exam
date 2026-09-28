@@ -121,6 +121,9 @@ struct TodayView: View {
             }
         }
         .background(ExamPalette.background.ignoresSafeArea())
+        .onReceive(DeepLinkRouter.shared.$pending.compactMap { $0 }) { _ in
+            openDeepLink(DeepLinkRouter.shared.consume())
+        }
         .task(id: dashboardRefresh) {
             if premiumPlacement == nil {
                 entitlement = await EntitlementService().fetch()
@@ -223,6 +226,24 @@ struct TodayView: View {
                 onCredits: { toolRoute = .credits },
                 onRestartOnboarding: onRestartOnboarding
             )
+        }
+    }
+
+    private func openDeepLink(_ route: String?) {
+        switch route {
+        case "paywall":
+            guard !entitlement.premium else { return }
+            toolRoute = nil
+            premiumPlacement = "push_offer"
+        case "review":
+            premiumPlacement = nil
+            toolRoute = .mistakes
+        case "today":
+            premiumPlacement = nil
+            toolRoute = nil
+            selectedTab = .today
+        default:
+            break
         }
     }
 

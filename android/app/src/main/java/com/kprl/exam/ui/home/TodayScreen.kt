@@ -24,6 +24,7 @@ import com.kprl.exam.data.StudySetup
 import com.kprl.exam.domain.DailyPlanEngine
 import com.kprl.exam.platform.AppServices
 import com.kprl.exam.platform.entitlements.EntitlementService
+import com.kprl.exam.platform.notifications.DeepLinkRouter
 import com.kprl.exam.platform.entitlements.EntitlementSnapshot
 import com.kprl.exam.platform.persistence.LearningDatabase
 import com.kprl.exam.platform.persistence.LearningRepository
@@ -94,6 +95,25 @@ fun TodayScreen(
     LaunchedEffect(premiumPlacement, dashboardRefresh) {
         if (premiumPlacement == null) {
             entitlementService.fetch { entitlement = it }
+        }
+    }
+
+    val pendingRoute by DeepLinkRouter.pending.collectAsState()
+    LaunchedEffect(pendingRoute) {
+        when (pendingRoute?.let { DeepLinkRouter.consume() }) {
+            "paywall" -> if (!entitlement.premium) {
+                toolRoute = null
+                premiumPlacement = "push_offer"
+            }
+            "review" -> {
+                premiumPlacement = null
+                toolRoute = ToolRoute.MISTAKES
+            }
+            "today" -> {
+                premiumPlacement = null
+                toolRoute = null
+                selectedTab = 0
+            }
         }
     }
 
