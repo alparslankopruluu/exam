@@ -51,6 +51,7 @@ struct RootView: View {
             }
         }
         .background(ExamPalette.background)
+        .environment(\.layoutDirection, AppLanguage.layoutDirection(for: setup?.languageCode ?? ExamCatalog.languageCode))
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, let setup, StudySetupStore.notificationPrompted() else { return }
             syncStudyState(for: setup)

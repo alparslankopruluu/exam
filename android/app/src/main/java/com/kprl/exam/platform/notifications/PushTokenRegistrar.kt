@@ -3,6 +3,8 @@ package com.kprl.exam.platform.notifications
 import android.content.Context
 import com.google.firebase.FirebaseApp
 import com.google.firebase.functions.FirebaseFunctions
+import com.kprl.exam.localization.AppLanguage
+import com.kprl.exam.platform.persistence.StudySetupStore
 import com.kprl.exam.platform.persistence.UserProgressStore
 import java.util.Locale
 import java.util.TimeZone
@@ -33,7 +35,8 @@ object PushTokenRegistrar {
         val payload = buildMap<String, Any> {
             put("token", token)
             put("platform", "android")
-            put("language", Locale.getDefault().toLanguageTag())
+            // The app language the learner chose, so reminders match the UI.
+            put("language", StudySetupStore(context.applicationContext).load()?.languageCode ?: AppLanguage.resolve())
             put("timeZone", TimeZone.getDefault().id)
             put("reminderBucket", bucket)
             put("streak", progress.streak)

@@ -113,7 +113,7 @@ enum ExamCatalog {
     }
 
     static var languageCode: String {
-        Locale.current.language.languageCode?.identifier ?? "en"
+        AppLanguage.resolve()
     }
 
     static func exam(id: String) -> ExamDefinition? {

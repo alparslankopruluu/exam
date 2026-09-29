@@ -28,8 +28,10 @@ struct LocalizedCopy {
         }
 
         let fallback = read("en")
-        let normalized = languageCode.split(separator: "-").first.map(String.init)?.lowercased() ?? "en"
-        let localized = normalized == "en" ? fallback : read(normalized)
+        // Exact file first (pt-PT, zh-Hant), then the base language, then English.
+        let base = languageCode.split(separator: "-").first.map(String.init)?.lowercased() ?? "en"
+        let exact = languageCode == "en" ? [:] : read(languageCode)
+        let localized = !exact.isEmpty ? exact : (base == "en" ? fallback : read(base))
         return LocalizedCopy(values: localized, fallback: fallback)
     }
 }

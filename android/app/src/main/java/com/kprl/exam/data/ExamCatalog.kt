@@ -96,7 +96,7 @@ object ExamCatalog {
         return local + global
     }
 
-    fun languageCode(): String = Locale.getDefault().language.ifBlank { "en" }
+    fun languageCode(): String = com.kprl.exam.localization.AppLanguage.resolve()
 
     fun findExam(id: String): ExamDefinition? = exams.firstOrNull { it.id == id }
 

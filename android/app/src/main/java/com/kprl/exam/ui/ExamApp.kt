@@ -1,5 +1,10 @@
 package com.kprl.exam.ui
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import com.kprl.exam.data.ExamCatalog
+import com.kprl.exam.localization.AppLanguage
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -80,38 +85,42 @@ fun ExamApp() {
             if (valueMomentReached) requestStudyNotifications(current)
         }
 
-        when {
-            setup == null -> {
-                OnboardingScreen { result ->
-                    setupStore.save(result)
-                    setup = result
+        val languageCode = setup?.languageCode ?: ExamCatalog.languageCode()
+        val direction = if (AppLanguage.isRightToLeft(languageCode)) LayoutDirection.Rtl else LayoutDirection.Ltr
+        CompositionLocalProvider(LocalLayoutDirection provides direction) {
+            when {
+                setup == null -> {
+                    OnboardingScreen { result ->
+                        setupStore.save(result)
+                        setup = result
+                    }
                 }
-            }
 
-            !onboardingPaywallSeen && AppServices.flags.snapshot.onboardingPaywallEnabled -> {
-                PremiumPaywallScreen(
+                !onboardingPaywallSeen && AppServices.flags.snapshot.onboardingPaywallEnabled -> {
+                    PremiumPaywallScreen(
+                        setup = setup!!,
+                        placement = "onboarding",
+                        onClose = {
+                            onboardingPaywallSeen = true
+                            setupStore.setOnboardingPaywallSeen(true)
+                        }
+                    )
+                }
+
+                else -> TodayScreen(
                     setup = setup!!,
-                    placement = "onboarding",
-                    onClose = {
-                        onboardingPaywallSeen = true
-                        setupStore.setOnboardingPaywallSeen(true)
+                    onSetupChanged = { updated ->
+                        setupStore.save(updated)
+                        setup = updated
+                    },
+                    onRestartOnboarding = {
+                        setupStore.clear()
+                        setup = null
+                        onboardingPaywallSeen = false
+                        setupStore.setOnboardingPaywallSeen(false)
                     }
                 )
             }
-
-            else -> TodayScreen(
-                setup = setup!!,
-                onSetupChanged = { updated ->
-                    setupStore.save(updated)
-                    setup = updated
-                },
-                onRestartOnboarding = {
-                    setupStore.clear()
-                    setup = null
-                    onboardingPaywallSeen = false
-                    setupStore.setOnboardingPaywallSeen(false)
-                }
-            )
         }
     }
 }
