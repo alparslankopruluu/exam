@@ -215,5 +215,13 @@
   "offer_first_year": "연간 플랜 · 첫해 할인",
   "credits_balance": "{count} 크레딧",
   "credits_pack": "{count} 크레딧",
-  "most_popular": "가장 인기"
+  "most_popular": "가장 인기",
+  "widget_streak": "일 연속",
+  "widget_tasks_done": "개 완료",
+  "widget_reviews_due": "개 복습 예정",
+  "widget_all_done": "오늘 할 일 완료 🎉",
+  "widget_question_title": "오늘의 문제",
+  "widget_correct": "정답! ✅",
+  "widget_incorrect": "아쉬워요, 앱에서 해설을 확인하세요",
+  "widget_open_app": "앱을 열어 오늘의 문제를 받으세요"
 }

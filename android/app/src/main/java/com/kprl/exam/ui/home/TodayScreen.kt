@@ -25,6 +25,9 @@ import com.kprl.exam.domain.DailyPlanEngine
 import com.kprl.exam.platform.AppServices
 import com.kprl.exam.platform.entitlements.EntitlementService
 import com.kprl.exam.platform.notifications.DeepLinkRouter
+import com.kprl.exam.widget.WidgetSnapshotWriter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.kprl.exam.platform.entitlements.EntitlementSnapshot
 import com.kprl.exam.platform.persistence.LearningDatabase
 import com.kprl.exam.platform.persistence.LearningRepository
@@ -418,6 +421,11 @@ private fun TodayContent(
     val progress = dashboard.first
     val user = dashboard.second
     val plan = dashboard.third
+
+    LaunchedEffect(dashboard) {
+        val due = withContext(Dispatchers.IO) { repository.dueSkills(setup.exam.id).size }
+        WidgetSnapshotWriter.write(context.applicationContext, setup, plan, due, user.streak)
+    }
     val activeTask = plan.firstOrNull { !it.completed }
     val mastery = if (progress.masteryPercent == 0) setup.diagnosticPercent else progress.masteryPercent
     val completedTasks = plan.count { it.completed }

@@ -669,6 +669,12 @@ struct TodayView: View {
         }
 
         plan = currentPlan
+        WidgetSnapshotWriter.write(
+            setup: setup,
+            plan: currentPlan,
+            dueReviews: (try? store.dueSkills(examId: setup.exam.id).count) ?? 0,
+            streak: userProgress.streak
+        )
     }
 
     private static var dayKey: String {

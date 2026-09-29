@@ -215,5 +215,13 @@
   "offer_first_year": "वार्षिक प्लान · पहला साल छूट पर",
   "credits_balance": "{count} क्रेडिट",
   "credits_pack": "{count} क्रेडिट",
-  "most_popular": "सबसे लोकप्रिय"
+  "most_popular": "सबसे लोकप्रिय",
+  "widget_streak": "दिन की स्ट्रीक",
+  "widget_tasks_done": "कार्य पूरे",
+  "widget_reviews_due": "दोहराव बाकी",
+  "widget_all_done": "आज का सब पूरा 🎉",
+  "widget_question_title": "आज का सवाल",
+  "widget_correct": "सही! ✅",
+  "widget_incorrect": "थोड़ा चूक गए, वजह जानने के लिए ऐप खोलें",
+  "widget_open_app": "आज के सवाल के लिए ऐप खोलें"
 }

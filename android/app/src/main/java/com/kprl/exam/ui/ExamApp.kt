@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessaging
+import com.kprl.exam.platform.firebase.FirebaseBootstrap
 import com.kprl.exam.data.StudySetup
 import com.kprl.exam.platform.AppServices
 import com.kprl.exam.platform.persistence.StudySetupStore
@@ -30,6 +31,7 @@ fun ExamApp() {
         }
 
         fun registerStudyPush(current: StudySetup) {
+            if (!FirebaseBootstrap.isConfigured()) return
             FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
                 PushTokenRegistrar.register(
                     context = context,

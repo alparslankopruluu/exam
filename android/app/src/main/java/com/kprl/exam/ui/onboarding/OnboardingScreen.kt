@@ -7,6 +7,8 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -271,7 +273,7 @@ private fun DiagnosticStep(exam: ExamDefinition, copy: LocalizedCopy, onComplete
 
     val question = questions[index]
 
-    Column {
+    Column(Modifier.verticalScroll(rememberScrollState())) {
         Spacer(Modifier.height(28.dp))
         Text(copy.text("diagnostic_title"), fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
@@ -469,7 +471,7 @@ private fun dailyMinutesFor(index: Int): Int = when (index) {
 
 @Composable
 private fun PlanReadyStep(exam: ExamDefinition, diagnosticPercent: Int, dailyMinutes: Int) {
-    Column {
+    Column(Modifier.verticalScroll(rememberScrollState())) {
         Spacer(Modifier.height(28.dp))
         Text("Your ${exam.shortName} week is ready.", fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))

@@ -25,6 +25,7 @@ targets:
       - path: Exam
         excludes:
           - "*.storekit"
+      - Shared
       - path: ../content/locales
         type: folder
         buildPhase: resources
@@ -50,11 +51,14 @@ targets:
         product: FirebaseFirestore
       - package: GoogleSignIn
         product: GoogleSignIn
+      - target: ExamWidget
+      - target: ExamNotificationService
     entitlements:
       path: Exam/Exam.entitlements
       properties:
         com.apple.developer.applesignin: [Default]
         aps-environment: development
+        com.apple.security.application-groups: [group.com.kprl.exam]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam
@@ -95,8 +99,30 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam.NotificationService
-        GENERATE_INFOPLIST_FILE: NO
+        GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: ExamNotificationService/Info.plist
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0.0
+        SKIP_INSTALL: YES
+
+  ExamWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - ExamWidget
+      - Shared
+    entitlements:
+      path: ExamWidget/ExamWidget.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.kprl.exam]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam.Widget
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Exam
+        INFOPLIST_FILE: ExamWidget/Info.plist
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0.0
         SKIP_INSTALL: YES
 
 schemes:

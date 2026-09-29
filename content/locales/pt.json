@@ -215,5 +215,13 @@
   "offer_first_year": "Plano anual · primeiro ano com desconto",
   "credits_balance": "{count} créditos",
   "credits_pack": "{count} créditos",
-  "most_popular": "MAIS POPULAR"
+  "most_popular": "MAIS POPULAR",
+  "widget_streak": "dias seguidos",
+  "widget_tasks_done": "tarefas feitas",
+  "widget_reviews_due": "revisões pendentes",
+  "widget_all_done": "Tudo feito por hoje 🎉",
+  "widget_question_title": "Pergunta do dia",
+  "widget_correct": "Correto! ✅",
+  "widget_incorrect": "Quase, abra o app para entender",
+  "widget_open_app": "Abra o app para a pergunta de hoje"
 }

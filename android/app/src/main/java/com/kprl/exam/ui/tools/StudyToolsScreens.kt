@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.messaging.FirebaseMessaging
+import com.kprl.exam.platform.firebase.FirebaseBootstrap
 import com.kprl.exam.billing.GooglePlayBillingService
 import com.kprl.exam.billing.CreditPackPresentation
 import com.kprl.exam.platform.entitlements.EntitlementService
@@ -820,7 +821,7 @@ fun ProfileSettingsScreen(
                                     AnalyticsParams.REMINDER_HOUR to reminderHour
                                 )
                             )
-                            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                            if (FirebaseBootstrap.isConfigured()) FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
                                 PushTokenRegistrar.register(
                                     context = context,
                                     token = token,
