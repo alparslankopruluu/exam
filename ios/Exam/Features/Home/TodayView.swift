@@ -396,6 +396,8 @@ struct TodayView: View {
                         accent: ExamPalette.purple
                     )
                 }
+                // Pills stretch to the tallest one so the row stays even.
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 20)
 
                 let expiry = AppServices.shared.flags.snapshot.limitedOfferExpiryEpochSeconds

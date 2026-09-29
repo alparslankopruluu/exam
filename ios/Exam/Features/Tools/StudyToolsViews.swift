@@ -1047,9 +1047,7 @@ struct ProfileSettingsView: View {
     ) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .foregroundStyle(ExamPalette.primary)
-                    .frame(width: 34)
+                ExamIconBadge(symbol: symbol, accent: ExamPalette.primary, size: 34)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 14, weight: .semibold))
