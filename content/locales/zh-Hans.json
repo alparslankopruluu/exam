@@ -238,5 +238,18 @@
   "exam_date_unknown": "还不确定",
   "exam_date_clear": "移除",
   "exam_date_add": "添加考试日期",
-  "days_to_exam": "天后 {exam}"
+  "days_to_exam": "天后 {exam}",
+  "tutor_context": "针对 {exam} 定制",
+  "tutor_working": "导师正在思考…",
+  "tutor_label": "导师",
+  "library_intro": "你的 PDF、照片、音频、视频和笔记都会变成可搜索的学习资料。",
+  "material_grounded": "回答基于这份资料",
+  "summary": "摘要",
+  "practice_pack_hint": "基于你的 {exam} 内容包",
+  "voice_intro": "直接说出你的问题。我们会转成文字,结合 {exam} 回答,再读给你听。",
+  "voice_thinking": "正在理解并准备回答…",
+  "voice_listening": "正在聆听…",
+  "voice_tap_to_ask": "点按向导师提问",
+  "voice_play_answer": "播放语音回答",
+  "exam_specific_practice": "考试专项练习"
 }

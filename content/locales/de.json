@@ -238,5 +238,18 @@
   "exam_date_unknown": "Weiß ich noch nicht",
   "exam_date_clear": "Entfernen",
   "exam_date_add": "Prüfungsdatum hinzufügen",
-  "days_to_exam": "Tage bis {exam}"
+  "days_to_exam": "Tage bis {exam}",
+  "tutor_context": "Kennt deinen {exam}-Kontext",
+  "tutor_working": "Tutor arbeitet…",
+  "tutor_label": "Tutor",
+  "library_intro": "Deine PDFs, Fotos, Audios, Videos und Notizen werden zu durchsuchbarem Lernkontext.",
+  "material_grounded": "Antworten basieren auf diesem Material",
+  "summary": "Zusammenfassung",
+  "practice_pack_hint": "Auf dein {exam}-Inhaltspaket abgestimmt",
+  "voice_intro": "Frag ganz natürlich. Deine Sprache wird transkribiert, im {exam}-Kontext beantwortet und vorgelesen.",
+  "voice_thinking": "Verstehe und bereite deine Antwort vor…",
+  "voice_listening": "Hört zu…",
+  "voice_tap_to_ask": "Tippe, um deinen Tutor zu fragen",
+  "voice_play_answer": "Gesprochene Antwort abspielen",
+  "exam_specific_practice": "Prüfungsspezifisches Üben"
 }

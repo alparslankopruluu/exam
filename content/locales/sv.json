@@ -238,5 +238,18 @@
   "exam_date_unknown": "Jag vet inte än",
   "exam_date_clear": "Ta bort",
   "exam_date_add": "Lägg till provdatum",
-  "days_to_exam": "dagar till {exam}"
+  "days_to_exam": "dagar till {exam}",
+  "tutor_context": "Anpassad efter ditt {exam}",
+  "tutor_working": "Handledaren arbetar…",
+  "tutor_label": "Handledare",
+  "library_intro": "Dina PDF:er, foton, ljud, videor och anteckningar blir sökbart studiematerial.",
+  "material_grounded": "Svaren bygger på det här materialet",
+  "summary": "Sammanfattning",
+  "practice_pack_hint": "Byggt kring ditt {exam}-innehåll",
+  "voice_intro": "Fråga naturligt. Det du säger skrivs ut, besvaras utifrån {exam} och läses upp.",
+  "voice_thinking": "Förstår och förbereder ditt svar…",
+  "voice_listening": "Lyssnar…",
+  "voice_tap_to_ask": "Tryck för att fråga handledaren",
+  "voice_play_answer": "Spela upp svaret",
+  "exam_specific_practice": "Provspecifik övning"
 }

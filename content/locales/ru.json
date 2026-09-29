@@ -238,5 +238,18 @@
   "exam_date_unknown": "Пока не знаю",
   "exam_date_clear": "Убрать",
   "exam_date_add": "Добавить дату экзамена",
-  "days_to_exam": "дн. до {exam}"
+  "days_to_exam": "дн. до {exam}",
+  "tutor_context": "Знает контекст {exam}",
+  "tutor_working": "Репетитор думает…",
+  "tutor_label": "Репетитор",
+  "library_intro": "Ваши PDF, фото, аудио, видео и конспекты превращаются в учебную базу с поиском.",
+  "material_grounded": "Ответы основаны на этом материале",
+  "summary": "Краткое содержание",
+  "practice_pack_hint": "Составлено по программе {exam}",
+  "voice_intro": "Спрашивайте естественно. Речь распознаётся, ответ даётся в контексте {exam} и озвучивается.",
+  "voice_thinking": "Разбираю вопрос и готовлю ответ…",
+  "voice_listening": "Слушаю…",
+  "voice_tap_to_ask": "Нажмите, чтобы спросить репетитора",
+  "voice_play_answer": "Прослушать ответ",
+  "exam_specific_practice": "Практика под экзамен"
 }

@@ -24,6 +24,7 @@ import com.kprl.exam.data.StudySetup
 import com.kprl.exam.domain.DailyPlanEngine
 import com.kprl.exam.platform.AppServices
 import com.kprl.exam.platform.entitlements.EntitlementService
+import com.kprl.exam.debug.ScreenshotMode
 import com.kprl.exam.platform.notifications.DeepLinkRouter
 import com.kprl.exam.platform.persistence.StudySetupStore
 import com.kprl.exam.widget.WidgetSnapshotWriter
@@ -99,6 +100,15 @@ fun TodayScreen(
     LaunchedEffect(premiumPlacement, dashboardRefresh) {
         if (premiumPlacement == null) {
             entitlementService.fetch { entitlement = it }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        when (ScreenshotMode.screen) {
+            "practice" -> selectedTab = 1
+            "tutor" -> selectedTab = 2
+            "library" -> selectedTab = 3
+            "session" -> openSession("quick_practice")
         }
     }
 

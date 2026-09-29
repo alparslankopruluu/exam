@@ -10,6 +10,7 @@ final class AppServices {
     private init() {}
 
     func configure() {
+        ScreenshotMode.prepare()
         let ready = FirebaseBootstrap.configureIfAvailable()
         analytics = FirebaseAppAnalytics.makeIfAvailable(firebaseReady: ready) ?? NoOpAnalytics()
         flags = RemoteFeatureFlags(firebaseReady: ready)

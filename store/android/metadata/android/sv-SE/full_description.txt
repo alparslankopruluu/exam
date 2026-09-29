@@ -1,7 +1,7 @@
 Examly gör provförberedelser till en kort och tydlig plan för varje dag. Välj ditt prov, gör ett diagnostiskt test med 5 frågor och få en personlig pluggvecka som anpassas medan du lär dig.
 
 • Personlig dagsplan utifrån diagnostiskt test, behärskning och senaste misstag
-• Adaptiva provliknande övningar för över 20 prov, bland annat högskoleprovet, IELTS, TOEFL och SAT
+• Adaptiva provliknande övningar för över 20 prov, bland annat IELTS, TOEFL och SAT
 • Error DNA: se mönstren som kostar dig poäng och rätta till dem
 • AI-handledare som förklarar steg för steg, enklare när du behöver, och löser uppgifter från ett foto
 • Gör dina anteckningar och PDF:er till sammanfattningar och quiz

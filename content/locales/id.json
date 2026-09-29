@@ -238,5 +238,18 @@
   "exam_date_unknown": "Belum tahu",
   "exam_date_clear": "Hapus",
   "exam_date_add": "Tambah tanggal ujian",
-  "days_to_exam": "hari menuju {exam}"
+  "days_to_exam": "hari menuju {exam}",
+  "tutor_context": "Paham konteks {exam}",
+  "tutor_working": "Tutor sedang bekerja…",
+  "tutor_label": "Tutor",
+  "library_intro": "PDF, foto, audio, video, dan catatanmu menjadi bahan belajar yang bisa dicari.",
+  "material_grounded": "Jawaban berdasarkan materi ini",
+  "summary": "Ringkasan",
+  "practice_pack_hint": "Disusun dari materi {exam}-mu",
+  "voice_intro": "Bertanya dengan santai. Ucapanmu ditranskripsi, dijawab dalam konteks {exam}, lalu dibacakan.",
+  "voice_thinking": "Memahami dan menyiapkan jawabanmu…",
+  "voice_listening": "Mendengarkan…",
+  "voice_tap_to_ask": "Ketuk untuk bertanya ke tutor",
+  "voice_play_answer": "Putar jawaban suara",
+  "exam_specific_practice": "Latihan khusus ujian"
 }

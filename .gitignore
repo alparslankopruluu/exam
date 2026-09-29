@@ -22,3 +22,9 @@ ios/*.xcodeproj/
 backend/functions/node_modules/
 backend/functions/lib/
 backend/functions/package-lock.json
+# Generated store screenshots (reproduce with store/capture_*.sh + store/frame.py)
+store/screenshots/
+store/ios/screenshots/
+store/android/metadata/android/*/images/
+store/legal/site/
+__pycache__/

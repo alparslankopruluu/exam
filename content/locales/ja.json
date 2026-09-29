@@ -238,5 +238,18 @@
   "exam_date_unknown": "まだ決まっていない",
   "exam_date_clear": "削除",
   "exam_date_add": "試験日を追加",
-  "days_to_exam": "{exam}まであと(日)"
+  "days_to_exam": "{exam}まであと(日)",
+  "tutor_context": "{exam}に合わせて回答",
+  "tutor_working": "家庭教師が考えています…",
+  "tutor_label": "家庭教師",
+  "library_intro": "PDF、写真、音声、動画、ノートが検索できる学習資料になります。",
+  "material_grounded": "回答はこの資料に基づいています",
+  "summary": "要約",
+  "practice_pack_hint": "{exam}の学習内容に合わせて作成",
+  "voice_intro": "自然に話しかけてください。音声を文字にして{exam}に合わせて回答し、読み上げます。",
+  "voice_thinking": "理解して回答を準備しています…",
+  "voice_listening": "聞いています…",
+  "voice_tap_to_ask": "タップして質問する",
+  "voice_play_answer": "回答を再生",
+  "exam_specific_practice": "試験別の演習"
 }

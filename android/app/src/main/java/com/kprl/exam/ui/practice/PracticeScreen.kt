@@ -45,7 +45,7 @@ fun PracticeScreen(
     ) {
         Spacer(Modifier.height(12.dp))
         Text(copy.text("practice"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("Built around your ${setup.exam.shortName} content pack", color = ExamColors.TextSecondary, fontSize = 13.sp)
+        Text(copy.text("practice_pack_hint", mapOf("exam" to setup.exam.shortName)), color = ExamColors.TextSecondary, fontSize = 13.sp)
 
         Spacer(Modifier.height(22.dp))
         Column(
@@ -64,7 +64,7 @@ fun PracticeScreen(
                     Icon(Icons.Rounded.Bolt, null, tint = Color.White)
                 }
                 Spacer(Modifier.weight(1f))
-                Text("5 MIN", color = Color.White.copy(alpha = .85f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(copy.text("minutes_short", mapOf("count" to "5")).uppercase(), color = Color.White.copy(alpha = .85f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(22.dp))
             Text(copy.text("quick_practice"), color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
@@ -86,10 +86,10 @@ fun PracticeScreen(
             Spacer(Modifier.height(9.dp))
             pack!!.units.take(4).forEach { unit ->
                 val detail = buildString {
-                    unit.questionCount?.let { append("$it questions") }
+                    unit.questionCount?.let { append(copy.text("questions_count", mapOf("count" to it.toString()))) }
                     if (unit.questionCount != null && unit.durationMinutes != null) append(" · ")
-                    unit.durationMinutes?.let { append("$it min") }
-                    if (isEmpty()) append("Exam-specific practice")
+                    unit.durationMinutes?.let { append(copy.text("minutes_short", mapOf("count" to it.toString()))) }
+                    if (isEmpty()) append(copy.text("exam_specific_practice"))
                 }
                 PracticeRow(Icons.Rounded.MenuBook, unit.title, detail, ExamColors.Primary, onQuickPractice)
                 Spacer(Modifier.height(8.dp))

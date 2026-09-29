@@ -32,9 +32,9 @@ struct AITutorView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("AI Tutor")
+                            Text(copy.text("ai_tutor"))
                                 .font(.system(size: 27, weight: .bold))
-                            Text("Context-aware for \(setup.exam.shortName)")
+                            Text(copy.text("tutor_context", variables: ["exam": setup.exam.shortName]))
                                 .font(.system(size: 12))
                                 .foregroundStyle(ExamPalette.textSecondary)
                         }
@@ -100,13 +100,13 @@ struct AITutorView: View {
                             if loading {
                                 HStack(spacing: 10) {
                                     ProgressView()
-                                    Text("Tutor is working…")
+                                    Text(copy.text("tutor_working"))
                                         .foregroundStyle(ExamPalette.textSecondary)
                                 }
                             }
 
                             if let answer {
-                                Text("Tutor")
+                                Text(copy.text("tutor_label"))
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundStyle(ExamPalette.purple)
                                 Text(answer)

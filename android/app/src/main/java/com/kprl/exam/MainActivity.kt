@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.kprl.exam.platform.notifications.DeepLinkRouter
+import com.kprl.exam.debug.ScreenshotMode
 import com.kprl.exam.platform.notifications.StudyStateSync
 import com.kprl.exam.ui.ExamApp
 
@@ -14,6 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         DeepLinkRouter.handle(intent)
+        ScreenshotMode.prepare(this, intent)
         setContent { ExamApp() }
     }
 

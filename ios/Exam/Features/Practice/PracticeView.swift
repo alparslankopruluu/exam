@@ -22,7 +22,7 @@ struct PracticeView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(copy.text("practice"))
                     .font(.system(size: 28, weight: .bold))
-                Text("Built around your \(setup.exam.shortName) content pack")
+                Text(copy.text("practice_pack_hint", variables: ["exam": setup.exam.shortName]))
                     .font(.system(size: 13))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 3)
@@ -35,7 +35,7 @@ struct PracticeView: View {
                             .background(.white.opacity(0.16))
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         Spacer()
-                        Text("5 MIN")
+                        Text(copy.text("minutes_short", variables: ["count": "5"]).uppercased())
                             .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(.white.opacity(0.85))
                     }
@@ -109,12 +109,12 @@ struct PracticeView: View {
     private func detail(for unit: ContentUnit) -> String {
         var parts: [String] = []
         if let questionCount = unit.questionCount {
-            parts.append("\(questionCount) questions")
+            parts.append(copy.text("questions_count", variables: ["count": String(questionCount)]))
         }
         if let durationMinutes = unit.durationMinutes {
-            parts.append("\(durationMinutes) min")
+            parts.append(copy.text("minutes_short", variables: ["count": String(durationMinutes)]))
         }
-        return parts.isEmpty ? "Exam-specific practice" : parts.joined(separator: " · ")
+        return parts.isEmpty ? copy.text("exam_specific_practice") : parts.joined(separator: " · ")
     }
 
     private func practiceRow(
