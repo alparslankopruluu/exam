@@ -251,5 +251,7 @@
   "voice_listening": "Luistert…",
   "voice_tap_to_ask": "Tik om je tutor iets te vragen",
   "voice_play_answer": "Gesproken antwoord afspelen",
-  "exam_specific_practice": "Examengerichte oefening"
+  "exam_specific_practice": "Examengerichte oefening",
+  "paywall_unavailable": "Prijzen konden niet worden geladen. Controleer je verbinding en probeer het opnieuw.",
+  "try_again": "Opnieuw proberen"
 }

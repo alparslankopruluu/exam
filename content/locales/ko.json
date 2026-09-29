@@ -251,5 +251,7 @@
   "voice_listening": "듣고 있어요…",
   "voice_tap_to_ask": "탭해서 선생님에게 물어보기",
   "voice_play_answer": "음성 답변 듣기",
-  "exam_specific_practice": "시험 맞춤 연습"
+  "exam_specific_practice": "시험 맞춤 연습",
+  "paywall_unavailable": "가격을 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
+  "try_again": "다시 시도"
 }

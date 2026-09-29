@@ -28,3 +28,6 @@ store/ios/screenshots/
 store/android/metadata/android/*/images/
 backend/hosting/
 __pycache__/
+android/keystore.properties
+ios/build-release/
+backend/.firebase/

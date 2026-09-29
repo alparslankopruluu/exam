@@ -251,5 +251,7 @@
   "voice_listening": "正在聆聽…",
   "voice_tap_to_ask": "點一下向家教提問",
   "voice_play_answer": "播放語音回答",
-  "exam_specific_practice": "考試專項練習"
+  "exam_specific_practice": "考試專項練習",
+  "paywall_unavailable": "無法載入價格。請檢查網路連線後再試一次。",
+  "try_again": "再試一次"
 }

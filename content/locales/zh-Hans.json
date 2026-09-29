@@ -251,5 +251,7 @@
   "voice_listening": "正在聆听…",
   "voice_tap_to_ask": "点按向导师提问",
   "voice_play_answer": "播放语音回答",
-  "exam_specific_practice": "考试专项练习"
+  "exam_specific_practice": "考试专项练习",
+  "paywall_unavailable": "无法加载价格。请检查网络连接后重试。",
+  "try_again": "重试"
 }

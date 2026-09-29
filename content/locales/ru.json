@@ -251,5 +251,7 @@
   "voice_listening": "Слушаю…",
   "voice_tap_to_ask": "Нажмите, чтобы спросить репетитора",
   "voice_play_answer": "Прослушать ответ",
-  "exam_specific_practice": "Практика под экзамен"
+  "exam_specific_practice": "Практика под экзамен",
+  "paywall_unavailable": "Не удалось загрузить цены. Проверьте подключение и попробуйте снова.",
+  "try_again": "Повторить"
 }

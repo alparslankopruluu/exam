@@ -10,5 +10,5 @@ Examly 把备考变成每天简短清晰的计划。选择你的考试,完成 5 
 
 Examly 可免费开始使用。Premium 解锁无限个性化练习、高级 AI 导师、语音导师和无限学习资料。可选的点数包仅用于 AI 图片和视频讲解。订阅会自动续订,除非在当前周期结束前至少 24 小时取消;可在商店账户设置中管理。
 
-使用条款: {TERMS_URL}
-隐私政策: {PRIVACY_URL}
+使用条款: https://examly-study.web.app/terms
+隐私政策: https://examly-study.web.app/privacy

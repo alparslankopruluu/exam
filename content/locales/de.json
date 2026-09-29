@@ -251,5 +251,7 @@
   "voice_listening": "Hört zu…",
   "voice_tap_to_ask": "Tippe, um deinen Tutor zu fragen",
   "voice_play_answer": "Gesprochene Antwort abspielen",
-  "exam_specific_practice": "Prüfungsspezifisches Üben"
+  "exam_specific_practice": "Prüfungsspezifisches Üben",
+  "paywall_unavailable": "Preise konnten nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.",
+  "try_again": "Erneut versuchen"
 }

@@ -10,5 +10,5 @@ Examly sınava hazırlığı her gün için kısa ve net bir plana dönüştür�
 
 Examly'ye ücretsiz başlarsın. Premium; sınırsız kişisel pratik, gelişmiş yapay zekâ öğretmen, sesli öğretmen ve sınırsız çalışma materyali sunar. İsteğe bağlı kredi paketleri yalnızca yapay zekâ görsel ve video anlatımları için kullanılır. Abonelik, dönem bitiminden en az 24 saat önce iptal edilmezse otomatik yenilenir; mağaza hesap ayarlarından yönetebilirsin.
 
-Kullanım Koşulları: {TERMS_URL}
-Gizlilik: {PRIVACY_URL}
+Kullanım Koşulları: https://examly-study.web.app/terms
+Gizlilik: https://examly-study.web.app/privacy

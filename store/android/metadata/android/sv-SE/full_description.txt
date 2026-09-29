@@ -10,5 +10,5 @@ Examly gör provförberedelser till en kort och tydlig plan för varje dag. Väl
 
 Examly är gratis att börja med. Premium låser upp obegränsad personlig övning, den avancerade AI-handledaren, röst-handledaren och obegränsat studiematerial. Valfria kreditpaket används bara för AI-förklaringar med bild och video. Prenumerationen förnyas automatiskt om den inte sägs upp minst 24 timmar före periodens slut; hantera den i inställningarna för ditt butikskonto.
 
-Villkor: {TERMS_URL}
-Integritet: {PRIVACY_URL}
+Villkor: https://examly-study.web.app/terms
+Integritet: https://examly-study.web.app/privacy

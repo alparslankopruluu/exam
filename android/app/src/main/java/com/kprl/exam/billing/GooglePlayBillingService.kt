@@ -36,7 +36,8 @@ class GooglePlayBillingService(
 
     private var purchaseResultListener: ((Boolean, String?) -> Unit)? = null
 
-    fun start(onReady: (() -> Unit)? = null) {
+    /** [onError] fires when Play Billing is unavailable or the connection drops. */
+    fun start(onError: (() -> Unit)? = null, onReady: (() -> Unit)? = null) {
         if (billingClient.isReady) {
             onReady?.invoke()
             return
@@ -47,10 +48,14 @@ class GooglePlayBillingService(
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                     restorePurchases()
                     onReady?.invoke()
+                } else {
+                    onError?.invoke()
                 }
             }
 
-            override fun onBillingServiceDisconnected() = Unit
+            override fun onBillingServiceDisconnected() {
+                onError?.invoke()
+            }
         })
     }
 

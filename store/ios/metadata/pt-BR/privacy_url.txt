@@ -1,1 +1,1 @@
-{PRIVACY_URL}
+https://examly-study.web.app/privacy

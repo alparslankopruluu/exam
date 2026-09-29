@@ -10,6 +10,7 @@ struct PremiumPaywallView: View {
     @State private var selection: PlanChoice = .annual
     @State private var purchasing = false
     @State private var purchaseError: String?
+    @State private var pricesUnavailable = false
 
     private var copy: LocalizedCopy {
         LocalizedCopy.load(languageCode: setup.languageCode)
@@ -118,7 +119,19 @@ struct PremiumPaywallView: View {
                 }
             }
 
+            if pricesUnavailable {
+                Text(copy.text("paywall_unavailable"))
+                    .font(.system(size: 12))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 8)
+            }
+
             Button {
+                if pricesUnavailable {
+                    Task { await loadPrices() }
+                    return
+                }
                 Task { @MainActor in
                     purchasing = true
                     purchaseError = nil
@@ -151,6 +164,8 @@ struct PremiumPaywallView: View {
                 Text(
                     purchasing
                     ? copy.text("processing")
+                    : pricesUnavailable
+                    ? copy.text("try_again")
                     : selectedPrice.map {
                         copy.text("continue_price", variables: ["price": $0])
                     } ?? copy.text("loading_price")
@@ -159,11 +174,11 @@ struct PremiumPaywallView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(selectedPrice == nil ? ExamPalette.border : ExamPalette.primary)
+                    .background(selectedPrice == nil && !pricesUnavailable ? ExamPalette.border : ExamPalette.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
             .buttonStyle(.plain)
-            .disabled(selectedPrice == nil || purchasing)
+            .disabled((selectedPrice == nil && !pricesUnavailable) || purchasing)
 
             if let purchaseError {
                 Text(purchaseError)
@@ -190,7 +205,7 @@ struct PremiumPaywallView: View {
                     AnalyticsParam.contentPackId: setup.exam.syllabusPackId
                 ]
             )
-            offer = await StoreKitBillingService.shared.loadOffer()
+            await loadPrices()
             if let active = await OfferService.shared.fetch(daysToExam: StudySetupStore.daysToExam()),
                let presented = await StoreKitBillingService.shared.present(active) {
                 special = presented
@@ -201,6 +216,14 @@ struct PremiumPaywallView: View {
                 )
             }
         }
+    }
+
+    /// Loads store prices; when the store returns none (offline, misconfigured
+    /// products) the paywall offers a retry instead of loading forever.
+    private func loadPrices() async {
+        pricesUnavailable = false
+        offer = await StoreKitBillingService.shared.loadOffer()
+        pricesUnavailable = offer.annual.localizedPrice == nil && offer.monthly.localizedPrice == nil
     }
 
     private var headline: String {

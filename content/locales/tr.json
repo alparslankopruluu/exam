@@ -251,5 +251,7 @@
   "voice_listening": "Dinliyor…",
   "voice_tap_to_ask": "Öğretmene sormak için dokun",
   "voice_play_answer": "Sesli cevabı oynat",
-  "exam_specific_practice": "Sınava özel pratik"
+  "exam_specific_practice": "Sınava özel pratik",
+  "paywall_unavailable": "Fiyatlar yüklenemedi. Bağlantını kontrol edip tekrar dene.",
+  "try_again": "Tekrar dene"
 }

@@ -10,5 +10,5 @@ Examly convierte la preparación de un examen en un plan breve y claro para cada
 
 Examly es gratis para empezar. Premium desbloquea práctica personalizada ilimitada, el tutor IA avanzado, el tutor de voz y materiales de estudio ilimitados. Los paquetes de créditos opcionales solo se usan para explicaciones con imagen y vídeo generados por IA. La suscripción se renueva automáticamente salvo que la canceles al menos 24 horas antes del final del periodo; gestiónala en los ajustes de tu cuenta de la tienda.
 
-Términos: {TERMS_URL}
-Privacidad: {PRIVACY_URL}
+Términos: https://examly-study.web.app/terms
+Privacidad: https://examly-study.web.app/privacy

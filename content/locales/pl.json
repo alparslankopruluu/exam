@@ -251,5 +251,7 @@
   "voice_listening": "Słucham…",
   "voice_tap_to_ask": "Dotknij, aby zapytać tutora",
   "voice_play_answer": "Odtwórz odpowiedź",
-  "exam_specific_practice": "Ćwiczenia pod egzamin"
+  "exam_specific_practice": "Ćwiczenia pod egzamin",
+  "paywall_unavailable": "Nie udało się wczytać cen. Sprawdź połączenie i spróbuj ponownie.",
+  "try_again": "Spróbuj ponownie"
 }

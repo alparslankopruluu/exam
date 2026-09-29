@@ -251,5 +251,7 @@
   "voice_listening": "聞いています…",
   "voice_tap_to_ask": "タップして質問する",
   "voice_play_answer": "回答を再生",
-  "exam_specific_practice": "試験別の演習"
+  "exam_specific_practice": "試験別の演習",
+  "paywall_unavailable": "価格を読み込めませんでした。接続を確認してもう一度お試しください。",
+  "try_again": "再試行"
 }

@@ -251,5 +251,7 @@
   "voice_listening": "À l’écoute…",
   "voice_tap_to_ask": "Touche pour poser ta question",
   "voice_play_answer": "Écouter la réponse",
-  "exam_specific_practice": "Entraînement spécifique à l’examen"
+  "exam_specific_practice": "Entraînement spécifique à l’examen",
+  "paywall_unavailable": "Impossible de charger les prix. Vérifie ta connexion et réessaie.",
+  "try_again": "Réessayer"
 }
