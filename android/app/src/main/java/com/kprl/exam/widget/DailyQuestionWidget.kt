@@ -76,7 +76,7 @@ class DailyQuestionWidget : GlanceAppWidget() {
             val q = s?.question
             if (s == null || q == null) {
                 Text(
-                    s?.label("widget_open_app") ?: "Open Exam to get today's question",
+                    s?.label("widget_open_app") ?: "Open Examly to get today's question",
                     modifier = GlanceModifier.clickable(actionStartActivity(openAppIntent(context, "today"))),
                     style = TextStyle(color = WidgetColors.of(WidgetColors.TextSecondary), fontSize = 13.sp)
                 )

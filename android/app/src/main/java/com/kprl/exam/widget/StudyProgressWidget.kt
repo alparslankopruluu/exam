@@ -66,7 +66,7 @@ class StudyProgressWidget : GlanceAppWidget() {
             verticalAlignment = Alignment.Vertical.Top
         ) {
             if (s == null) {
-                Text("Exam", style = TextStyle(color = WidgetColors.of(WidgetColors.TextPrimary), fontWeight = FontWeight.Bold))
+                Text("Examly", style = TextStyle(color = WidgetColors.of(WidgetColors.TextPrimary), fontWeight = FontWeight.Bold))
                 return@Column
             }
             Text(s.examName, style = TextStyle(color = WidgetColors.of(WidgetColors.Primary), fontSize = 11.sp, fontWeight = FontWeight.Bold))

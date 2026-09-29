@@ -1,0 +1,14 @@
+Examly transforme la préparation d’un examen en un plan court et clair pour chaque jour. Choisis ton examen, fais un test de niveau de 5 questions et obtiens une semaine de révision qui s’adapte à tes progrès.
+
+• Plan quotidien personnel basé sur ton test de niveau, ta maîtrise et tes erreurs récentes
+• Exercices adaptatifs type examen pour plus de 20 examens, dont le bac, l’IELTS, le TOEFL et le SAT
+• Error DNA : repère les erreurs qui te coûtent des points et corrige-les
+• Tuteur IA qui explique étape par étape, plus simplement si besoin, et résout un exercice en photo
+• Transforme tes notes et PDF en résumés et en quiz
+• Fiches avec répétition espacée, examens blancs chronométrés et sessions de concentration
+• Widgets d’écran d’accueil : ta série et une question du jour à laquelle répondre sans ouvrir l’app
+
+Examly est gratuit pour commencer. Premium débloque les exercices personnalisés illimités, le tuteur IA avancé, le tuteur vocal et les supports de cours illimités. Les packs de crédits facultatifs servent uniquement aux explications IA en image et en vidéo. L’abonnement se renouvelle automatiquement s’il n’est pas résilié au moins 24 heures avant la fin de la période ; gère-le dans les réglages de ton compte store.
+
+Conditions d’utilisation: {TERMS_URL}
+Confidentialité: {PRIVACY_URL}

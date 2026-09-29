@@ -1,0 +1,14 @@
+Examly turns exam prep into a short, clear plan for every day. Pick your exam, take a 5-question diagnostic, and get a personal study week that adapts as you learn.
+
+• Personal daily plan built from your diagnostic, mastery and recent mistakes
+• Adaptive practice with exam-style questions for 20+ exams, including SAT, ACT, IELTS, TOEFL, YKS, A-Level and more
+• Error DNA: see the patterns that cost you points and fix them
+• AI tutor that explains step by step, simpler when you need it, and solves questions from a photo
+• Turn your notes and PDFs into summaries and quizzes
+• Flashcards with spaced repetition, timed mock exams and focus sessions
+• Home screen widgets: your streak and a question of the day you can answer without opening the app
+
+Examly is free to start. Premium unlocks unlimited personalized practice, the advanced AI tutor, voice tutor and unlimited study materials. Optional credit packs are used only for AI image and video explanations. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the period; manage them in your store account settings.
+
+Terms: {TERMS_URL}
+Privacy: {PRIVACY_URL}
