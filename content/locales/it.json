@@ -251,5 +251,7 @@
   "voice_listening": "In ascolto…",
   "voice_tap_to_ask": "Tocca per chiedere al tutor",
   "voice_play_answer": "Ascolta la risposta",
-  "exam_specific_practice": "Esercizi specifici per l’esame"
+  "exam_specific_practice": "Esercizi specifici per l’esame",
+  "paywall_unavailable": "Impossibile caricare i prezzi. Controlla la connessione e riprova.",
+  "try_again": "Riprova"
 }

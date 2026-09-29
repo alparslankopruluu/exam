@@ -10,5 +10,5 @@ Examly turns exam prep into a short, clear plan for every day. Pick your exam, t
 
 Examly is free to start. Premium unlocks unlimited personalized practice, the advanced AI tutor, voice tutor and unlimited study materials. Optional credit packs are used only for AI image and video explanations. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the period; manage them in your store account settings.
 
-Terms: {TERMS_URL}
-Privacy: {PRIVACY_URL}
+Terms: https://examly-study.web.app/terms
+Privacy: https://examly-study.web.app/privacy

@@ -251,5 +251,7 @@
   "voice_listening": "جارٍ الاستماع…",
   "voice_tap_to_ask": "اضغط لتسأل معلمك",
   "voice_play_answer": "تشغيل الإجابة الصوتية",
-  "exam_specific_practice": "تدريب خاص بالاختبار"
+  "exam_specific_practice": "تدريب خاص بالاختبار",
+  "paywall_unavailable": "تعذّر تحميل الأسعار. تحقّق من اتصالك وحاول مرة أخرى.",
+  "try_again": "إعادة المحاولة"
 }

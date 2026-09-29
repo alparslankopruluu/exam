@@ -251,5 +251,7 @@
   "voice_listening": "Listening…",
   "voice_tap_to_ask": "Tap to ask your tutor",
   "voice_play_answer": "Play spoken answer",
-  "exam_specific_practice": "Exam-specific practice"
+  "exam_specific_practice": "Exam-specific practice",
+  "paywall_unavailable": "Prices couldn't load. Check your connection and try again.",
+  "try_again": "Try again"
 }

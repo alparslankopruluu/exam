@@ -10,5 +10,5 @@ Examly gjør eksamensforberedelser om til en kort og tydelig plan for hver dag. 
 
 Examly er gratis å starte med. Premium låser opp ubegrenset personlig øving, den avanserte KI-veilederen, stemmeveilederen og ubegrenset studiemateriale. Valgfrie kredittpakker brukes bare til KI-forklaringer med bilde og video. Abonnementet fornyes automatisk med mindre det sies opp minst 24 timer før perioden utløper; administrer det i innstillingene for butikkontoen din.
 
-Vilkår: {TERMS_URL}
-Personvern: {PRIVACY_URL}
+Vilkår: https://examly-study.web.app/terms
+Personvern: https://examly-study.web.app/privacy

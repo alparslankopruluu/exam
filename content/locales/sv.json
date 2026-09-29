@@ -251,5 +251,7 @@
   "voice_listening": "Lyssnar…",
   "voice_tap_to_ask": "Tryck för att fråga handledaren",
   "voice_play_answer": "Spela upp svaret",
-  "exam_specific_practice": "Provspecifik övning"
+  "exam_specific_practice": "Provspecifik övning",
+  "paywall_unavailable": "Priserna kunde inte laddas. Kontrollera anslutningen och försök igen.",
+  "try_again": "Försök igen"
 }

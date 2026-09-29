@@ -251,5 +251,7 @@
   "voice_listening": "Lytter …",
   "voice_tap_to_ask": "Trykk for å spørre veilederen",
   "voice_play_answer": "Spill av svaret",
-  "exam_specific_practice": "Eksamensrettet øving"
+  "exam_specific_practice": "Eksamensrettet øving",
+  "paywall_unavailable": "Kunne ikke laste inn prisene. Sjekk tilkoblingen og prøv igjen.",
+  "try_again": "Prøv igjen"
 }

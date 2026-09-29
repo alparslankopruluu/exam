@@ -10,5 +10,5 @@ Examly macht aus Prüfungsvorbereitung einen kurzen, klaren Plan für jeden Tag.
 
 Examly kannst du kostenlos starten. Premium schaltet unbegrenztes personalisiertes Üben, den erweiterten KI-Tutor, den Sprach-Tutor und unbegrenzte Lernmaterialien frei. Optionale Credit-Pakete werden nur für KI-Bild- und Video-Erklärungen verwendet. Abos verlängern sich automatisch, wenn sie nicht mindestens 24 Stunden vor Ablauf gekündigt werden; verwalte sie in den Einstellungen deines Store-Kontos.
 
-Nutzungsbedingungen: {TERMS_URL}
-Datenschutz: {PRIVACY_URL}
+Nutzungsbedingungen: https://examly-study.web.app/terms
+Datenschutz: https://examly-study.web.app/privacy

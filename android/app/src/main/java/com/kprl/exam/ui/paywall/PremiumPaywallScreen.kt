@@ -43,7 +43,10 @@ fun PremiumPaywallScreen(
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
     val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
-    val billing = remember { GooglePlayBillingService(context.applicationContext) }
+    // A closed BillingClient can't be reused, so each retry gets a fresh one.
+    var loadAttempt by remember { mutableIntStateOf(0) }
+    var priceState by remember { mutableStateOf(PriceState.LOADING) }
+    val billing = remember(loadAttempt) { GooglePlayBillingService(context.applicationContext) }
 
     var offer by remember { mutableStateOf(StoreOfferPresentation()) }
     var special by remember { mutableStateOf<OfferPresentation?>(null) }
@@ -51,10 +54,22 @@ fun PremiumPaywallScreen(
     var purchasing by remember { mutableStateOf(false) }
     var purchaseError by remember { mutableStateOf<String?>(null) }
 
+    LaunchedEffect(loadAttempt) {
+        delay(PRICE_TIMEOUT_MS)
+        if (priceState == PriceState.LOADING) priceState = PriceState.UNAVAILABLE
+    }
+
     DisposableEffect(billing) {
-        billing.start {
+        billing.start(onError = {
+            if (priceState == PriceState.LOADING) priceState = PriceState.UNAVAILABLE
+        }) {
             billing.loadOffer { loaded ->
                 offer = loaded
+                priceState = if (loaded.annual.localizedPrice != null || loaded.monthly.localizedPrice != null) {
+                    PriceState.READY
+                } else {
+                    PriceState.UNAVAILABLE
+                }
                 OfferService.fetch(StudySetupStore(context.applicationContext).daysToExam()) { active ->
                     val presented = active?.let(billing::present) ?: return@fetch
                     special = presented
@@ -185,8 +200,21 @@ fun PremiumPaywallScreen(
         }
 
         Spacer(Modifier.weight(1f))
+        if (priceState == PriceState.UNAVAILABLE) {
+            Text(
+                copy.text("paywall_unavailable"),
+                color = ExamColors.TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            )
+        }
         Button(
             onClick = {
+                if (priceState == PriceState.UNAVAILABLE) {
+                    priceState = PriceState.LOADING
+                    loadAttempt++
+                    return@Button
+                }
                 val host = activity
                 if (host == null) {
                     purchaseError = copy.text("purchase_not_completed")
@@ -218,7 +246,7 @@ fun PremiumPaywallScreen(
                     }
                 }
             },
-            enabled = selectedPrice != null && !purchasing,
+            enabled = (selectedPrice != null || priceState == PriceState.UNAVAILABLE) && !purchasing,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(18.dp),
             colors = ButtonDefaults.buttonColors(
@@ -230,6 +258,7 @@ fun PremiumPaywallScreen(
             Text(
                 when {
                     purchasing -> copy.text("processing")
+                    priceState == PriceState.UNAVAILABLE -> copy.text("try_again")
                     selectedPrice != null -> copy.text(
                         "continue_price",
                         mapOf("price" to selectedPrice)
@@ -322,6 +351,10 @@ private fun PlanCard(
 }
 
 private enum class PlanChoice { SPECIAL, ANNUAL, MONTHLY }
+
+private enum class PriceState { LOADING, READY, UNAVAILABLE }
+
+private const val PRICE_TIMEOUT_MS = 10_000L
 
 @Composable
 private fun SpecialOfferCard(

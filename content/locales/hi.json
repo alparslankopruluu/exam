@@ -251,5 +251,7 @@
   "voice_listening": "सुन रहे हैं…",
   "voice_tap_to_ask": "ट्यूटर से पूछने के लिए टैप करें",
   "voice_play_answer": "बोला गया जवाब सुनें",
-  "exam_specific_practice": "परीक्षा-विशेष अभ्यास"
+  "exam_specific_practice": "परीक्षा-विशेष अभ्यास",
+  "paywall_unavailable": "कीमतें लोड नहीं हो सकीं। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+  "try_again": "फिर से कोशिश करें"
 }

@@ -10,5 +10,5 @@ Examly는 시험 준비를 매일의 짧고 명확한 계획으로 바꿔 줍니
 
 Examly는 무료로 시작할 수 있습니다. Premium에서는 무제한 맞춤 연습, 고급 AI 선생님, 음성 튜터, 무제한 학습 자료를 이용할 수 있습니다. 선택 사항인 크레딧 팩은 AI 이미지·영상 설명에만 사용됩니다. 구독은 기간 종료 최소 24시간 전에 해지하지 않으면 자동으로 갱신되며, 스토어 계정 설정에서 관리할 수 있습니다.
 
-이용약관: {TERMS_URL}
-개인정보 처리방침: {PRIVACY_URL}
+이용약관: https://examly-study.web.app/terms
+개인정보 처리방침: https://examly-study.web.app/privacy

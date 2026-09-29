@@ -10,5 +10,5 @@ Examly zamienia przygotowania do egzaminu w krótki, jasny plan na każdy dzień
 
 Examly możesz zacząć za darmo. Premium odblokowuje nielimitowane ćwiczenia, zaawansowanego tutora AI, tutora głosowego i nielimitowane materiały. Opcjonalne pakiety kredytów służą wyłącznie do wyjaśnień AI w formie obrazów i filmów. Subskrypcja odnawia się automatycznie, jeśli nie zostanie anulowana co najmniej 24 godziny przed końcem okresu; zarządzaj nią w ustawieniach konta sklepu.
 
-Regulamin: {TERMS_URL}
-Prywatność: {PRIVACY_URL}
+Regulamin: https://examly-study.web.app/terms
+Prywatność: https://examly-study.web.app/privacy

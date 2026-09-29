@@ -10,5 +10,5 @@ Examly 把準備考試變成每天簡短清楚的計畫。選擇你的考試,完
 
 Examly 可以免費開始使用。Premium 解鎖無限個人化練習、進階 AI 家教、語音家教和無限學習資料。選購的點數包僅用於 AI 圖片和影片講解。訂閱會自動續訂,除非在目前週期結束前至少 24 小時取消;可在商店帳號設定中管理。
 
-使用條款: {TERMS_URL}
-隱私權政策: {PRIVACY_URL}
+使用條款: https://examly-study.web.app/terms
+隱私權政策: https://examly-study.web.app/privacy

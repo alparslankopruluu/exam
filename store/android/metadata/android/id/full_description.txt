@@ -10,5 +10,5 @@ Examly mengubah persiapan ujian menjadi rencana singkat dan jelas setiap hari. P
 
 Examly gratis untuk memulai. Premium membuka latihan pribadi tanpa batas, tutor AI lanjutan, tutor suara, dan materi belajar tanpa batas. Paket kredit opsional hanya dipakai untuk penjelasan gambar dan video buatan AI. Langganan diperpanjang otomatis kecuali dibatalkan paling lambat 24 jam sebelum periode berakhir; kelola di pengaturan akun toko.
 
-Ketentuan: {TERMS_URL}
-Privasi: {PRIVACY_URL}
+Ketentuan: https://examly-study.web.app/terms
+Privasi: https://examly-study.web.app/privacy

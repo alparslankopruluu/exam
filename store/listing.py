@@ -11,9 +11,9 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent
 
-# Fill these in once the pages are hosted (docs/TERMS.md, docs/PRIVACY_POLICY.md).
-TERMS_URL = "{TERMS_URL}"
-PRIVACY_URL = "{PRIVACY_URL}"
+# Hosted on Firebase Hosting (store/legal/build.py + firebase deploy --only hosting).
+TERMS_URL = "https://examly-study.web.app/terms"
+PRIVACY_URL = "https://examly-study.web.app/privacy"
 
 # app code -> (App Store Connect locale, Google Play locale)
 LOCALES = {

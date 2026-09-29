@@ -251,5 +251,7 @@
   "voice_listening": "Mendengarkan…",
   "voice_tap_to_ask": "Ketuk untuk bertanya ke tutor",
   "voice_play_answer": "Putar jawaban suara",
-  "exam_specific_practice": "Latihan khusus ujian"
+  "exam_specific_practice": "Latihan khusus ujian",
+  "paywall_unavailable": "Harga tidak bisa dimuat. Periksa koneksimu lalu coba lagi.",
+  "try_again": "Coba lagi"
 }

@@ -251,5 +251,7 @@
   "voice_listening": "Escuchando…",
   "voice_tap_to_ask": "Toca para preguntar a tu tutor",
   "voice_play_answer": "Reproducir respuesta hablada",
-  "exam_specific_practice": "Práctica específica del examen"
+  "exam_specific_practice": "Práctica específica del examen",
+  "paywall_unavailable": "No se pudieron cargar los precios. Revisa tu conexión e inténtalo de nuevo.",
+  "try_again": "Reintentar"
 }
