@@ -127,7 +127,8 @@ export const getActiveOffer = onCall(
       const expiresAt = now + RULES[kind].durationMs;
       await offersRef.doc(kind).set({
         issuedAt: FieldValue.serverTimestamp(),
-        expiresAt: Timestamp.fromMillis(expiresAt)
+        expiresAt: Timestamp.fromMillis(expiresAt),
+        discountPercent: RULES[kind].discountPercent
       });
       current = { kind, expiresAt };
     }

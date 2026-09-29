@@ -11,6 +11,11 @@ struct UserProgressSnapshot: Hashable {
 struct UserProgressStore {
     private let defaults = UserDefaults.standard
 
+    /// Local calendar day of the last completed study session.
+    func lastStudyDay() -> Date? {
+        defaults.object(forKey: "progress.lastStudyDay") as? Date
+    }
+
     func snapshot() -> UserProgressSnapshot {
         UserProgressSnapshot(
             xp: defaults.integer(forKey: "progress.xp"),

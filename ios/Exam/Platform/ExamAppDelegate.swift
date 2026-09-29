@@ -34,4 +34,20 @@ final class ExamAppDelegate: NSObject, UIApplicationDelegate, @preconcurrency UN
     ) {
         completionHandler([.banner, .sound, .badge])
     }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let info = response.notification.request.content.userInfo
+        if let route = info["route"] as? String {
+            DeepLinkRouter.shared.pending = route
+            AppServices.shared.analytics.event(
+                "push_opened",
+                params: ["push_type": info["type"] as? String ?? "unknown"]
+            )
+        }
+        completionHandler()
+    }
 }
