@@ -25,7 +25,7 @@ async function deleteQuery(path: string, uid: string): Promise<void> {
 }
 
 export const deleteAccount = onCall(
-  { timeoutSeconds: 120, memory: "512MiB" },
+  { invoker: "public", timeoutSeconds: 120, memory: "512MiB" },
   async request => {
     const uid = requireUid(request);
 

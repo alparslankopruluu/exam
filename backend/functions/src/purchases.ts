@@ -199,6 +199,7 @@ async function verifyApple(data: any): Promise<VerifiedPurchase> {
 
 export const verifyStorePurchase = onCall(
   {
+    invoker: "public",
     secrets: [APPLE_IAP_PRIVATE_KEY, APPLE_ROOT_CERTS_B64_JSON],
     timeoutSeconds: 60,
     memory: "512MiB"
