@@ -20,8 +20,12 @@ targets:
     platform: iOS
     sources:
       - Exam
-    resources:
-      - path: ../content
+      - path: ../content/locales
+        type: folder
+        buildPhase: resources
+      - path: ../content/packs
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: Firebase
         product: FirebaseAnalytics

@@ -16,3 +16,5 @@ ios/.build/
 GoogleService-Info.plist
 google-services.json
 .env
+ios/build/
+ios/*.xcodeproj/
