@@ -1,6 +1,6 @@
 """Builds the public legal/support pages from docs/*.md.
 
-Output: store/legal/site/{index,privacy,terms,support}.html — ready for any
+Output: backend/hosting/{index,privacy,terms,support}.html — ready for any
 static host (GitHub Pages, Vercel, Firebase Hosting).
 
 Operator details come from store/legal/operator.json. The build refuses to
@@ -15,7 +15,8 @@ import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-OUT = HERE / "site"
+# Served by Firebase Hosting (backend/firebase.json -> "public": "hosting").
+OUT = REPO / "backend" / "hosting"
 
 PAGE = """<!doctype html>
 <html lang="en"><head>

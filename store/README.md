@@ -31,4 +31,4 @@ Writes `store/ios/metadata/<locale>/` and `store/android/metadata/android/<local
 
 ## Legal pages
 
-Fill `store/legal/operator.json`, then `python3 store/legal/build.py` writes the privacy, terms and support pages to `store/legal/site/`.
+Fill `store/legal/operator.json`, then `python3 store/legal/build.py` writes the privacy, terms and support pages to `backend/hosting/`; publish with `cd backend && firebase deploy --only hosting`.

@@ -26,5 +26,5 @@ backend/functions/package-lock.json
 store/screenshots/
 store/ios/screenshots/
 store/android/metadata/android/*/images/
-store/legal/site/
+backend/hosting/
 __pycache__/
