@@ -8,6 +8,12 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.platform.LocalContext
+import com.kprl.exam.platform.persistence.StudySetupStore
+import com.kprl.exam.ui.components.ExamDateField
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.util.Locale
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,6 +46,8 @@ private data class Choice(val title: String, val subtitle: String, val icon: Ima
 
 @Composable
 fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
+    val onboardingContext = LocalContext.current
+    var examDate by remember { mutableStateOf<LocalDate?>(LocalDate.now().plusMonths(3)) }
     var step by rememberSaveable { mutableIntStateOf(0) }
     var countryIndex by rememberSaveable { mutableIntStateOf(ExamCatalog.suggestedCountryIndex()) }
     var examIndex by rememberSaveable { mutableIntStateOf(-1) }
@@ -145,8 +153,11 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
                 4 -> DiagnosticStep(exams[examIndex], copy) { score -> selected[current] = score }
                 else -> PlanReadyStep(
                     exam = exams[examIndex],
+                    copy = copy,
                     diagnosticPercent = selected[4] ?: 50,
-                    dailyMinutes = dailyMinutesFor(selected[3] ?: 1)
+                    dailyMinutes = dailyMinutesFor(selected[3] ?: 1),
+                    examDate = examDate,
+                    onExamDateChange = { examDate = it }
                 )
             }
         }
@@ -164,6 +175,11 @@ fun OnboardingScreen(onComplete: (StudySetup) -> Unit) {
                         AnalyticsParams.CONTENT_PACK_ID to exams[examIndex].syllabusPackId,
                         AnalyticsParams.LANGUAGE_CODE to ExamCatalog.languageCode()
                     )
+                )
+                StudySetupStore(onboardingContext.applicationContext).setExamDate(examDate)
+                AppServices.analytics.event(
+                    "exam_date_set",
+                    mapOf("known" to (examDate != null))
                 )
                 AppServices.analytics.userProperty("exam_id", exams[examIndex].id)
                 AppServices.analytics.userProperty("country_code", country.code)
@@ -470,21 +486,46 @@ private fun dailyMinutesFor(index: Int): Int = when (index) {
 }
 
 @Composable
-private fun PlanReadyStep(exam: ExamDefinition, diagnosticPercent: Int, dailyMinutes: Int) {
+private fun PlanReadyStep(
+    exam: ExamDefinition,
+    copy: LocalizedCopy,
+    diagnosticPercent: Int,
+    dailyMinutes: Int,
+    examDate: LocalDate?,
+    onExamDateChange: (LocalDate?) -> Unit
+) {
+    val days = remember { java.time.format.TextStyle.SHORT }.let { style ->
+        listOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY)
+            .map { it.getDisplayName(style, Locale.forLanguageTag(ExamCatalog.languageCode())).uppercase() }
+    }
+    fun minutes(n: Int) = copy.text("minutes_short", mapOf("count" to n.toString()))
+
     Column(Modifier.verticalScroll(rememberScrollState())) {
         Spacer(Modifier.height(28.dp))
-        Text("Your ${exam.shortName} week is ready.", fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("plan_ready_title", mapOf("exam" to exam.shortName)), fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Text("Starting level $diagnosticPercent% · $dailyMinutes min/day. The plan adapts as your mastery changes.", color = ExamColors.TextSecondary)
+        Text(
+            copy.text("plan_ready_subtitle", mapOf("level" to diagnosticPercent.toString(), "minutes" to dailyMinutes.toString())),
+            color = ExamColors.TextSecondary
+        )
         Spacer(Modifier.height(24.dp))
         Surface(color = ExamColors.Surface, shape = RoundedCornerShape(24.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                PlanRow("MON", "Core concept", "Learn + Practice", "12 min", ExamColors.Primary)
-                PlanRow("TUE", "Targeted practice", "Exam-style questions", "17 min", ExamColors.Mint)
-                PlanRow("WED", "Review", "Mistake session", "14 min", ExamColors.Amber)
-                PlanRow("THU", "Mini mock", "Exam blueprint", "20 min", ExamColors.Purple)
+                PlanRow(days[0], copy.text("plan_core_title"), copy.text("plan_core_subtitle"), minutes(12), ExamColors.Primary)
+                PlanRow(days[1], copy.text("plan_targeted_title"), copy.text("plan_targeted_subtitle"), minutes(17), ExamColors.Mint)
+                PlanRow(days[2], copy.text("plan_review_title"), copy.text("plan_review_subtitle"), minutes(14), ExamColors.Amber)
+                PlanRow(days[3], copy.text("plan_mock_title"), copy.text("plan_mock_subtitle"), minutes(20), ExamColors.Purple)
             }
         }
+        Spacer(Modifier.height(14.dp))
+        ExamDateField(
+            title = copy.text("exam_date_question", mapOf("exam" to exam.shortName)),
+            copy = copy,
+            languageCode = ExamCatalog.languageCode(),
+            date = examDate,
+            onChange = onExamDateChange
+        )
+        Spacer(Modifier.height(24.dp))
     }
 }
 

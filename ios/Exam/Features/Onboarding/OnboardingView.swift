@@ -14,6 +14,8 @@ struct OnboardingView: View {
     @State private var countryIndex = ExamCatalog.suggestedCountryIndex
     @State private var examIndex: Int?
     @State private var selected: [Int: Int] = [:]
+    @State private var examDate = Calendar.current.date(byAdding: .month, value: 3, to: .now) ?? .now
+    @State private var knowsExamDate = true
 
     private let totalSteps = 6
 
@@ -87,6 +89,11 @@ struct OnboardingView: View {
                             AnalyticsParam.contentPackId: exams[examIndex].syllabusPackId,
                             AnalyticsParam.languageCode: ExamCatalog.languageCode
                         ]
+                    )
+                    StudySetupStore.setExamDate(knowsExamDate ? examDate : nil)
+                    AppServices.shared.analytics.event(
+                        "exam_date_set",
+                        params: ["known": knowsExamDate, "days_to_exam": StudySetupStore.daysToExam() ?? -1]
                     )
                     AppServices.shared.analytics.userProperty("exam_id", value: exams[examIndex].id)
                     AppServices.shared.analytics.userProperty("country_code", value: country.code)
@@ -307,28 +314,74 @@ struct OnboardingView: View {
 
         return ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Your \(exam.shortName) week is ready.")
+                Text(copy.text("plan_ready_title", variables: ["exam": exam.shortName]))
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 28)
-                Text("Starting level \(selected[4] ?? 50)% · \(dailyMinutes(for: selected[3] ?? 1)) min/day. The plan adapts as your mastery changes.")
+                Text(copy.text("plan_ready_subtitle", variables: [
+                    "level": String(selected[4] ?? 50),
+                    "minutes": String(dailyMinutes(for: selected[3] ?? 1))
+                ]))
                     .font(.system(size: 15))
                     .foregroundStyle(ExamPalette.textSecondary)
                     .padding(.top, 8)
 
                 VStack(spacing: 15) {
-                    planRow("MON", "Core concept", "Learn + Practice", "12 min", ExamPalette.primary)
-                    planRow("TUE", "Targeted practice", "Exam-style questions", "17 min", ExamPalette.mint)
-                    planRow("WED", "Review", "Mistake session", "14 min", ExamPalette.amber)
-                    planRow("THU", "Mini mock", "Exam blueprint", "20 min", ExamPalette.purple)
+                    planRow(weekday(2), copy.text("plan_core_title"), copy.text("plan_core_subtitle"), copy.text("minutes_short", variables: ["count":"12"]), ExamPalette.primary)
+                    planRow(weekday(3), copy.text("plan_targeted_title"), copy.text("plan_targeted_subtitle"), copy.text("minutes_short", variables: ["count":"17"]), ExamPalette.mint)
+                    planRow(weekday(4), copy.text("plan_review_title"), copy.text("plan_review_subtitle"), copy.text("minutes_short", variables: ["count":"14"]), ExamPalette.amber)
+                    planRow(weekday(5), copy.text("plan_mock_title"), copy.text("plan_mock_subtitle"), copy.text("minutes_short", variables: ["count":"20"]), ExamPalette.purple)
                 }
                 .padding(18)
                 .examCard(radius: 24)
                 .padding(.top, 24)
-                .padding(.bottom, 24)
+
+                examDateSection(exam)
+                    .padding(.top, 14)
+                    .padding(.bottom, 24)
             }
             .padding(.horizontal, 20)
         }
         .frame(maxHeight: .infinity)
+    }
+
+    private func examDateSection(_ exam: ExamDefinition) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(copy.text("exam_date_question", variables: ["exam": exam.shortName]))
+                .font(.system(size: 15, weight: .semibold))
+
+            if knowsExamDate {
+                DatePicker(
+                    copy.text("exam_date_label"),
+                    selection: $examDate,
+                    in: Date()...,
+                    displayedComponents: .date
+                )
+                .font(.system(size: 14))
+                .tint(ExamPalette.primary)
+            }
+
+            Button {
+                knowsExamDate.toggle()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: knowsExamDate ? "circle" : "checkmark.circle.fill")
+                        .foregroundStyle(knowsExamDate ? ExamPalette.border : ExamPalette.primary)
+                    Text(copy.text("exam_date_unknown"))
+                        .font(.system(size: 13))
+                        .foregroundStyle(ExamPalette.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(16)
+        .examCard(radius: 20)
+    }
+
+    /// Short localized weekday name, 1 = Sunday ... 7 = Saturday.
+    private func weekday(_ index: Int) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: ExamCatalog.languageCode)
+        return formatter.shortWeekdaySymbols[(index - 1) % 7].uppercased()
     }
 
     private func planRow(_ day: String, _ title: String, _ subtitle: String, _ time: String, _ accent: Color) -> some View {

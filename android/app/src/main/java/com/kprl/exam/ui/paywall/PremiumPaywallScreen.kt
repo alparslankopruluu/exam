@@ -23,6 +23,7 @@ import android.content.ContextWrapper
 import com.kprl.exam.billing.GooglePlayBillingService
 import com.kprl.exam.billing.OfferPresentation
 import com.kprl.exam.billing.OfferService
+import com.kprl.exam.platform.persistence.StudySetupStore
 import kotlinx.coroutines.delay
 import com.kprl.exam.analytics.AnalyticsEvents
 import com.kprl.exam.analytics.AnalyticsParams
@@ -54,7 +55,7 @@ fun PremiumPaywallScreen(
         billing.start {
             billing.loadOffer { loaded ->
                 offer = loaded
-                OfferService.fetch { active ->
+                OfferService.fetch(StudySetupStore(context.applicationContext).daysToExam()) { active ->
                     val presented = active?.let(billing::present) ?: return@fetch
                     special = presented
                     selection = PlanChoice.SPECIAL

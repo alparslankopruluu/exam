@@ -31,6 +31,27 @@ enum StudySetupStore {
         )
     }
 
+    /// Optional exam date; nil means the learner does not know it yet.
+    static func examDate() -> Date? {
+        UserDefaults.standard.object(forKey: "study.examDate") as? Date
+    }
+
+    static func setExamDate(_ date: Date?) {
+        if let date {
+            UserDefaults.standard.set(Calendar.current.startOfDay(for: date), forKey: "study.examDate")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "study.examDate")
+        }
+    }
+
+    /// Whole days from today to the exam; nil when unknown or already past.
+    static func daysToExam(now: Date = .now) -> Int? {
+        guard let date = examDate() else { return nil }
+        let calendar = Calendar.current
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: date).day ?? 0
+        return days >= 0 ? days : nil
+    }
+
     static func onboardingPaywallSeen() -> Bool {
         UserDefaults.standard.bool(forKey: "study.onboardingPaywallSeen")
     }
@@ -55,6 +76,7 @@ enum StudySetupStore {
             "study.goal",
             "study.dailyMinutes",
             "study.diagnosticPercent",
+            "study.examDate",
             "study.onboardingPaywallSeen",
             "study.notificationPrompted"
         ].forEach(UserDefaults.standard.removeObject(forKey:))

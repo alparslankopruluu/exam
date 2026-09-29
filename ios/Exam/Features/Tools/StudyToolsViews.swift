@@ -850,6 +850,7 @@ struct ProfileSettingsView: View {
     @State private var deletingAccount = false
     @State private var deleteError: String?
     @State private var showAccount = false
+    @State private var examDate = StudySetupStore.examDate()
     @ObservedObject private var auth = AuthService.shared
 
     private var copy: LocalizedCopy {
@@ -874,6 +875,47 @@ struct ProfileSettingsView: View {
                 ) {
                     showAccount = true
                 }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(copy.text("exam_date_label"))
+                        .font(.system(size: 14, weight: .semibold))
+                    if let date = examDate {
+                        HStack {
+                            DatePicker(
+                                "",
+                                selection: Binding(
+                                    get: { date },
+                                    set: { value in
+                                        examDate = value
+                                        StudySetupStore.setExamDate(value)
+                                    }
+                                ),
+                                in: Date()...,
+                                displayedComponents: .date
+                            )
+                            .labelsHidden()
+                            .tint(ExamPalette.primary)
+                            Spacer()
+                            Button(copy.text("exam_date_clear")) {
+                                examDate = nil
+                                StudySetupStore.setExamDate(nil)
+                            }
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                        }
+                    } else {
+                        Button(copy.text("exam_date_add")) {
+                            let date = Calendar.current.date(byAdding: .month, value: 3, to: .now) ?? .now
+                            examDate = date
+                            StudySetupStore.setExamDate(date)
+                        }
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(ExamPalette.primary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(14)
+                .examCard(radius: 18)
 
                 settingsRow("chart.xyaxis.line", copy.text("progress"), copy.text("progress_hint"), action: onProgress)
                 settingsRow("diamond.fill", copy.text("ai_credits"), copy.text("credits_hint"), action: onCredits)

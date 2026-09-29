@@ -3,6 +3,8 @@ package com.kprl.exam.platform.persistence
 import android.content.Context
 import com.kprl.exam.data.ExamCatalog
 import com.kprl.exam.data.StudySetup
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class StudySetupStore(context: Context) {
     private val prefs = context.getSharedPreferences("study_setup", Context.MODE_PRIVATE)
@@ -34,6 +36,20 @@ class StudySetupStore(context: Context) {
             diagnosticPercent = prefs.getInt("diagnostic_percent", 50)
         )
     }
+
+    /** Optional exam date; null means the learner does not know it yet. */
+    fun examDate(): LocalDate? =
+        prefs.getLong("exam_epoch_day", Long.MIN_VALUE).takeIf { it != Long.MIN_VALUE }?.let(LocalDate::ofEpochDay)
+
+    fun setExamDate(date: LocalDate?) {
+        prefs.edit().apply {
+            if (date == null) remove("exam_epoch_day") else putLong("exam_epoch_day", date.toEpochDay())
+        }.apply()
+    }
+
+    /** Whole days from today to the exam; null when unknown or already past. */
+    fun daysToExam(today: LocalDate = LocalDate.now()): Int? =
+        examDate()?.let { ChronoUnit.DAYS.between(today, it).toInt() }?.takeIf { it >= 0 }
 
     fun isOnboardingPaywallSeen(): Boolean =
         prefs.getBoolean("onboarding_paywall_seen", false)

@@ -191,7 +191,7 @@ struct PremiumPaywallView: View {
                 ]
             )
             offer = await StoreKitBillingService.shared.loadOffer()
-            if let active = await OfferService.shared.fetch(),
+            if let active = await OfferService.shared.fetch(daysToExam: StudySetupStore.daysToExam()),
                let presented = await StoreKitBillingService.shared.present(active) {
                 special = presented
                 selection = .special

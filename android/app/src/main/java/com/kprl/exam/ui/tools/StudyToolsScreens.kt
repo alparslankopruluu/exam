@@ -22,6 +22,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kprl.exam.platform.account.AuthService
 import com.kprl.exam.ui.account.AccountScreen
+import com.kprl.exam.ui.components.ExamDateField
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -755,6 +756,7 @@ fun ProfileSettingsScreen(
     var reminderHour by remember { mutableIntStateOf(progressStore.snapshot().reminderHour) }
     var languageExpanded by remember { mutableStateOf(false) }
     var showAccount by remember { mutableStateOf(false) }
+    var examDate by remember { mutableStateOf(setupStore.examDate()) }
     val account by AuthService.account.collectAsState()
     val languages = listOf(
         "en" to "English", "tr" to "Türkçe", "de" to "Deutsch", "es" to "Español",
@@ -773,6 +775,17 @@ fun ProfileSettingsScreen(
                 copy.text(if (account.isAnonymous) "account_save_progress" else "account_title_linked"),
                 if (account.isAnonymous) copy.text("account_save_progress_hint") else account.email.orEmpty()
             ) { showAccount = true }
+        }
+        item {
+            ExamDateField(
+                title = copy.text("exam_date_label"),
+                copy = copy,
+                languageCode = setup.languageCode,
+                date = examDate
+            ) {
+                examDate = it
+                setupStore.setExamDate(it)
+            }
         }
         item { SettingsRow(Icons.Rounded.Insights, copy.text("progress"), copy.text("progress_hint"), onProgress) }
         item { SettingsRow(Icons.Rounded.Diamond, copy.text("ai_credits"), copy.text("credits_hint"), onCredits) }

@@ -364,12 +364,21 @@ struct TodayView: View {
                         symbol: "flame.fill",
                         accent: ExamPalette.amber
                     )
-                    ExamStatPill(
-                        value: setup.exam.shortName,
-                        label: copy.text("active_exam"),
-                        symbol: "graduationcap.fill",
-                        accent: ExamPalette.mint
-                    )
+                    if let days = StudySetupStore.daysToExam() {
+                        ExamStatPill(
+                            value: "\(days)",
+                            label: copy.text("days_to_exam", variables: ["exam": setup.exam.shortName]),
+                            symbol: "calendar",
+                            accent: ExamPalette.mint
+                        )
+                    } else {
+                        ExamStatPill(
+                            value: setup.exam.shortName,
+                            label: copy.text("active_exam"),
+                            symbol: "graduationcap.fill",
+                            accent: ExamPalette.mint
+                        )
+                    }
                     ExamStatPill(
                         value: "\(mastery)",
                         label: copy.text("mastery"),

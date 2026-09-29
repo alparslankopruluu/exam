@@ -25,6 +25,7 @@ import com.kprl.exam.domain.DailyPlanEngine
 import com.kprl.exam.platform.AppServices
 import com.kprl.exam.platform.entitlements.EntitlementService
 import com.kprl.exam.platform.notifications.DeepLinkRouter
+import com.kprl.exam.platform.persistence.StudySetupStore
 import com.kprl.exam.widget.WidgetSnapshotWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -468,13 +469,26 @@ private fun TodayContent(
                 ExamColors.Amber,
                 Modifier.weight(1f)
             )
-            ExamStatPill(
-                setup.exam.shortName,
-                copy.text("active_exam"),
-                Icons.Rounded.School,
-                ExamColors.Mint,
-                Modifier.weight(1f)
-            )
+            val daysToExam = remember(setup.exam.id) {
+                StudySetupStore(context.applicationContext).daysToExam()
+            }
+            if (daysToExam != null) {
+                ExamStatPill(
+                    daysToExam.toString(),
+                    copy.text("days_to_exam", mapOf("exam" to setup.exam.shortName)),
+                    Icons.Rounded.CalendarMonth,
+                    ExamColors.Mint,
+                    Modifier.weight(1f)
+                )
+            } else {
+                ExamStatPill(
+                    setup.exam.shortName,
+                    copy.text("active_exam"),
+                    Icons.Rounded.School,
+                    ExamColors.Mint,
+                    Modifier.weight(1f)
+                )
+            }
             ExamStatPill(
                 mastery.toString(),
                 copy.text("mastery"),
