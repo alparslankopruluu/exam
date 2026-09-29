@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Exam</string>
+    <string name="app_name">Examly</string>
     <string name="widget_progress_description">Streak, today\'s plan and reviews due</string>
     <string name="widget_question_description">Answer one exam question a day from your home screen</string>
 </resources>

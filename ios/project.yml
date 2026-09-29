@@ -67,7 +67,7 @@ targets:
         GOOGLE_REVERSED_CLIENT_ID: com.googleusercontent.apps.unconfigured
         PRODUCT_NAME: Exam
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Exam
+        INFOPLIST_KEY_CFBundleDisplayName: Examly
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Voice Tutor uses the microphone only while you are asking a spoken study question."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -119,7 +119,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam.Widget
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Exam
+        INFOPLIST_KEY_CFBundleDisplayName: Examly
         INFOPLIST_FILE: ExamWidget/Info.plist
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 1.0.0

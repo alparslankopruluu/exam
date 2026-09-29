@@ -1,0 +1,14 @@
+Examly convierte la preparación de un examen en un plan breve y claro para cada día. Elige tu examen, haz un diagnóstico de 5 preguntas y recibe una semana de estudio personal que se adapta a medida que aprendes.
+
+• Plan diario personal basado en tu diagnóstico, tu dominio y tus errores recientes
+• Práctica adaptativa tipo examen para más de 20 exámenes, como la PAU/EBAU, IELTS, TOEFL y SAT
+• Error DNA: descubre los patrones que te hacen perder puntos y corrígelos
+• Tutor IA que explica paso a paso, más simple si lo necesitas, y resuelve preguntas desde una foto
+• Convierte tus apuntes y PDF en resúmenes y cuestionarios
+• Tarjetas con repetición espaciada, simulacros cronometrados y sesiones de concentración
+• Widgets en la pantalla de inicio: tu racha y una pregunta del día que puedes responder sin abrir la app
+
+Examly es gratis para empezar. Premium desbloquea práctica personalizada ilimitada, el tutor IA avanzado, el tutor de voz y materiales de estudio ilimitados. Los paquetes de créditos opcionales solo se usan para explicaciones con imagen y vídeo generados por IA. La suscripción se renueva automáticamente salvo que la canceles al menos 24 horas antes del final del periodo; gestiónala en los ajustes de tu cuenta de la tienda.
+
+Términos: {TERMS_URL}
+Privacidad: {PRIVACY_URL}
