@@ -238,5 +238,18 @@
   "exam_date_unknown": "لا أعرف بعد",
   "exam_date_clear": "إزالة",
   "exam_date_add": "إضافة تاريخ الاختبار",
-  "days_to_exam": "يومًا حتى {exam}"
+  "days_to_exam": "يومًا حتى {exam}",
+  "tutor_context": "مُهيّأ لاختبار {exam}",
+  "tutor_working": "المعلم يعمل…",
+  "tutor_label": "المعلم",
+  "library_intro": "تتحول ملفات PDF والصور والتسجيلات الصوتية ومقاطع الفيديو والملاحظات إلى مواد دراسية قابلة للبحث.",
+  "material_grounded": "الإجابات مبنية على هذه المادة",
+  "summary": "الملخص",
+  "practice_pack_hint": "مبني على محتوى {exam}",
+  "voice_intro": "اسأل بشكل طبيعي. يُحوَّل كلامك إلى نص، ويُجاب عنه في سياق {exam}، ثم يُقرأ لك بصوت مسموع.",
+  "voice_thinking": "جارٍ الفهم وإعداد إجابتك…",
+  "voice_listening": "جارٍ الاستماع…",
+  "voice_tap_to_ask": "اضغط لتسأل معلمك",
+  "voice_play_answer": "تشغيل الإجابة الصوتية",
+  "exam_specific_practice": "تدريب خاص بالاختبار"
 }

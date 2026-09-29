@@ -1,19 +1,20 @@
-# exam Privacy Policy
+# Examly Privacy Policy
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-29_
 
-exam is a study and exam-preparation application. This document is written to match the application's current data flows. Before publishing, host this policy at a public HTTPS URL and add the operator/contact information required for your legal entity and target storefronts.
+Examly is a study and exam-preparation application operated by {OPERATOR_NAME} ("we"). This policy describes the data the app processes and why.
 
 ## Data the app processes
 
 The app may process:
-- account and anonymous authentication identifiers;
-- selected country, exam, app language, study goal and daily study preference;
+- account and anonymous authentication identifiers, and — if you choose to save your progress — the email address and sign-in provider (Sign in with Apple, Google or email and password);
+- selected country, exam, optional exam date, app language, study goal and daily study preference;
 - learning activity such as answers, mastery, mistakes, sessions, streak and XP;
 - files the user intentionally uploads, including PDFs, images, text, audio and video;
 - questions and prompts sent to AI tutoring features;
 - purchase entitlement and credit state;
-- push-notification token, language, time zone, exam context and reminder preference;
+- push-notification token, language, time zone, exam context, reminder preference and study state used to choose reminders (current streak, last study day and number of topics due for review);
+- offer eligibility records (which offer was shown to you and when it expires);
 - diagnostic, product and reliability analytics events;
 - crash diagnostics.
 
@@ -39,6 +40,14 @@ Subscription and consumable purchases are processed by Apple App Store or Google
 
 If the user grants permission, the app may send study reminders, streak/progress reminders and relevant product messages. Notification tokens and reminder settings are associated with the authenticated account. Users can disable notifications through device settings and change the study reminder preference in the app.
 
+## Sign-in
+
+You can use Examly without an account; an anonymous identifier keeps your data together. If you choose Sign in with Apple, Google or email, that identity is linked to the same account so your progress is kept across devices. With Sign in with Apple you may hide your email address. We receive only the name and email the provider shares.
+
+## Home-screen widgets
+
+Widgets show your streak, today's plan and a question of the day. Their data is prepared by the app and stays on your device.
+
 ## Retention and deletion
 
 The app includes an in-app Delete Account action. When used, the backend is designed to delete the authenticated account, user Firestore subtree, user Storage files, registered push tokens and user-owned AI jobs. Store transaction records may be subject to legal/accounting retention requirements in production and should be handled according to the operator's applicable obligations.
@@ -57,4 +66,4 @@ This policy should be updated whenever the application's providers, data uses, r
 
 ## Contact
 
-Before release, replace this section with the publisher/legal entity name and a monitored privacy contact email or support URL.
+{OPERATOR_NAME} — privacy questions and deletion requests: {CONTACT_EMAIL}

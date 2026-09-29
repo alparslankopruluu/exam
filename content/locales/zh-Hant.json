@@ -238,5 +238,18 @@
   "exam_date_unknown": "還不確定",
   "exam_date_clear": "移除",
   "exam_date_add": "新增考試日期",
-  "days_to_exam": "天後 {exam}"
+  "days_to_exam": "天後 {exam}",
+  "tutor_context": "針對 {exam} 量身打造",
+  "tutor_working": "家教正在思考…",
+  "tutor_label": "家教",
+  "library_intro": "你的 PDF、照片、音訊、影片和筆記都會變成可搜尋的學習資料。",
+  "material_grounded": "回答以這份資料為依據",
+  "summary": "摘要",
+  "practice_pack_hint": "依照你的 {exam} 內容包打造",
+  "voice_intro": "直接說出你的問題。我們會轉成文字,依照 {exam} 回答,再唸給你聽。",
+  "voice_thinking": "正在理解並準備回答…",
+  "voice_listening": "正在聆聽…",
+  "voice_tap_to_ask": "點一下向家教提問",
+  "voice_play_answer": "播放語音回答",
+  "exam_specific_practice": "考試專項練習"
 }

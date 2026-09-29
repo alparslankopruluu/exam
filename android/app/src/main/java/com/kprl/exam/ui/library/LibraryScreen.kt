@@ -339,7 +339,7 @@ private fun MaterialChatScreen(
             IconButton(onClick = onBack) { Icon(Icons.Rounded.ArrowBack, "Back") }
             Column(Modifier.weight(1f)) {
                 Text(material.title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("Answers are grounded in this material", color = ExamColors.Mint, fontSize = 11.sp)
+                Text(copy.text("material_grounded"), color = ExamColors.Mint, fontSize = 11.sp)
             }
         }
 
@@ -351,7 +351,7 @@ private fun MaterialChatScreen(
                 border = BorderStroke(1.dp, ExamColors.Border)
             ) {
                 Column(Modifier.padding(14.dp)) {
-                    Text("Summary", fontWeight = FontWeight.Bold)
+                    Text(copy.text("summary"), fontWeight = FontWeight.Bold)
                     Text(
                         material.summary,
                         color = ExamColors.TextSecondary,
@@ -397,7 +397,7 @@ private fun MaterialChatScreen(
                 border = BorderStroke(1.dp, ExamColors.Border)
             ) {
                 Column(Modifier.padding(14.dp)) {
-                    Text("AI Tutor", color = ExamColors.Purple, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(copy.text("ai_tutor"), color = ExamColors.Purple, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     Spacer(Modifier.height(5.dp))
                     Text(it, fontSize = 13.sp, lineHeight = 19.sp)
                 }

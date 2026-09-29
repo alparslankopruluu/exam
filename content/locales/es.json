@@ -238,5 +238,18 @@
   "exam_date_unknown": "Aún no lo sé",
   "exam_date_clear": "Quitar",
   "exam_date_add": "Añadir fecha del examen",
-  "days_to_exam": "días para {exam}"
+  "days_to_exam": "días para {exam}",
+  "tutor_context": "Adaptado a tu {exam}",
+  "tutor_working": "El tutor está trabajando…",
+  "tutor_label": "Tutor",
+  "library_intro": "Tus PDF, fotos, audios, vídeos y apuntes se convierten en material de estudio consultable.",
+  "material_grounded": "Las respuestas se basan en este material",
+  "summary": "Resumen",
+  "practice_pack_hint": "Basado en tu paquete de contenido de {exam}",
+  "voice_intro": "Pregunta con naturalidad. Tu voz se transcribe, se responde en el contexto de {exam} y se lee en voz alta.",
+  "voice_thinking": "Entendiendo y preparando tu respuesta…",
+  "voice_listening": "Escuchando…",
+  "voice_tap_to_ask": "Toca para preguntar a tu tutor",
+  "voice_play_answer": "Reproducir respuesta hablada",
+  "exam_specific_practice": "Práctica específica del examen"
 }

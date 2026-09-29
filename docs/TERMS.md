@@ -1,16 +1,16 @@
-# exam Terms of Use
+# Examly Terms of Use
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-29_
 
-These terms are a release-ready product template and must be reviewed with the publisher's legal identity, governing law and storefront information before public launch.
+These terms govern your use of Examly, operated by {OPERATOR_NAME}. By using the app you agree to them.
 
 ## Service
 
-exam provides study planning, practice questions, mock sessions, flashcards, study-material tools and AI-assisted tutoring. AI-generated explanations and questions are study aids and may contain errors.
+Examly provides study planning, practice questions, mock sessions, flashcards, study-material tools and AI-assisted tutoring. AI-generated explanations and questions are study aids and may contain errors.
 
 ## No official affiliation
 
-Unless explicitly stated otherwise for a licensed content pack, exam is not an official examination authority and generated practice questions are not official exam questions. Official dates, eligibility, scoring and examination rules should be checked with the relevant examination authority.
+Unless explicitly stated otherwise for a licensed content pack, Examly is not an official examination authority and generated practice questions are not official exam questions. Official dates, eligibility, scoring and examination rules should be checked with the relevant examination authority.
 
 ## Accounts and user content
 
@@ -46,6 +46,10 @@ The app provides an in-app account deletion flow. Deletion is intended to remove
 
 The application does not guarantee a particular examination score, admission result or certification outcome.
 
-## Contact and governing terms
+## Apple App Store
 
-Before release, add the publisher/legal entity, contact information and governing-law/dispute terms appropriate to the markets where the app is offered.
+If you downloaded Examly from the Apple App Store, Apple's Standard License Agreement (EULA) also applies: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+## Contact and governing law
+
+{OPERATOR_NAME} — {CONTACT_EMAIL}. These terms are governed by the laws of {GOVERNING_LAW}, without prejudice to mandatory consumer protections where you live.

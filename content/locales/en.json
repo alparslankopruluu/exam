@@ -238,5 +238,18 @@
   "exam_date_unknown": "I don't know yet",
   "exam_date_clear": "Remove",
   "exam_date_add": "Add exam date",
-  "days_to_exam": "days to {exam}"
+  "days_to_exam": "days to {exam}",
+  "tutor_context": "Context-aware for {exam}",
+  "tutor_working": "Tutor is working…",
+  "tutor_label": "Tutor",
+  "library_intro": "Your PDFs, photos, audio, video and notes become searchable study context.",
+  "material_grounded": "Answers are grounded in this material",
+  "summary": "Summary",
+  "practice_pack_hint": "Built around your {exam} content pack",
+  "voice_intro": "Ask naturally. Your speech is transcribed, answered in {exam} context, then spoken back.",
+  "voice_thinking": "Understanding & preparing your answer…",
+  "voice_listening": "Listening…",
+  "voice_tap_to_ask": "Tap to ask your tutor",
+  "voice_play_answer": "Play spoken answer",
+  "exam_specific_practice": "Exam-specific practice"
 }

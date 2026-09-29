@@ -238,5 +238,18 @@
   "exam_date_unknown": "Henüz bilmiyorum",
   "exam_date_clear": "Kaldır",
   "exam_date_add": "Sınav tarihi ekle",
-  "days_to_exam": "gün kaldı · {exam}"
+  "days_to_exam": "gün kaldı · {exam}",
+  "tutor_context": "{exam} bağlamını bilir",
+  "tutor_working": "Öğretmen hazırlıyor…",
+  "tutor_label": "Öğretmen",
+  "library_intro": "PDF'lerin, fotoğrafların, ses kayıtların, videoların ve notların aranabilir çalışma kaynağına dönüşür.",
+  "material_grounded": "Cevaplar bu materyale dayanır",
+  "summary": "Özet",
+  "practice_pack_hint": "{exam} içerik paketine göre hazırlandı",
+  "voice_intro": "Doğal şekilde sor. Konuşman yazıya dökülür, {exam} bağlamında cevaplanır ve sesli okunur.",
+  "voice_thinking": "Anlıyor ve cevabını hazırlıyor…",
+  "voice_listening": "Dinliyor…",
+  "voice_tap_to_ask": "Öğretmene sormak için dokun",
+  "voice_play_answer": "Sesli cevabı oynat",
+  "exam_specific_practice": "Sınava özel pratik"
 }

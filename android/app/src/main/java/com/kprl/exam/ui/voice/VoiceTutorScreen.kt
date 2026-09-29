@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.kprl.exam.localization.LocalizedCopy
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +33,7 @@ fun VoiceTutorScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
+    val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val service = remember { VoiceTutorService(context.applicationContext) }
 
     var recording by remember { mutableStateOf(false) }
@@ -110,9 +112,9 @@ fun VoiceTutorScreen(
         }
 
         Spacer(Modifier.height(24.dp))
-        Text("Voice Tutor", fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        Text(copy.text("voice_tutor"), fontSize = 30.sp, fontWeight = FontWeight.Bold)
         Text(
-            "Ask naturally. Your speech is transcribed, answered in ${setup.exam.shortName} context, then spoken back.",
+            copy.text("voice_intro", mapOf("exam" to setup.exam.shortName)),
             color = ExamColors.TextSecondary,
             fontSize = 14.sp,
             lineHeight = 20.sp
@@ -130,7 +132,7 @@ fun VoiceTutorScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(color = ExamColors.Purple)
                         Spacer(Modifier.height(12.dp))
-                        Text("Understanding & preparing your answer…")
+                        Text(copy.text("voice_thinking"))
                     }
                 }
                 recording -> {
@@ -142,7 +144,7 @@ fun VoiceTutorScreen(
                             modifier = Modifier.size(56.dp)
                         )
                         Spacer(Modifier.height(12.dp))
-                        Text("Listening…", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(copy.text("voice_listening"), fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     }
                 }
                 else -> {
@@ -154,7 +156,7 @@ fun VoiceTutorScreen(
                             modifier = Modifier.size(54.dp)
                         )
                         Spacer(Modifier.height(12.dp))
-                        Text("Tap to ask your tutor", fontWeight = FontWeight.Bold, fontSize = 19.sp)
+                        Text(copy.text("voice_tap_to_ask"), fontWeight = FontWeight.Bold, fontSize = 19.sp)
                     }
                 }
             }
@@ -176,7 +178,7 @@ fun VoiceTutorScreen(
                     Text("You", color = ExamColors.TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Text(voice.transcript, fontSize = 13.sp, lineHeight = 19.sp)
                     Spacer(Modifier.height(12.dp))
-                    Text("Tutor", color = ExamColors.Purple, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(copy.text("tutor_label"), color = ExamColors.Purple, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Text(voice.answer, fontSize = 13.sp, lineHeight = 19.sp)
                     voice.audioUrl?.let { audioUrl ->
                         Spacer(Modifier.height(12.dp))
@@ -189,7 +191,7 @@ fun VoiceTutorScreen(
                                     prepareAsync()
                                 }
                             },
-                            label = { Text("Play spoken answer") },
+                            label = { Text(copy.text("voice_play_answer")) },
                             leadingIcon = { Icon(Icons.Rounded.VolumeUp, null) }
                         )
                     }

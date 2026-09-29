@@ -86,7 +86,7 @@ struct LibraryView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(copy.text("library"))
                 .font(.system(size: 28, weight: .bold))
-            Text("Your PDFs, photos, audio, video and notes become searchable study context.")
+            Text(copy.text("library_intro"))
                 .font(.system(size: 13))
                 .foregroundStyle(ExamPalette.textSecondary)
                 .padding(.top, 3)
@@ -260,7 +260,7 @@ private struct MaterialChatView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(material.title)
                         .font(.system(size: 20, weight: .bold))
-                    Text("Answers are grounded in this material")
+                    Text(copy.text("material_grounded"))
                         .font(.system(size: 11))
                         .foregroundStyle(ExamPalette.mint)
                 }
@@ -269,7 +269,7 @@ private struct MaterialChatView: View {
 
             if !material.summary.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Summary").font(.system(size: 14, weight: .bold))
+                    Text(copy.text("summary")).font(.system(size: 14, weight: .bold))
                     Text(material.summary)
                         .font(.system(size: 12))
                         .foregroundStyle(ExamPalette.textSecondary)
@@ -295,7 +295,7 @@ private struct MaterialChatView: View {
 
             if let answer {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("AI Tutor")
+                    Text(copy.text("ai_tutor"))
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(ExamPalette.purple)
                     Text(answer)

@@ -238,5 +238,18 @@
   "exam_date_unknown": "Weet ik nog niet",
   "exam_date_clear": "Verwijderen",
   "exam_date_add": "Examendatum toevoegen",
-  "days_to_exam": "dagen tot {exam}"
+  "days_to_exam": "dagen tot {exam}",
+  "tutor_context": "Afgestemd op je {exam}",
+  "tutor_working": "Tutor is bezig…",
+  "tutor_label": "Tutor",
+  "library_intro": "Je pdf’s, foto’s, audio, video’s en aantekeningen worden doorzoekbaar studiemateriaal.",
+  "material_grounded": "Antwoorden zijn gebaseerd op dit materiaal",
+  "summary": "Samenvatting",
+  "practice_pack_hint": "Gebaseerd op je {exam}-inhoud",
+  "voice_intro": "Vraag het gewoon. Je stem wordt uitgeschreven, beantwoord in de context van {exam} en voorgelezen.",
+  "voice_thinking": "Begrijpen en antwoord voorbereiden…",
+  "voice_listening": "Luistert…",
+  "voice_tap_to_ask": "Tik om je tutor iets te vragen",
+  "voice_play_answer": "Gesproken antwoord afspelen",
+  "exam_specific_practice": "Examengerichte oefening"
 }

@@ -82,7 +82,9 @@ struct ExamStatPill: View {
                 Text(label)
                     .font(.system(size: 10))
                     .foregroundStyle(ExamPalette.textSecondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }

@@ -121,6 +121,16 @@ struct TodayView: View {
             }
         }
         .background(ExamPalette.background.ignoresSafeArea())
+        .onAppear {
+            guard ScreenshotMode.isActive else { return }
+            switch ScreenshotMode.screen {
+            case "practice": selectedTab = .practice
+            case "tutor": selectedTab = .tutor
+            case "library": selectedTab = .library
+            case "session": openSession(type: "quick_practice")
+            default: break
+            }
+        }
         .onReceive(DeepLinkRouter.shared.$pending.compactMap { $0 }) { _ in
             openDeepLink(DeepLinkRouter.shared.consume())
         }

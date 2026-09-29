@@ -163,9 +163,9 @@ fun AITutorScreen(
             }
             Spacer(Modifier.width(12.dp))
             Column {
-                Text("AI Tutor", fontSize = 27.sp, fontWeight = FontWeight.Bold)
+                Text(copy.text("ai_tutor"), fontSize = 27.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "Context-aware for ${setup.exam.shortName}",
+                    copy.text("tutor_context", mapOf("exam" to setup.exam.shortName)),
                     color = ExamColors.TextSecondary,
                     fontSize = 12.sp
                 )
@@ -242,12 +242,12 @@ fun AITutorScreen(
                                 color = ExamColors.Primary
                             )
                             Spacer(Modifier.width(10.dp))
-                            Text("Tutor is working…", color = ExamColors.TextSecondary)
+                            Text(copy.text("tutor_working"), color = ExamColors.TextSecondary)
                         }
                     }
 
                     answer?.let {
-                        Text("Tutor", fontWeight = FontWeight.Bold, color = ExamColors.Purple)
+                        Text(copy.text("tutor_label"), fontWeight = FontWeight.Bold, color = ExamColors.Purple)
                         Spacer(Modifier.height(7.dp))
                         Text(it, fontSize = 13.sp, lineHeight = 19.sp)
                     }

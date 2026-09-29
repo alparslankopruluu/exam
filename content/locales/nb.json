@@ -238,5 +238,18 @@
   "exam_date_unknown": "Jeg vet ikke ennå",
   "exam_date_clear": "Fjern",
   "exam_date_add": "Legg til eksamensdato",
-  "days_to_exam": "dager til {exam}"
+  "days_to_exam": "dager til {exam}",
+  "tutor_context": "Tilpasset {exam}",
+  "tutor_working": "Veilederen jobber …",
+  "tutor_label": "Veileder",
+  "library_intro": "PDF-er, bilder, lyd, video og notater blir søkbart studiemateriale.",
+  "material_grounded": "Svarene bygger på dette materialet",
+  "summary": "Sammendrag",
+  "practice_pack_hint": "Bygget rundt {exam}-innholdet ditt",
+  "voice_intro": "Spør helt naturlig. Talen din skrives ut, besvares ut fra {exam} og leses opp.",
+  "voice_thinking": "Forstår og forbereder svaret ditt …",
+  "voice_listening": "Lytter …",
+  "voice_tap_to_ask": "Trykk for å spørre veilederen",
+  "voice_play_answer": "Spill av svaret",
+  "exam_specific_practice": "Eksamensrettet øving"
 }

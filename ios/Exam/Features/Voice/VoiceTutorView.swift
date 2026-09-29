@@ -12,6 +12,10 @@ struct VoiceTutorView: View {
     @State private var error: String?
     @State private var player: AVPlayer?
 
+    private var copy: LocalizedCopy {
+        LocalizedCopy.load(languageCode: setup.languageCode)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -36,11 +40,11 @@ struct VoiceTutorView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("Voice Tutor")
+                    Text(copy.text("voice_tutor"))
                         .font(.system(size: 30, weight: .bold))
                         .padding(.top, 24)
 
-                    Text("Ask naturally. Your speech is transcribed, answered in \(setup.exam.shortName) context, then spoken back.")
+                    Text(copy.text("voice_intro", variables: ["exam": setup.exam.shortName]))
                         .font(.system(size: 14))
                         .foregroundStyle(ExamPalette.textSecondary)
                         .lineSpacing(3)
@@ -50,20 +54,20 @@ struct VoiceTutorView: View {
                         if processing {
                             ProgressView()
                                 .tint(ExamPalette.purple)
-                            Text("Understanding & preparing your answer…")
+                            Text(copy.text("voice_thinking"))
                                 .font(.system(size: 14))
                                 .foregroundStyle(ExamPalette.textSecondary)
                         } else if recording {
                             Image(systemName: "waveform")
                                 .font(.system(size: 54, weight: .semibold))
                                 .foregroundStyle(ExamPalette.coral)
-                            Text("Listening…")
+                            Text(copy.text("voice_listening"))
                                 .font(.system(size: 20, weight: .bold))
                         } else {
                             Image(systemName: "mic.fill")
                                 .font(.system(size: 50, weight: .semibold))
                                 .foregroundStyle(ExamPalette.purple)
-                            Text("Tap to ask your tutor")
+                            Text(copy.text("voice_tap_to_ask"))
                                 .font(.system(size: 19, weight: .bold))
                         }
                     }
@@ -89,7 +93,7 @@ struct VoiceTutorView: View {
                                 .font(.system(size: 13))
                                 .lineSpacing(3)
 
-                            Text("Tutor")
+                            Text(copy.text("tutor_label"))
                                 .font(.system(size: 11, weight: .bold))
                                 .foregroundStyle(ExamPalette.purple)
                                 .padding(.top, 4)

@@ -1,1 +1,1 @@
-matura,egzamin,ósmoklasisty,nauka,uczyć,quiz,fiszki,korepetycje,ielts,toefl,matematyka,testy
+egzamin,egzaminy,nauka,uczyć,quiz,fiszki,korepetycje,ielts,toefl,sat,matematyka,testy,powtórka
