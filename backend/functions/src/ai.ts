@@ -42,7 +42,7 @@ function tutorPrompt(examId: string, packId: string, language: string): string {
 }
 
 export const aiTutor = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 60, memory: "512MiB" },
+  { invoker: "public", secrets: [OPENAI_API_KEY], timeoutSeconds: 60, memory: "512MiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);
@@ -73,7 +73,7 @@ export const aiTutor = onCall(
 );
 
 export const solveQuestion = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
+  { invoker: "public", secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);
@@ -119,7 +119,7 @@ export const solveQuestion = onCall(
 );
 
 export const generatePractice = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
+  { invoker: "public", secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);
@@ -237,7 +237,7 @@ async function storeChunks(
 }
 
 export const indexMaterial = onCall(
-  { secrets: [OPENAI_API_KEY, FAL_KEY], timeoutSeconds: 540, memory: "1GiB" },
+  { invoker: "public", secrets: [OPENAI_API_KEY, FAL_KEY], timeoutSeconds: 540, memory: "1GiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);
@@ -304,7 +304,7 @@ export const indexMaterial = onCall(
 );
 
 export const askMaterial = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
+  { invoker: "public", secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);
@@ -367,7 +367,7 @@ export const askMaterial = onCall(
 );
 
 export const generateMaterialPractice = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
+  { invoker: "public", secrets: [OPENAI_API_KEY], timeoutSeconds: 90, memory: "1GiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);
@@ -445,7 +445,7 @@ function findFirstAssetUrl(value: unknown): string | null {
 }
 
 export const mediaGenerate = onCall(
-  { secrets: [FAL_KEY], timeoutSeconds: 60, memory: "512MiB" },
+  { invoker: "public", secrets: [FAL_KEY], timeoutSeconds: 60, memory: "512MiB" },
   async request => {
     const uid = requireUid(request);
     const data = request.data as any;
@@ -480,7 +480,7 @@ export const mediaGenerate = onCall(
 );
 
 export const mediaStatus = onCall(
-  { secrets: [FAL_KEY], timeoutSeconds: 60, memory: "512MiB" },
+  { invoker: "public", secrets: [FAL_KEY], timeoutSeconds: 60, memory: "512MiB" },
   async request => {
     const uid = requireUid(request);
     const data = request.data as any;
@@ -515,7 +515,7 @@ export const mediaStatus = onCall(
 
 
 export const transcribeAudio = onCall(
-  { secrets: [FAL_KEY], timeoutSeconds: 180, memory: "1GiB" },
+  { invoker: "public", secrets: [FAL_KEY], timeoutSeconds: 180, memory: "1GiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);
@@ -547,7 +547,7 @@ export const transcribeAudio = onCall(
 );
 
 export const synthesizeSpeech = onCall(
-  { secrets: [OPENAI_API_KEY], timeoutSeconds: 120, memory: "1GiB" },
+  { invoker: "public", secrets: [OPENAI_API_KEY], timeoutSeconds: 120, memory: "1GiB" },
   async request => {
     const uid = requireUid(request);
     await consumeStandardAiQuota(uid);

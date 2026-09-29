@@ -1,5 +1,10 @@
 package com.kprl.exam.ui.components
 
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -78,21 +83,49 @@ fun ExamSelectionCard(
     }
 }
 
+/**
+ * Rounded-square icon badge with a soft accent gradient, used wherever an
+ * icon leads a card or row so icons read as one consistent, premium set.
+ */
+@Composable
+fun ExamIconBadge(icon: ImageVector, accent: Color, size: Dp = 34.dp) {
+    val shape = RoundedCornerShape(size * 0.32f)
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(shape)
+            .background(Brush.linearGradient(listOf(accent.copy(alpha = .22f), accent.copy(alpha = .08f))))
+            .border(1.dp, accent.copy(alpha = .18f), shape),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, null, tint = accent, modifier = Modifier.size(size * 0.52f))
+    }
+}
+
 @Composable
 fun ExamStatPill(value: String, label: String, icon: ImageVector, accent: Color, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         color = ExamColors.Surface,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(20.dp),
         border = BorderStroke(1.dp, ExamColors.Border)
     ) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(7.dp))
-            Column {
-                Text(value, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Text(label, fontSize = 10.sp, color = ExamColors.TextSecondary)
-            }
+        Column(Modifier.padding(12.dp)) {
+            ExamIconBadge(icon, accent, size = 32.dp)
+            Spacer(Modifier.height(8.dp))
+            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Spacer(Modifier.height(2.dp))
+            // Always reserve two lines so every pill in a row has the same height.
+            Text(
+                label,
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = ExamColors.TextSecondary,
+                minLines = 2,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

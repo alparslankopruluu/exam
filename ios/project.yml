@@ -63,8 +63,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam
         INFOPLIST_FILE: Exam/Info.plist
-        # Overwritten from GoogleService-Info.plist REVERSED_CLIENT_ID once Firebase is set up.
-        GOOGLE_REVERSED_CLIENT_ID: com.googleusercontent.apps.unconfigured
+        # REVERSED_CLIENT_ID from GoogleService-Info.plist (examly-study); public, not a secret.
+        GOOGLE_REVERSED_CLIENT_ID: com.googleusercontent.apps.839662717641-ts4uv57604us2bugvne0urod3hhlq1vc
         PRODUCT_NAME: Exam
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Examly

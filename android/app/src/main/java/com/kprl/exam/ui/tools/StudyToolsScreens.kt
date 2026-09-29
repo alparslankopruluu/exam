@@ -23,6 +23,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.kprl.exam.platform.account.AuthService
 import com.kprl.exam.ui.account.AccountScreen
 import com.kprl.exam.ui.components.ExamDateField
+import com.kprl.exam.ui.components.ExamIconBadge
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -935,7 +936,7 @@ private fun SettingsRow(icon: androidx.compose.ui.graphics.vector.ImageVector, t
         border = BorderStroke(1.dp, ExamColors.Border)
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = ExamColors.Primary)
+            ExamIconBadge(icon, ExamColors.Primary, size = 34.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, fontWeight = FontWeight.SemiBold)

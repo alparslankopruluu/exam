@@ -471,13 +471,14 @@ private fun TodayContent(
         }
 
         Spacer(Modifier.height(20.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+        // Pills stretch to the tallest one so the row stays even.
+        Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
             ExamStatPill(
                 user.streak.toString(),
                 copy.text("day_streak"),
                 Icons.Rounded.LocalFireDepartment,
                 ExamColors.Amber,
-                Modifier.weight(1f)
+                Modifier.weight(1f).fillMaxHeight()
             )
             val daysToExam = remember(setup.exam.id) {
                 StudySetupStore(context.applicationContext).daysToExam()
@@ -488,7 +489,7 @@ private fun TodayContent(
                     copy.text("days_to_exam", mapOf("exam" to setup.exam.shortName)),
                     Icons.Rounded.CalendarMonth,
                     ExamColors.Mint,
-                    Modifier.weight(1f)
+                    Modifier.weight(1f).fillMaxHeight()
                 )
             } else {
                 ExamStatPill(
@@ -496,7 +497,7 @@ private fun TodayContent(
                     copy.text("active_exam"),
                     Icons.Rounded.School,
                     ExamColors.Mint,
-                    Modifier.weight(1f)
+                    Modifier.weight(1f).fillMaxHeight()
                 )
             }
             ExamStatPill(
@@ -504,7 +505,7 @@ private fun TodayContent(
                 copy.text("mastery"),
                 Icons.Rounded.Insights,
                 ExamColors.Purple,
-                Modifier.weight(1f)
+                Modifier.weight(1f).fillMaxHeight()
             )
         }
 

@@ -95,7 +95,7 @@ async function applePromotionalSignature(productId: string, offerId: string) {
  * shown in the app is real and never resets.
  */
 export const getActiveOffer = onCall(
-  { secrets: [APPLE_IAP_PRIVATE_KEY], timeoutSeconds: 20 },
+  { invoker: "public", secrets: [APPLE_IAP_PRIVATE_KEY], timeoutSeconds: 20 },
   async request => {
     const uid = requireUid(request);
     const data = (request.data ?? {}) as Record<string, unknown>;

@@ -13,7 +13,7 @@ function tokenId(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export const registerPushToken = onCall(async request => {
+export const registerPushToken = onCall({ invoker: "public" }, async request => {
   const uid = requireUid(request);
   const data = request.data as any;
   const token = asString(data.token, "token", 8_000);
