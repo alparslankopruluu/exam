@@ -24,8 +24,10 @@ class LocalizedCopy private constructor(
             }.getOrDefault(emptyMap())
 
             val fallback = read("en")
-            val normalized = languageCode.substringBefore("-").lowercase()
-            val localized = if (normalized == "en") fallback else read(normalized)
+            // Exact file first (pt-PT, zh-Hant), then the base language, then English.
+            val base = languageCode.substringBefore("-").lowercase()
+            val exact = if (languageCode == "en") emptyMap() else read(languageCode)
+            val localized = exact.ifEmpty { if (base == "en") fallback else read(base) }
             return LocalizedCopy(localized, fallback)
         }
     }

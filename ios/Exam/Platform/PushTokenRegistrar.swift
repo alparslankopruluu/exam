@@ -25,7 +25,8 @@ enum PushTokenRegistrar {
         var payload: [String: Any] = [
             "token": token,
             "platform": "ios",
-            "language": Locale.current.identifier,
+            // The app language the learner chose, so reminders match the UI.
+            "language": StudySetupStore.load()?.languageCode ?? AppLanguage.resolve(),
             "timeZone": TimeZone.current.identifier,
             "reminderBucket": bucket,
             "streak": progress.streak

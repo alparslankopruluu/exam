@@ -758,10 +758,7 @@ fun ProfileSettingsScreen(
     var showAccount by remember { mutableStateOf(false) }
     var examDate by remember { mutableStateOf(setupStore.examDate()) }
     val account by AuthService.account.collectAsState()
-    val languages = listOf(
-        "en" to "English", "tr" to "Türkçe", "de" to "Deutsch", "es" to "Español",
-        "fr" to "Français", "pt" to "Português", "ko" to "한국어", "ja" to "日本語", "hi" to "हिन्दी"
-    )
+    val languages = com.kprl.exam.localization.AppLanguage.supported
 
     LazyColumn(
         Modifier.fillMaxSize().background(ExamColors.Background)

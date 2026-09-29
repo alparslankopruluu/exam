@@ -857,11 +857,7 @@ struct ProfileSettingsView: View {
         LocalizedCopy.load(languageCode: setup.languageCode)
     }
 
-    private let languages = [
-        ("en", "English"), ("tr", "Türkçe"), ("de", "Deutsch"),
-        ("es", "Español"), ("fr", "Français"), ("pt", "Português"),
-        ("ko", "한국어"), ("ja", "日本語"), ("hi", "हिन्दी")
-    ]
+    private let languages = AppLanguage.supported.map { ($0.code, $0.name) }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
