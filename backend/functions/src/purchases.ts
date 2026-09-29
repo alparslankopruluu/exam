@@ -9,9 +9,9 @@ import {
   APPLE_IAP_PRIVATE_KEY,
   APPLE_ISSUER_ID,
   APPLE_KEY_ID,
-  APPLE_ROOT_CERTS_B64_JSON,
-  SMALL_CREDIT_PACK_AMOUNT
+  APPLE_ROOT_CERTS_B64_JSON
 } from "./config.js";
+import { CREDIT_PACKS, PREMIUM_PRODUCTS } from "./catalog.js";
 import { asString, requireUid } from "./auth.js";
 
 const db = getFirestore();
@@ -38,8 +38,9 @@ async function grantVerifiedPurchase(
 ): Promise<void> {
   const ledgerRef = db.doc(`purchaseLedger/${ledgerId(platform, externalId)}`);
 
-  if (productId === "ai_credits_small") {
-    const amount = Math.max(1, Number(SMALL_CREDIT_PACK_AMOUNT.value()) || 25);
+  const creditAmount = CREDIT_PACKS[productId];
+  if (creditAmount) {
+    const amount = creditAmount;
 
     await db.runTransaction(async tx => {
       const existing = await tx.get(ledgerRef);
@@ -64,7 +65,7 @@ async function grantVerifiedPurchase(
     return;
   }
 
-  if (productId === "premium_annual" || productId === "premium_monthly") {
+  if (PREMIUM_PRODUCTS.has(productId)) {
     const batch = db.batch();
 
     batch.set(db.doc(`users/${uid}/entitlements/premium`), {

@@ -17,6 +17,8 @@ export {
 
 export { verifyStorePurchase } from "./purchases.js";
 
+export { getActiveOffer } from "./offers.js";
+
 export { registerPushToken, sendStudyReminders } from "./push.js";
 
 export { appleStoreNotifications, googlePlayBillingEvents } from "./storeNotifications.js";

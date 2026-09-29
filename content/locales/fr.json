@@ -206,5 +206,14 @@
   "account_saved_title": "Ta progression est sauvegardée",
   "account_saved_subtitle": "Connecté",
   "account_title_linked": "Compte",
-  "account_sign_out": "Se déconnecter"
+  "account_sign_out": "Se déconnecter",
+  "paywall_trial_available": "Essai gratuit inclus",
+  "offer_badge": "-{percent} %",
+  "offer_title_welcome": "Offre de bienvenue",
+  "offer_title_exam_sprint": "Offre sprint examen",
+  "offer_title_winback": "Offre de retour",
+  "offer_first_year": "Formule annuelle · 1re année à prix réduit",
+  "credits_balance": "{count} crédits",
+  "credits_pack": "{count} crédits",
+  "most_popular": "LE PLUS POPULAIRE"
 }

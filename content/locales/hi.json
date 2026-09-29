@@ -206,5 +206,14 @@
   "account_saved_title": "आपकी प्रगति सहेज ली गई है",
   "account_saved_subtitle": "साइन इन है",
   "account_title_linked": "खाता",
-  "account_sign_out": "साइन आउट"
+  "account_sign_out": "साइन आउट",
+  "paywall_trial_available": "फ्री ट्रायल शामिल",
+  "offer_badge": "{percent}% छूट",
+  "offer_title_welcome": "वेलकम ऑफ़र",
+  "offer_title_exam_sprint": "परीक्षा स्प्रिंट ऑफ़र",
+  "offer_title_winback": "वापसी ऑफ़र",
+  "offer_first_year": "वार्षिक प्लान · पहला साल छूट पर",
+  "credits_balance": "{count} क्रेडिट",
+  "credits_pack": "{count} क्रेडिट",
+  "most_popular": "सबसे लोकप्रिय"
 }

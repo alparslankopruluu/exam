@@ -206,5 +206,14 @@
   "account_saved_title": "Seu progresso está salvo",
   "account_saved_subtitle": "Conectado",
   "account_title_linked": "Conta",
-  "account_sign_out": "Sair"
+  "account_sign_out": "Sair",
+  "paywall_trial_available": "Teste grátis incluído",
+  "offer_badge": "{percent}% OFF",
+  "offer_title_welcome": "Oferta de boas-vindas",
+  "offer_title_exam_sprint": "Oferta reta final",
+  "offer_title_winback": "Oferta de retorno",
+  "offer_first_year": "Plano anual · primeiro ano com desconto",
+  "credits_balance": "{count} créditos",
+  "credits_pack": "{count} créditos",
+  "most_popular": "MAIS POPULAR"
 }

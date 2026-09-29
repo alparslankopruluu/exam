@@ -206,5 +206,14 @@
   "account_saved_title": "Your progress is saved",
   "account_saved_subtitle": "Signed in",
   "account_title_linked": "Account",
-  "account_sign_out": "Sign out"
+  "account_sign_out": "Sign out",
+  "paywall_trial_available": "Free trial included",
+  "offer_badge": "{percent}% OFF",
+  "offer_title_welcome": "Welcome offer",
+  "offer_title_exam_sprint": "Exam sprint offer",
+  "offer_title_winback": "Welcome back offer",
+  "offer_first_year": "Annual plan · discounted first year",
+  "credits_balance": "{count} credits",
+  "credits_pack": "{count} credits",
+  "most_popular": "MOST POPULAR"
 }

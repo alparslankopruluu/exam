@@ -13,6 +13,14 @@ class GooglePlayBillingService(
         const val PREMIUM_ANNUAL = "premium_annual"
         const val PREMIUM_MONTHLY = "premium_monthly"
         const val AI_CREDITS_SMALL = "ai_credits_small"
+        const val AI_CREDITS_MEDIUM = "ai_credits_medium"
+        const val AI_CREDITS_LARGE = "ai_credits_large"
+
+        val CREDIT_PACKS = listOf(AI_CREDITS_SMALL, AI_CREDITS_MEDIUM, AI_CREDITS_LARGE)
+        val SUBSCRIPTIONS = setOf(PREMIUM_ANNUAL, PREMIUM_MONTHLY)
+
+        /** Offer tag for the store-configured free trial on the annual base plan. */
+        const val TRIAL_OFFER_TAG = "trial"
     }
 
     private val productDetails = mutableMapOf<String, ProductDetails>()
@@ -68,38 +76,38 @@ class GooglePlayBillingService(
             )
         }
 
-        queryProducts(
-            BillingClient.ProductType.INAPP,
-            listOf(ProductIds.AI_CREDITS_SMALL)
-        ) { oneTime ->
-            oneTime.forEach { productDetails[it.productId] = it }
+    }
+
+    fun loadCreditPacks(onLoaded: (List<CreditPackPresentation>) -> Unit) {
+        queryProducts(BillingClient.ProductType.INAPP, ProductIds.CREDIT_PACKS) { products ->
+            products.forEach { productDetails[it.productId] = it }
+            onLoaded(
+                ProductIds.CREDIT_PACKS.mapNotNull { id ->
+                    val price = productDetails[id]?.oneTimePurchaseOfferDetailsList?.firstOrNull()?.formattedPrice
+                    price?.let { CreditPackPresentation(id, it) }
+                }
+            )
         }
     }
 
-    fun loadCreditPrice(onLoaded: (String?) -> Unit) {
-        val cached = productDetails[ProductIds.AI_CREDITS_SMALL]
-        if (cached != null) {
-            onLoaded(cached.oneTimePurchaseOfferDetailsList?.firstOrNull()?.formattedPrice)
-            return
-        }
-
-        queryProducts(
-            BillingClient.ProductType.INAPP,
-            listOf(ProductIds.AI_CREDITS_SMALL)
-        ) { products ->
-            products.forEach { productDetails[it.productId] = it }
-            onLoaded(
-                products.firstOrNull()
-                    ?.oneTimePurchaseOfferDetailsList
-                    ?.firstOrNull()
-                    ?.formattedPrice
-            )
-        }
+    /**
+     * Resolves store prices for a server-issued offer. Returns null when Play
+     * does not return the tagged offer (not configured, or user not eligible),
+     * so the paywall never advertises a discount it cannot charge.
+     */
+    fun present(offer: ActiveOffer): OfferPresentation? {
+        val details = productDetails[offer.productId] ?: return null
+        val tag = offer.googleOfferTag ?: return null
+        val tagged = details.subscriptionOfferDetails?.firstOrNull { tag in it.offerTags } ?: return null
+        val offerPrice = tagged.pricingPhases.pricingPhaseList.firstOrNull { it.priceAmountMicros > 0 } ?: return null
+        val basePrice = details.basePlanOffer()?.pricingPhases?.pricingPhaseList?.lastOrNull()?.formattedPrice ?: return null
+        return OfferPresentation(offer, offerPrice.formattedPrice, basePrice)
     }
 
     fun purchase(
         activity: Activity,
         productId: String,
+        offerTag: String? = null,
         onResult: (Boolean, String?) -> Unit = { _, _ -> }
     ) {
         val details = productDetails[productId] ?: run {
@@ -110,9 +118,14 @@ class GooglePlayBillingService(
         val paramsBuilder = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(details)
 
-        val offerToken = details.subscriptionOfferDetails
-            ?.firstOrNull()
-            ?.offerToken
+        // Pick the offer deliberately: the server-issued tag, else the trial (Play
+        // only lists offers the user is eligible for), else the plain base plan.
+        // Never "first offer", which could expose unrelated discounts.
+        val offerToken = details.subscriptionOfferDetails?.let { offers ->
+            offerTag?.let { tag -> offers.firstOrNull { tag in it.offerTags } }
+                ?: offers.firstOrNull { ProductIds.TRIAL_OFFER_TAG in it.offerTags }
+                ?: details.basePlanOffer()
+        }?.offerToken
             ?: details.oneTimePurchaseOfferDetailsList
                 ?.firstOrNull()
                 ?.offerToken
@@ -162,9 +175,7 @@ class GooglePlayBillingService(
         when (billingResult.responseCode) {
             BillingClient.BillingResponseCode.OK -> {
                 purchases.orEmpty().forEach { purchase ->
-                    val type = if (purchase.products.any {
-                            it == ProductIds.PREMIUM_ANNUAL || it == ProductIds.PREMIUM_MONTHLY
-                        }) {
+                    val type = if (purchase.products.any { it in ProductIds.SUBSCRIPTIONS }) {
                         BillingClient.ProductType.SUBS
                     } else {
                         BillingClient.ProductType.INAPP
@@ -200,7 +211,7 @@ class GooglePlayBillingService(
                 return@verifyGoogle
             }
 
-            if (productId == ProductIds.AI_CREDITS_SMALL) {
+            if (productId in ProductIds.CREDIT_PACKS) {
                 billingClient.consumeAsync(
                     ConsumeParams.newBuilder()
                         .setPurchaseToken(purchase.purchaseToken)
@@ -270,22 +281,25 @@ class GooglePlayBillingService(
                 productId = if (recommended) ProductIds.PREMIUM_ANNUAL else ProductIds.PREMIUM_MONTHLY,
                 title = title,
                 localizedPrice = null,
-                trialText = null,
+                hasTrial = false,
                 recommended = recommended
             )
         }
 
-        val offer = subscriptionOfferDetails?.firstOrNull()
-        val phases = offer?.pricingPhases?.pricingPhaseList.orEmpty()
-        val paidPhase = phases.lastOrNull { it.priceAmountMicros > 0 } ?: phases.lastOrNull()
-        val freePhase = phases.firstOrNull { it.priceAmountMicros == 0L }
+        val trial = subscriptionOfferDetails?.firstOrNull { ProductIds.TRIAL_OFFER_TAG in it.offerTags }
+        val hasTrial = trial?.pricingPhases?.pricingPhaseList.orEmpty().any { it.priceAmountMicros == 0L }
+        val basePrice = basePlanOffer()?.pricingPhases?.pricingPhaseList?.lastOrNull()?.formattedPrice
 
         return StorePlanPresentation(
             productId = productId,
             title = title,
-            localizedPrice = paidPhase?.formattedPrice,
-            trialText = freePhase?.let { "Free trial available" },
+            localizedPrice = basePrice,
+            hasTrial = hasTrial,
             recommended = recommended
         )
     }
+
+    /** The base plan itself is the offer entry without an offerId. */
+    private fun ProductDetails.basePlanOffer(): ProductDetails.SubscriptionOfferDetails? =
+        subscriptionOfferDetails?.firstOrNull { it.offerId == null }
 }

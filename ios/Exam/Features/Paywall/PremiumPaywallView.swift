@@ -6,7 +6,8 @@ struct PremiumPaywallView: View {
     let onClose: () -> Void
 
     @State private var offer: StoreOfferPresentation = .placeholder
-    @State private var annualSelected = true
+    @State private var special: OfferPresentation?
+    @State private var selection: PlanChoice = .annual
     @State private var purchasing = false
     @State private var purchaseError: String?
 
@@ -14,8 +15,22 @@ struct PremiumPaywallView: View {
         LocalizedCopy.load(languageCode: setup.languageCode)
     }
 
-    private var selectedPlan: StorePlanPresentation {
-        annualSelected ? offer.annual : offer.monthly
+    private enum PlanChoice { case special, annual, monthly }
+
+    private var selectedProductId: String {
+        switch selection {
+        case .special: special?.offer.productId ?? offer.annual.productId
+        case .annual: offer.annual.productId
+        case .monthly: offer.monthly.productId
+        }
+    }
+
+    private var selectedPrice: String? {
+        switch selection {
+        case .special: special?.localizedPrice
+        case .annual: offer.annual.localizedPrice
+        case .monthly: offer.monthly.localizedPrice
+        }
     }
 
     var body: some View {
@@ -78,8 +93,13 @@ struct PremiumPaywallView: View {
                     }
                     .padding(.top, 14)
 
-                    planCard(offer.annual, displayTitle: copy.text("annual"), selected: annualSelected) {
-                        annualSelected = true
+                    if let special {
+                        specialOfferCard(special)
+                            .padding(.top, 14)
+                    }
+
+                    planCard(offer.annual, displayTitle: copy.text("annual"), selected: selection == .annual) {
+                        selection = .annual
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.subscriptionPlanSelected,
                             params: [AnalyticsParam.productId: offer.annual.productId]
@@ -87,8 +107,8 @@ struct PremiumPaywallView: View {
                     }
                     .padding(.top, 14)
 
-                    planCard(offer.monthly, displayTitle: copy.text("monthly"), selected: !annualSelected) {
-                        annualSelected = false
+                    planCard(offer.monthly, displayTitle: copy.text("monthly"), selected: selection == .monthly) {
+                        selection = .monthly
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.subscriptionPlanSelected,
                             params: [AnalyticsParam.productId: offer.monthly.productId]
@@ -102,14 +122,17 @@ struct PremiumPaywallView: View {
                 Task { @MainActor in
                     purchasing = true
                     purchaseError = nil
-                    let success = await StoreKitBillingService.shared.purchase(productId: selectedPlan.productId)
+                    let success = await StoreKitBillingService.shared.purchase(
+                        productId: selectedProductId,
+                        offer: selection == .special ? special?.offer : nil
+                    )
                     purchasing = false
                     if success {
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.purchaseCompleted,
                             params: [
                                 AnalyticsParam.placement: placement,
-                                AnalyticsParam.productId: selectedPlan.productId
+                                AnalyticsParam.productId: selectedProductId
                             ]
                         )
                         onClose()
@@ -119,7 +142,7 @@ struct PremiumPaywallView: View {
                             AnalyticsEvent.purchaseFailed,
                             params: [
                                 AnalyticsParam.placement: placement,
-                                AnalyticsParam.productId: selectedPlan.productId
+                                AnalyticsParam.productId: selectedProductId
                             ]
                         )
                     }
@@ -128,7 +151,7 @@ struct PremiumPaywallView: View {
                 Text(
                     purchasing
                     ? copy.text("processing")
-                    : selectedPlan.localizedPrice.map {
+                    : selectedPrice.map {
                         copy.text("continue_price", variables: ["price": $0])
                     } ?? copy.text("loading_price")
                 )
@@ -136,11 +159,11 @@ struct PremiumPaywallView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(selectedPlan.localizedPrice == nil ? ExamPalette.border : ExamPalette.primary)
+                    .background(selectedPrice == nil ? ExamPalette.border : ExamPalette.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
             .buttonStyle(.plain)
-            .disabled(selectedPlan.localizedPrice == nil || purchasing)
+            .disabled(selectedPrice == nil || purchasing)
 
             if let purchaseError {
                 Text(purchaseError)
@@ -168,6 +191,15 @@ struct PremiumPaywallView: View {
                 ]
             )
             offer = await StoreKitBillingService.shared.loadOffer()
+            if let active = await OfferService.shared.fetch(),
+               let presented = await StoreKitBillingService.shared.present(active) {
+                special = presented
+                selection = .special
+                AppServices.shared.analytics.event(
+                    "offer_viewed",
+                    params: [AnalyticsParam.placement: placement, "offer_kind": active.kind]
+                )
+            }
         }
     }
 
@@ -205,6 +237,69 @@ struct PremiumPaywallView: View {
         .padding(.vertical, 7)
     }
 
+    private func specialOfferCard(_ presented: OfferPresentation) -> some View {
+        Button {
+            selection = .special
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(copy.text("offer_badge", variables: ["percent": String(presented.offer.discountPercent)]))
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 5)
+                        .background(ExamPalette.coral)
+                        .clipShape(Capsule())
+                    Spacer()
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        Text(Self.countdown(to: presented.offer.expiresAt, now: context.date))
+                            .font(.system(size: 13, weight: .bold).monospacedDigit())
+                            .foregroundStyle(ExamPalette.coral)
+                    }
+                }
+
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Image(systemName: selection == .special ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(selection == .special ? ExamPalette.primary : ExamPalette.border)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(copy.text("offer_title_\(presented.offer.kind)"))
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(ExamPalette.textPrimary)
+                        Text(copy.text("offer_first_year"))
+                            .font(.system(size: 11))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(presented.localizedPrice)
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(ExamPalette.textPrimary)
+                        Text(presented.regularPrice)
+                            .font(.system(size: 11))
+                            .strikethrough()
+                            .foregroundStyle(ExamPalette.textSecondary)
+                    }
+                }
+            }
+            .padding(14)
+            .background(ExamPalette.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(selection == .special ? ExamPalette.coral : ExamPalette.border, lineWidth: selection == .special ? 1.5 : 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private static func countdown(to end: Date, now: Date) -> String {
+        let seconds = max(0, Int(end.timeIntervalSince(now)))
+        let days = seconds / 86_400
+        let clock = String(format: "%02d:%02d:%02d", (seconds % 86_400) / 3600, (seconds % 3600) / 60, seconds % 60)
+        return days > 0 ? "\(days)d \(clock)" : clock
+    }
+
     private func planCard(
         _ plan: StorePlanPresentation,
         displayTitle: String,
@@ -234,8 +329,8 @@ struct PremiumPaywallView: View {
                         }
                     }
 
-                    if let trialText = plan.trialText {
-                        Text(trialText)
+                    if plan.hasTrial {
+                        Text(copy.text("paywall_trial_available"))
                             .font(.system(size: 11))
                             .foregroundStyle(ExamPalette.textSecondary)
                     }
