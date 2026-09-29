@@ -31,3 +31,4 @@ __pycache__/
 android/keystore.properties
 ios/build-release/
 backend/.firebase/
+firebase-debug.log
