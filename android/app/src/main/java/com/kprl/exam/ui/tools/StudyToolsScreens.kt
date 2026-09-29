@@ -17,6 +17,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.kprl.exam.platform.account.AuthService
+import com.kprl.exam.ui.account.AccountScreen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -686,6 +691,8 @@ fun ProfileSettingsScreen(
     var deleteError by remember { mutableStateOf<String?>(null) }
     var reminderHour by remember { mutableIntStateOf(progressStore.snapshot().reminderHour) }
     var languageExpanded by remember { mutableStateOf(false) }
+    var showAccount by remember { mutableStateOf(false) }
+    val account by AuthService.account.collectAsState()
     val languages = listOf(
         "en" to "English", "tr" to "Türkçe", "de" to "Deutsch", "es" to "Español",
         "fr" to "Français", "pt" to "Português", "ko" to "한국어", "ja" to "日本語", "hi" to "हिन्दी"
@@ -697,6 +704,13 @@ fun ProfileSettingsScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item { ToolHeader(copy.text("profile_settings"), setup.exam.shortName, onClose) }
+        item {
+            SettingsRow(
+                if (account.isAnonymous) Icons.Rounded.PersonAdd else Icons.Rounded.VerifiedUser,
+                copy.text(if (account.isAnonymous) "account_save_progress" else "account_title_linked"),
+                if (account.isAnonymous) copy.text("account_save_progress_hint") else account.email.orEmpty()
+            ) { showAccount = true }
+        }
         item { SettingsRow(Icons.Rounded.Insights, copy.text("progress"), copy.text("progress_hint"), onProgress) }
         item { SettingsRow(Icons.Rounded.Diamond, copy.text("ai_credits"), copy.text("credits_hint"), onCredits) }
         item {
@@ -827,6 +841,15 @@ fun ProfileSettingsScreen(
                 ) { Text(copy.text("cancel")) }
             }
         )
+    }
+
+    if (showAccount) {
+        Dialog(
+            onDismissRequest = { showAccount = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            AccountScreen(copy) { showAccount = false }
+        }
     }
 }
 

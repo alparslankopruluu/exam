@@ -15,5 +15,6 @@ final class AppServices {
         flags = RemoteFeatureFlags(firebaseReady: ready)
         flags.refresh()
         FirebaseBootstrap.ensureAnonymousSession(firebaseReady: ready)
+        AuthService.shared.start()
     }
 }
