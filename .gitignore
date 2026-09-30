@@ -32,3 +32,5 @@ android/keystore.properties
 ios/build-release/
 backend/.firebase/
 firebase-debug.log
+backend/functions/.env.*
+!backend/functions/.env.example

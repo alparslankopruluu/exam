@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 DEVICE="${DEVICE:-Examly Shots}"
 APP="../ios/build/Build/Products/Debug-iphonesimulator/Exam.app"
-BUNDLE=com.kprl.exam
+BUNDLE=com.techtactoe.examly
 OUT=screenshots/raw/ios
 read -r -a SCREENS <<< "${SCREENS:-today session practice tutor}"
 

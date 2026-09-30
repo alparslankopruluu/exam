@@ -1,6 +1,6 @@
 name: Exam
 options:
-  bundleIdPrefix: com.kprl
+  bundleIdPrefix: com.techtactoe
   deploymentTarget:
     iOS: "18.0"
 
@@ -58,13 +58,13 @@ targets:
       properties:
         com.apple.developer.applesignin: [Default]
         aps-environment: development
-        com.apple.security.application-groups: [group.com.kprl.exam]
+        com.apple.security.application-groups: [group.com.techtactoe.examly]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam
+        PRODUCT_BUNDLE_IDENTIFIER: com.techtactoe.examly
         INFOPLIST_FILE: Exam/Info.plist
         # REVERSED_CLIENT_ID from GoogleService-Info.plist (examly-study); public, not a secret.
-        GOOGLE_REVERSED_CLIENT_ID: com.googleusercontent.apps.839662717641-ts4uv57604us2bugvne0urod3hhlq1vc
+        GOOGLE_REVERSED_CLIENT_ID: com.googleusercontent.apps.839662717641-3k47efjl1pmrd5olgk8p9sn8rhbg5omt
         PRODUCT_NAME: Exam
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Examly
@@ -98,7 +98,7 @@ targets:
         product: FirebaseMessaging
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam.NotificationService
+        PRODUCT_BUNDLE_IDENTIFIER: com.techtactoe.examly.NotificationService
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: ExamNotificationService/Info.plist
         CURRENT_PROJECT_VERSION: 1
@@ -114,10 +114,10 @@ targets:
     entitlements:
       path: ExamWidget/ExamWidget.entitlements
       properties:
-        com.apple.security.application-groups: [group.com.kprl.exam]
+        com.apple.security.application-groups: [group.com.techtactoe.examly]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.kprl.exam.Widget
+        PRODUCT_BUNDLE_IDENTIFIER: com.techtactoe.examly.Widget
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Examly
         INFOPLIST_FILE: ExamWidget/Info.plist

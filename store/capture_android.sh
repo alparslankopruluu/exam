@@ -32,8 +32,8 @@ for lang in "${LANGS[@]}"; do
     case "$screen" in today) n=1 ;; session) n=2 ;; practice) n=3 ;; tutor) n=4 ;; esac
     file="$OUT/$lang/${n}_${screen}.png"
     for attempt in 1 2 3; do
-      adb shell pm clear com.kprl.exam >/dev/null
-      adb shell am start -n com.kprl.exam/.MainActivity \
+      adb shell pm clear com.techtactoe.examly >/dev/null
+      adb shell am start -n com.techtactoe.examly/com.kprl.exam.MainActivity \
         --es screenshotLanguage "$lang" --es screenshotExam "$(exam_for "$lang")" \
         --es screenshotScreen "$screen" >/dev/null
       sleep $((4 + attempt * 2))

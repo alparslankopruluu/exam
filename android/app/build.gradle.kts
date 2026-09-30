@@ -22,7 +22,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.kprl.exam"
+        applicationId = "com.techtactoe.examly"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
