@@ -77,7 +77,7 @@
           "adHocOffers": [
             {
               "internalID": "ADAA9156-DCA7-41BD-B6AD-098FF98A71A2",
-              "offerID": "winback_50",
+              "offerID": "winback_annual_50",
               "paymentMode": "payUpFront",
               "referenceName": "Win-back 50%",
               "subscriptionPeriod": "P1Y",

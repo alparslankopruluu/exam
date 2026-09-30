@@ -37,7 +37,7 @@ const RULES: Record<OfferKind, OfferRule> = {
     discountPercent: 50,
     durationMs: 7 * 24 * HOUR,
     appleProductId: "premium_annual",
-    applePromotionalOfferId: "winback_50",
+    applePromotionalOfferId: "winback_annual_50",
     googleOfferTag: "winback"
   }
 };
