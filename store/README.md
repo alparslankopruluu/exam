@@ -32,3 +32,9 @@ Writes `store/ios/metadata/<locale>/` and `store/android/metadata/android/<local
 ## Legal pages
 
 Fill `store/legal/operator.json`, then `python3 store/legal/build.py` writes the privacy, terms and support pages to `backend/hosting/`; publish with `cd backend && firebase deploy --only hosting`.
+
+## App Store Connect
+
+- App ID `6817641143`, bundle ID `com.techtactoe.examly`, team `UYDAF6RY67`.
+- Upload metadata: `asc migrate import --app 6817641143 --version-id <id> --fastlane-dir store/ios --confirm` (version texts), then `asc app-setup info set` per locale for name/subtitle, and `asc screenshots upload --app 6817641143 --version-id <id> --path store/ios/screenshots --device-type IPHONE_69`.
+- Build: archive with `-allowProvisioningUpdates` using the Xcode-signed-in account (the API key cannot register App Groups), export with `ios/ExportOptions.plist`, then `asc builds upload --app 6817641143 --ipa ios/build/export/Exam.ipa`.

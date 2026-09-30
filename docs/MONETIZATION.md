@@ -74,10 +74,10 @@ Credit amounts are granted from `backend/functions/src/catalog.ts`; clients only
 |---|---|---|---|---|---|
 | `welcome` | Never subscribed, first 72h | 40% first year | 48h | buy `premium_annual_offer` | offer tag `welcome` |
 | `exam_sprint` | Never subscribed, exam ≤ 45 days (needs `daysToExam`) | 40% first year | 72h | buy `premium_annual_offer` | offer tag `welcome` |
-| `winback` | Lapsed subscriber | 50% first year | 7 days | promotional offer `winback_50` (server-signed) | offer tag `winback` |
+| `winback` | Lapsed subscriber | 50% first year | 7 days | promotional offer `winback_annual_50` (server-signed) | offer tag `winback` |
 
 Store setup required:
-- App Store Connect: promotional offer `winback_50` on `premium_annual` (pay up front, 1 year).
+- App Store Connect: promotional offer `winback_annual_50` on `premium_annual` (pay up front, 1 year).
 - Play Console, `premium_annual` base plan: offers tagged `trial` (7-day free, new customers), `welcome` (40% first year, developer-determined), `winback` (50% first year, developer-determined).
 - The app only shows an offer when the store returns a matching price, and never picks an arbitrary Play offer.
 

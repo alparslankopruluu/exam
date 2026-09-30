@@ -14,6 +14,8 @@ ROOT = pathlib.Path(__file__).resolve().parent
 # Hosted on Firebase Hosting (store/legal/build.py + firebase deploy --only hosting).
 TERMS_URL = "https://examly-study.web.app/terms"
 PRIVACY_URL = "https://examly-study.web.app/privacy"
+SUPPORT_URL = "https://examly-study.web.app/support"
+MARKETING_URL = "https://examly-study.web.app"
 
 # app code -> (App Store Connect locale, Google Play locale)
 LOCALES = {
@@ -478,8 +480,10 @@ def main():
         write(ios / "keywords.txt", d["kw"], "keywords")
         write(ios / "promotional_text.txt", d["promo"], "promotional_text")
         write(ios / "description.txt", description(d), "description")
-        write(ios / "release_notes.txt", d["notes"], "release_notes")
+        # No release_notes.txt: App Store Connect rejects "What's New" on a first version.
         write(ios / "privacy_url.txt", PRIVACY_URL, "privacy_url")
+        write(ios / "support_url.txt", SUPPORT_URL, "support_url")
+        write(ios / "marketing_url.txt", MARKETING_URL, "marketing_url")
 
         play_dir = ROOT / "android" / "metadata" / "android" / play
         write(play_dir / "title.txt", d["name"], "title")
