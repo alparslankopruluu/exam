@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 /**
  * Debug-only state seeding for store screenshots, driven by intent extras:
- *   adb shell am start -n com.kprl.exam/.MainActivity \
+ *   adb shell am start -n com.techtactoe.examly/com.kprl.exam.MainActivity \
  *     --es screenshotLanguage tr --es screenshotExam tr_yks --es screenshotScreen today
  * Screens: today, practice, tutor, library, session.
  */

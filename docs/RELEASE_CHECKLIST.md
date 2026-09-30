@@ -46,7 +46,7 @@ Then configure:
 - App Store Server API key;
 - Apple root certificates for signed-data verification;
 - App Store Server Notifications V2 URL pointing to `appleStoreNotifications`;
-- bundle ID `com.kprl.exam` or change it consistently in source/config before release.
+- bundle ID `com.techtactoe.examly` or change it consistently in source/config before release.
 
 The UI never hardcodes display price. StoreKit supplies the localized price and eligibility.
 

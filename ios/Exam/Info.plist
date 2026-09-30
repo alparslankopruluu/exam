@@ -14,7 +14,7 @@
 		</dict>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.kprl.exam</string>
+			<string>com.techtactoe.examly</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>exam</string>

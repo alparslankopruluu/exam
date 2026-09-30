@@ -1,7 +1,7 @@
 import Foundation
 
 /// Debug-only state seeding for store screenshots, driven by launch arguments:
-///   xcrun simctl launch <device> com.kprl.exam \
+///   xcrun simctl launch <device> com.techtactoe.examly \
 ///     -screenshotLanguage tr -screenshotExam tr_yks -screenshotScreen today
 /// Screens: today, practice, tutor, library, session.
 enum ScreenshotMode {

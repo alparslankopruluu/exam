@@ -33,7 +33,7 @@ struct WidgetSnapshot: Codable, Equatable {
     let labels: Labels
     let updatedAt: Date
 
-    static let appGroup = "group.com.kprl.exam"
+    static let appGroup = "group.com.techtactoe.examly"
     private static let snapshotKey = "widget.snapshot"
     private static let answerKey = "widget.answer"
 
