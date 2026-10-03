@@ -34,6 +34,13 @@ struct CountryDefinition: Identifiable, Hashable {
     let examIds: [String]
 }
 
+extension CountryDefinition {
+    /// The country name in the app language, falling back to the catalogue name.
+    var localizedName: String {
+        Locale(identifier: ExamCatalog.languageCode).localizedString(forRegionCode: code) ?? name
+    }
+}
+
 struct StudySetup: Hashable {
     let country: CountryDefinition
     let exam: ExamDefinition

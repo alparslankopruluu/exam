@@ -109,6 +109,10 @@ fun TodayScreen(
             "tutor" -> selectedTab = 2
             "library" -> selectedTab = 3
             "session" -> openSession("quick_practice")
+            "paywall" -> premiumPlacement = "push_offer"
+            "credits" -> toolRoute = ToolRoute.CREDITS
+            "focus" -> toolRoute = ToolRoute.FOCUS
+            "progress" -> toolRoute = ToolRoute.PROGRESS
         }
     }
 

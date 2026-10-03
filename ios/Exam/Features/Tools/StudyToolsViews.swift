@@ -483,125 +483,291 @@ struct FocusView: View {
     let setup: StudySetup
     let onClose: () -> Void
 
-    @State private var focusMinutes = 25
-    @State private var remaining = 25 * 60
-    @State private var running = false
-    @State private var timer: Timer?
+    private enum Mode: CaseIterable { case pomodoro, deepWork }
+    private enum Phase: CaseIterable { case focus, shortBreak, longBreak }
+
+    @State private var mode: Mode = .pomodoro
+    @State private var phase: Phase = .focus
+    @State private var endDate: Date?
+    @State private var pausedRemaining: Int?
+    @State private var now = Date()
+
+    private static let notificationId = "focus_session_end"
+    private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     private var copy: LocalizedCopy {
         LocalizedCopy.load(languageCode: setup.languageCode)
     }
 
+    private func minutes(_ phase: Phase, in mode: Mode) -> Int {
+        switch (mode, phase) {
+        case (.pomodoro, .focus): 25
+        case (.pomodoro, .shortBreak): 5
+        case (.pomodoro, .longBreak): 15
+        case (.deepWork, .focus): 50
+        case (.deepWork, .shortBreak): 10
+        case (.deepWork, .longBreak): 20
+        }
+    }
+
+    private var total: Int { minutes(phase, in: mode) * 60 }
+    private var running: Bool { endDate != nil }
+
+    private var remaining: Int {
+        if let endDate { return max(0, Int(endDate.timeIntervalSince(now).rounded(.up))) }
+        return pausedRemaining ?? total
+    }
+
+    /// 0 at the start of a focus phase, 1 when it ends; the plant grows with it.
+    private var growth: Double {
+        phase == .focus ? 1 - Double(remaining) / Double(total) : 1
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            ToolHeader(
-                copy.text("focus"),
-                copy.text("focus_pomodoro", variables: ["exam": setup.exam.shortName]),
-                onClose: onClose
-            )
+            ToolHeader(copy.text("focus_mode"), nil, onClose: onClose)
 
-            HStack(spacing: 8) {
-                ForEach([25, 40, 50], id: \.self) { minutes in
+            HStack(spacing: 4) {
+                ForEach(Mode.allCases, id: \.self) { item in
                     Button {
-                        reset(minutes)
+                        switchTo(mode: item, phase: .focus)
                     } label: {
-                        Text("\(minutes) min")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(focusMinutes == minutes ? .white : ExamPalette.primary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 9)
-                            .background(focusMinutes == minutes ? ExamPalette.primary : ExamPalette.softBlue)
+                        Text(copy.text(item == .pomodoro ? "pomodoro" : "deep_work"))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(mode == item ? ExamPalette.textPrimary : ExamPalette.textSecondary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 38)
+                            .background(mode == item ? ExamPalette.surface : .clear)
                             .clipShape(Capsule())
+                            .shadow(color: .black.opacity(mode == item ? 0.06 : 0), radius: 6, y: 2)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.top, 28)
+            .padding(4)
+            .background(ExamPalette.border.opacity(0.6))
+            .clipShape(Capsule())
+            .padding(.top, 8)
 
-            Spacer()
+            ZStack(alignment: .top) {
+                FocusScene(growth: growth)
+                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .padding(.top, 110)
 
-            VStack(spacing: 6) {
-                Text(String(format: "%02d:%02d", remaining / 60, remaining % 60))
-                    .font(.system(size: 46, weight: .bold, design: .rounded))
-                Text(running ? copy.text("stay_with_it") : copy.text("ready"))
-                    .foregroundStyle(ExamPalette.textSecondary)
+                ZStack {
+                    Circle().fill(ExamPalette.surface)
+                    Circle()
+                        .stroke(ExamPalette.softBlue, lineWidth: 10)
+                        .padding(9)
+                    Circle()
+                        .trim(from: 0, to: 1 - Double(remaining) / Double(total))
+                        .stroke(ExamPalette.primary, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .padding(9)
+                        .animation(.linear(duration: 1), value: remaining)
+                    VStack(spacing: 4) {
+                        Text(String(format: "%02d:%02d", remaining / 60, remaining % 60))
+                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(ExamPalette.textPrimary)
+                        Text(copy.text(phase == .focus ? "focus_time" : "break_time"))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                    }
+                }
+                .frame(width: 210, height: 210)
+                .shadow(color: ExamPalette.primary.opacity(0.12), radius: 18, y: 8)
+                .padding(.top, 18)
             }
-            .frame(width: 230, height: 230)
-            .background(ExamPalette.surface)
-            .clipShape(Circle())
-
-            Spacer()
+            .frame(maxHeight: .infinity)
 
             Button {
                 running ? pause() : start()
             } label: {
-                Label(
-                    running ? copy.text("pause") : copy.text("start_focus"),
-                    systemImage: running ? "pause.fill" : "play.fill"
-                )
+                Text(running ? copy.text("pause") : copy.text(phase == .focus ? "start_focus" : "start_break"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(ExamPalette.primary)
+                    .background(ExamPalette.textPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
             .buttonStyle(.plain)
+            .padding(.top, 14)
 
-            Button(copy.text("reset")) { reset(focusMinutes) }
-                .font(.system(size: 13, weight: .semibold))
-                .padding(.top, 8)
+            HStack(spacing: 10) {
+                ForEach(Phase.allCases, id: \.self) { item in
+                    Button {
+                        switchTo(mode: mode, phase: item)
+                    } label: {
+                        VStack(spacing: 2) {
+                            Text("\(minutes(item, in: mode))")
+                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .foregroundStyle(phase == item ? ExamPalette.primary : ExamPalette.textPrimary)
+                            Text(copy.text(item == .focus ? "focus" : item == .shortBreak ? "short_break" : "long_break"))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(ExamPalette.textSecondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(phase == item ? ExamPalette.softBlue : ExamPalette.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(phase == item ? ExamPalette.primary : ExamPalette.border, lineWidth: phase == item ? 1.5 : 1)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, 12)
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 12)
         .background(ExamPalette.background.ignoresSafeArea())
-        .onDisappear { timer?.invalidate() }
-    }
-
-    private func start() {
-        AppServices.shared.analytics.event(
-            AnalyticsEvent.focusStarted,
-            params: [
-                AnalyticsParam.examId: setup.exam.id,
-                AnalyticsParam.durationSeconds: remaining
-            ]
-        )
-        running = true
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            Task { @MainActor in
-                if remaining > 0 {
-                    remaining -= 1
-                } else {
-                    AppServices.shared.analytics.event(
-                        AnalyticsEvent.focusCompleted,
-                        params: [
-                            AnalyticsParam.examId: setup.exam.id,
-                            AnalyticsParam.durationSeconds: focusMinutes * 60
-                        ]
-                    )
-                    pause()
-                    let content = UNMutableNotificationContent()
-                    content.title = copy.text("focus_complete")
-                    content.body = copy.text("focus_break", variables: ["exam": setup.exam.shortName])
-                    content.sound = .default
-                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-                    UNUserNotificationCenter.current().add(request)
-                }
-            }
+        .onReceive(ticker) { date in
+            now = date
+            if let endDate, endDate <= date { complete() }
+        }
+        .onAppear {
+            // Store screenshots show a session midway, with the sapling half grown.
+            if ScreenshotMode.isActive { pausedRemaining = total * 2 / 5 }
         }
     }
 
-    private func pause() {
-        running = false
-        timer?.invalidate()
-        timer = nil
+    private func switchTo(mode: Mode, phase: Phase) {
+        cancelNotification()
+        self.mode = mode
+        self.phase = phase
+        endDate = nil
+        pausedRemaining = nil
     }
 
-    private func reset(_ minutes: Int) {
-        pause()
-        focusMinutes = minutes
-        remaining = minutes * 60
+    private func start() {
+        if phase == .focus {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.focusStarted,
+                params: [AnalyticsParam.examId: setup.exam.id, AnalyticsParam.durationSeconds: remaining]
+            )
+        }
+        now = Date()
+        endDate = now.addingTimeInterval(TimeInterval(remaining))
+        pausedRemaining = nil
+        scheduleNotification(after: remaining)
+    }
+
+    private func pause() {
+        pausedRemaining = remaining
+        endDate = nil
+        cancelNotification()
+    }
+
+    private func complete() {
+        if phase == .focus {
+            AppServices.shared.analytics.event(
+                AnalyticsEvent.focusCompleted,
+                params: [AnalyticsParam.examId: setup.exam.id, AnalyticsParam.durationSeconds: total]
+            )
+        }
+        endDate = nil
+        pausedRemaining = 0
+    }
+
+    /// Scheduled up front so the reminder also fires while the app is in the background.
+    private func scheduleNotification(after seconds: Int) {
+        guard seconds > 0 else { return }
+        let content = UNMutableNotificationContent()
+        content.title = copy.text(phase == .focus ? "focus_complete" : "break_complete")
+        content.body = copy.text(phase == .focus ? "focus_break" : "break_over", variables: ["exam": setup.exam.shortName])
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(seconds), repeats: false)
+        UNUserNotificationCenter.current().add(
+            UNNotificationRequest(identifier: Self.notificationId, content: content, trigger: trigger)
+        )
+    }
+
+    private func cancelNotification() {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [Self.notificationId])
+    }
+}
+
+/// The focus illustration (design/illustrations/focus_scene.svg) with a sapling
+/// drawn on top of the soil mound that grows as the focus phase progresses.
+private struct FocusScene: View {
+    let growth: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            // The 400x440 scene is aspect-filled and centre-cropped; the sapling
+            // stands on the soil mound at scene point (200, 380).
+            let scale = max(proxy.size.width / 400, proxy.size.height / 440)
+            let originX = (proxy.size.width - 400 * scale) / 2
+            let originY = (proxy.size.height - 440 * scale) / 2
+            ZStack(alignment: .topLeading) {
+                Image("focus_scene")
+                    .resizable()
+                    .frame(width: 400 * scale, height: 440 * scale)
+                    .offset(x: originX, y: originY)
+                Sapling(growth: growth)
+                    .frame(width: 120 * scale, height: 110 * scale)
+                    .position(x: originX + 200 * scale, y: originY + (380 - 55) * scale)
+                    .animation(.easeInOut(duration: 0.8), value: growth)
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .topLeading)
+            .clipped()
+        }
+    }
+}
+
+/// A sapling in a 120x110 box whose base sits at the bottom centre.
+struct Sapling: View, Animatable {
+    var growth: Double
+
+    var animatableData: Double {
+        get { growth }
+        set { growth = newValue }
+    }
+
+    var body: some View {
+        Canvas { context, size in
+            let s = size.width / 120
+            let g = max(0.08, min(1, growth))
+            let base = CGPoint(x: 60 * s, y: 110 * s)
+            let height = 100 * s * g
+            let stemColor = Color(red: 0.37, green: 0.66, blue: 0.50)
+            let leafA = Color(red: 0.49, green: 0.77, blue: 0.60)
+            let leafB = Color(red: 0.42, green: 0.71, blue: 0.54)
+
+            var stem = Path()
+            stem.move(to: base)
+            stem.addQuadCurve(
+                to: CGPoint(x: base.x, y: base.y - height),
+                control: CGPoint(x: base.x + 8 * s, y: base.y - height / 2)
+            )
+            context.stroke(stem, with: .color(stemColor), style: StrokeStyle(lineWidth: 5 * s, lineCap: .round))
+
+            func leaf(at t: Double, appearAt threshold: Double, length: Double, left: Bool, color: Color) {
+                let p = min(1, max(0, (g - threshold) / 0.2))
+                guard p > 0 else { return }
+                let y = base.y - height * t
+                let dir: Double = left ? -1 : 1
+                var leafPath = Path()
+                leafPath.move(to: CGPoint(x: base.x, y: y))
+                let tip = CGPoint(x: base.x + dir * length * s * p, y: y - 14 * s * p)
+                leafPath.addQuadCurve(to: tip, control: CGPoint(x: base.x + dir * length * 0.4 * s * p, y: y - 22 * s * p))
+                leafPath.addQuadCurve(to: CGPoint(x: base.x, y: y), control: CGPoint(x: base.x + dir * length * 0.7 * s * p, y: y + 4 * s * p))
+                context.fill(leafPath, with: .color(color))
+            }
+
+            leaf(at: 0.35, appearAt: 0.15, length: 34, left: true, color: leafB)
+            leaf(at: 0.45, appearAt: 0.3, length: 30, left: false, color: leafA)
+            leaf(at: 0.7, appearAt: 0.55, length: 28, left: true, color: leafA)
+            leaf(at: 0.8, appearAt: 0.7, length: 26, left: false, color: leafB)
+            leaf(at: 1.0, appearAt: 0.85, length: 20, left: false, color: leafA)
+            leaf(at: 1.0, appearAt: 0.85, length: 20, left: true, color: leafB)
+        }
     }
 }
 
@@ -613,38 +779,110 @@ struct StudyProgressView: View {
     @State private var progress = StudyProgressSummary(masteryPercent: 0, sessions: 0, questions: 0, correct: 0, studyMinutes: 0)
     @State private var errorDNA: [ErrorDNAItem] = []
     @State private var user = UserProgressStore().snapshot()
+    @State private var weekly = Array(repeating: 0, count: 7)
+    @State private var lastWeekMinutes = 0
+    @State private var masteredSkills = 0
+    @State private var sections: [(title: String, percent: Int?)] = []
+    @State private var shareImage: Image?
+
+    private static let sectionColors = [ExamPalette.mint, ExamPalette.amber, ExamPalette.purple, ExamPalette.primary, ExamPalette.coral]
 
     private var copy: LocalizedCopy {
         LocalizedCopy.load(languageCode: setup.languageCode)
     }
 
+    private var mastery: Int {
+        progress.masteryPercent == 0 ? setup.diagnosticPercent : progress.masteryPercent
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 14) {
                 ToolHeader(
-                    copy.text("progress"),
+                    copy.text("your_progress"),
                     copy.text("learning_profile", variables: ["exam": setup.exam.shortName]),
                     onClose: onClose
                 )
 
-                HStack(spacing: 8) {
-                    metric("\(progress.masteryPercent == 0 ? setup.diagnosticPercent : progress.masteryPercent)%", copy.text("mastery"))
-                    metric("\(user.streak)", copy.text("streak"))
-                    metric("\(user.xp)", copy.text("xp"))
+                weeklyReport
+
+                HStack(spacing: 12) {
+                    VStack(spacing: 8) {
+                        ZStack {
+                            Circle().stroke(ExamPalette.softMint, lineWidth: 8)
+                            Circle()
+                                .trim(from: 0, to: Double(mastery) / 100)
+                                .stroke(ExamPalette.mint, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                            Text("\(mastery)%")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                .foregroundStyle(ExamPalette.mint)
+                        }
+                        .frame(width: 78, height: 78)
+                        Text(copy.text("mastery"))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .examCard(radius: 20)
+
+                    VStack(spacing: 8) {
+                        Text("\(max(progress.questions, user.totalQuestions))")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundStyle(ExamPalette.purple)
+                            .frame(height: 78)
+                        Text(copy.text("questions_solved"))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .examCard(radius: 20)
+                }
+
+                weeklyChart
+
+                if !sections.isEmpty {
+                    Text(copy.text("subject_progress"))
+                        .font(.system(size: 18, weight: .bold))
+                        .padding(.top, 4)
+                    VStack(spacing: 14) {
+                        ForEach(Array(sections.enumerated()), id: \.offset) { index, section in
+                            sectionRow(section.title, section.percent, color: Self.sectionColors[index % Self.sectionColors.count])
+                        }
+                    }
+                    .padding(16)
+                    .examCard(radius: 20)
                 }
 
                 HStack(spacing: 8) {
-                    metric("\(progress.sessions)", copy.text("sessions"))
+                    metric("\(user.streak)", copy.text("streak"))
                     metric("\(progress.questions == 0 ? 0 : progress.correct * 100 / progress.questions)%", copy.text("accuracy"))
-                    metric("\(progress.studyMinutes)m", copy.text("study_time"))
+                    metric("\(max(progress.sessions, user.totalSessions))", copy.text("sessions"))
+                }
+
+                achievementsSection
+
+                if let shareImage {
+                    ShareLink(item: shareImage, preview: SharePreview(copy.text("share_progress"), image: shareImage)) {
+                        Label(copy.text("share_progress"), systemImage: "square.and.arrow.up")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(ExamPalette.primary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(ExamPalette.softBlue)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
                 }
 
                 Text(copy.text("error_dna"))
                     .font(.system(size: 18, weight: .bold))
-                    .padding(.top, 8)
+                    .padding(.top, 4)
 
                 if errorDNA.isEmpty {
                     Text(copy.text("no_error_pattern"))
+                        .font(.system(size: 14))
                         .foregroundStyle(ExamPalette.textSecondary)
                 } else {
                     ForEach(Array(errorDNA.prefix(8).enumerated()), id: \.offset) { _, item in
@@ -672,12 +910,213 @@ struct StudyProgressView: View {
             .padding(.bottom, 20)
         }
         .background(ExamPalette.background.ignoresSafeArea())
-        .onAppear {
-            let store = LearningStore(context: modelContext)
-            progress = (try? store.progressSummary(examId: setup.exam.id)) ?? progress
-            errorDNA = (try? store.errorDNA(examId: setup.exam.id)) ?? []
-            user = UserProgressStore().snapshot()
+        .onAppear(perform: load)
+    }
+
+    // MARK: Weekly report
+
+    private var weeklyReport: some View {
+        let thisWeek = weekly.reduce(0, +)
+        let change = lastWeekMinutes == 0 ? nil : (thisWeek - lastWeekMinutes) * 100 / lastWeekMinutes
+        let focus = sections.filter { $0.percent != nil }.min { ($0.percent ?? 0) < ($1.percent ?? 0) }?.title
+            ?? sections.first?.title
+        return VStack(alignment: .leading, spacing: 10) {
+            Text(copy.text("your_week"))
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.white.opacity(0.8))
+            Text(copy.text("duration_hm", variables: ["h": String(thisWeek / 60), "m": String(thisWeek % 60)]))
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+            if let change {
+                Label(copy.text("vs_last_week", variables: ["change": (change >= 0 ? "+" : "") + "\(change)%"]),
+                      systemImage: change >= 0 ? "arrow.up.right" : "arrow.down.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            if let focus {
+                Text(copy.text("focus_next", variables: ["topic": focus]))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(
+            LinearGradient(colors: [ExamPalette.primary, ExamPalette.indigo], startPoint: .topLeading, endPoint: .bottomTrailing)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    }
+
+    // MARK: Achievements
+
+    private struct Badge {
+        let key: String
+        let symbol: String
+        let color: Color
+        let value: Int
+        let target: Int
+        var unlocked: Bool { value >= target }
+    }
+
+    private var badges: [Badge] {
+        let questions = max(progress.questions, user.totalQuestions)
+        return [
+            Badge(key: "badge_streak_7", symbol: "flame.fill", color: ExamPalette.amber, value: user.streak, target: 7),
+            Badge(key: "badge_streak_30", symbol: "flame.circle.fill", color: ExamPalette.coral, value: user.streak, target: 30),
+            Badge(key: "badge_questions_100", symbol: "checkmark.seal.fill", color: ExamPalette.primary, value: questions, target: 100),
+            Badge(key: "badge_questions_500", symbol: "star.circle.fill", color: ExamPalette.purple, value: questions, target: 500),
+            Badge(key: "badge_study_10h", symbol: "clock.fill", color: ExamPalette.mint, value: progress.studyMinutes, target: 600),
+            Badge(key: "badge_mastered_5", symbol: "graduationcap.fill", color: ExamPalette.indigo, value: masteredSkills, target: 5)
+        ]
+    }
+
+    private var achievementsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(copy.text("achievements"))
+                .font(.system(size: 18, weight: .bold))
+                .padding(.top, 4)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
+                ForEach(badges, id: \.key) { badge in
+                    VStack(spacing: 8) {
+                        Image(systemName: badge.symbol)
+                            .font(.system(size: 24))
+                            .foregroundStyle(badge.unlocked ? badge.color : ExamPalette.border)
+                            .frame(width: 52, height: 52)
+                            .background(badge.unlocked ? badge.color.opacity(0.14) : ExamPalette.background)
+                            .clipShape(Circle())
+                        Text(copy.text(badge.key))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(badge.unlocked ? ExamPalette.textPrimary : ExamPalette.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.85)
+                        Text(badge.unlocked ? "✓" : "\(min(badge.value, badge.target))/\(badge.target)")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(badge.unlocked ? badge.color : ExamPalette.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .examCard(radius: 18)
+                }
+            }
+        }
+    }
+
+    // MARK: Share card
+
+    @MainActor
+    private func renderShareCard() {
+        let card = ProgressShareCard(
+            exam: setup.exam.shortName,
+            streak: user.streak,
+            minutes: progress.studyMinutes,
+            questions: max(progress.questions, user.totalQuestions),
+            mastery: mastery,
+            copy: copy
+        )
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = 3
+        if let image = renderer.uiImage { shareImage = Image(uiImage: image) }
+    }
+
+    private var weeklyChart: some View {
+        let peak = max(weekly.max() ?? 0, 1)
+        let total = weekly.reduce(0, +)
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(copy.text("this_week"))
+                    .font(.system(size: 16, weight: .bold))
+                Spacer()
+                Text(copy.text("duration_hm", variables: ["h": String(total / 60), "m": String(total % 60)]))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(ExamPalette.primary)
+            }
+            HStack(alignment: .bottom, spacing: 10) {
+                ForEach(0..<7, id: \.self) { index in
+                    VStack(spacing: 6) {
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: index == 6
+                                        ? [ExamPalette.indigo, ExamPalette.primary]
+                                        : [ExamPalette.primary.opacity(0.45), ExamPalette.primary.opacity(0.25)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            )
+                            .frame(width: 18, height: max(8, 114 * CGFloat(weekly[index]) / CGFloat(peak)))
+                        Text(weekdayLabel(daysAgo: 6 - index))
+                            .font(.system(size: 11, weight: index == 6 ? .bold : .medium))
+                            .foregroundStyle(index == 6 ? ExamPalette.textPrimary : ExamPalette.textSecondary)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(height: 146, alignment: .bottom)
+        }
+        .padding(16)
+        .examCard(radius: 20)
+    }
+
+    private func sectionRow(_ title: String, _ percent: Int?, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 10) {
+                Circle()
+                    .fill(color.opacity(0.16))
+                    .frame(width: 28, height: 28)
+                    .overlay(Circle().stroke(color, lineWidth: 2).padding(8))
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ExamPalette.textPrimary)
+                    .lineLimit(1)
+                Spacer()
+                Text(percent.map { "\($0)%" } ?? "—")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(ExamPalette.textSecondary)
+            }
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(ExamPalette.border)
+                    Capsule().fill(color).frame(width: proxy.size.width * CGFloat(percent ?? 0) / 100)
+                }
+            }
+            .frame(height: 7)
+            .padding(.leading, 38)
+        }
+    }
+
+    private func weekdayLabel(daysAgo: Int) -> String {
+        let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: .now) ?? .now
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: setup.languageCode)
+        formatter.setLocalizedDateFormatFromTemplate("EEE")
+        return formatter.string(from: date)
+    }
+
+    private func load() {
+        let store = LearningStore(context: modelContext)
+        progress = (try? store.progressSummary(examId: setup.exam.id)) ?? progress
+        errorDNA = (try? store.errorDNA(examId: setup.exam.id)) ?? []
+        user = UserProgressStore().snapshot()
+        let fortnight = (try? store.weeklyMinutes(examId: setup.exam.id, days: 14)) ?? Array(repeating: 0, count: 14)
+        weekly = Array(fortnight.suffix(7))
+        lastWeekMinutes = fortnight.prefix(7).reduce(0, +)
+        masteredSkills = (try? store.masteredSkillCount(examId: setup.exam.id)) ?? 0
+        let titles = ContentPackRepository.load(packId: setup.exam.syllabusPackId)?.units.prefix(5).map(\.title) ?? []
+        let percents = (try? store.sectionMastery(examId: setup.exam.id, sectionTitles: Array(titles))) ?? []
+        sections = zip(titles, percents).map { (title: $0, percent: $1) }
+
+        if ScreenshotMode.isActive {
+            // Store screenshots show an established learner.
+            weekly = [35, 50, 20, 65, 45, 80, 40]
+            progress = StudyProgressSummary(masteryPercent: progress.masteryPercent, sessions: 38, questions: 412, correct: 346, studyMinutes: 335)
+            lastWeekMinutes = 260
+            masteredSkills = 3
+            sections = sections.enumerated().map { index, section in
+                (title: section.title, percent: [76, 62, 48, 70, 55][index % 5])
+            }
+        }
+        renderShareCard()
     }
 
     private func metric(_ value: String, _ label: String) -> some View {
@@ -688,6 +1127,55 @@ struct StudyProgressView: View {
         .frame(maxWidth: .infinity)
         .padding(12)
         .examCard(radius: 16)
+    }
+}
+
+/// Story-sized progress card people can share (streak, study time, questions, mastery).
+private struct ProgressShareCard: View {
+    let exam: String
+    let streak: Int
+    let minutes: Int
+    let questions: Int
+    let mastery: Int
+    let copy: LocalizedCopy
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Text("🔥 \(streak)")
+                .font(.system(size: 56, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+            Text(copy.text("day_streak").uppercased())
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(.white.opacity(0.8))
+            VStack(spacing: 12) {
+                row(copy.text("duration_hm", variables: ["h": String(minutes / 60), "m": String(minutes % 60)]), copy.text("study_time"))
+                row("\(questions)", copy.text("questions_solved"))
+                row("\(mastery)%", copy.text("mastery"))
+            }
+            .padding(18)
+            .background(.white.opacity(0.14))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            HStack(spacing: 8) {
+                Image("app_mark").resizable().frame(width: 28, height: 28).clipShape(RoundedRectangle(cornerRadius: 7))
+                Text("Examly · \(exam)")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+        }
+        .padding(28)
+        .frame(width: 360, height: 560)
+        .background(
+            LinearGradient(colors: [Color(red: 0.23, green: 0.29, blue: 0.48), Color(red: 0.11, green: 0.14, blue: 0.25)],
+                           startPoint: .top, endPoint: .bottom)
+        )
+    }
+
+    private func row(_ value: String, _ label: String) -> some View {
+        HStack {
+            Text(label).font(.system(size: 15, weight: .medium)).foregroundStyle(.white.opacity(0.85))
+            Spacer()
+            Text(value).font(.system(size: 20, weight: .bold, design: .rounded)).foregroundStyle(.white)
+        }
     }
 }
 

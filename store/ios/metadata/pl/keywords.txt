@@ -1,1 +1,1 @@
-egzamin,egzaminy,nauka,uczyć,quiz,fiszki,korepetycje,ielts,toefl,sat,matematyka,testy,powtórka
+egzamin,nauka,uczyć,korepetycje,ielts,toefl,sat,matematyka,testy,powtórka,ćwiczenia,zadania,lekcje

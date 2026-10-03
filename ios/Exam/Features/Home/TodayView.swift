@@ -128,6 +128,10 @@ struct TodayView: View {
             case "tutor": selectedTab = .tutor
             case "library": selectedTab = .library
             case "session": openSession(type: "quick_practice")
+            case "paywall": premiumPlacement = "push_offer"
+            case "credits": toolRoute = .credits
+            case "focus": toolRoute = .focus
+            case "progress": toolRoute = .progress
             default: break
             }
         }

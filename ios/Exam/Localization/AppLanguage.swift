@@ -13,8 +13,10 @@ enum AppLanguage {
 
     private static let codes = Set(supported.map(\.code))
 
-    /// Maps a device locale to the closest shipped language.
-    static func resolve(_ locale: Locale = .current) -> String {
+    /// Maps a device locale to the closest shipped language. Defaults to the user's first
+    /// preferred language: `Locale.current` follows the bundle's localizations and can report
+    /// English (e.g. "en_TR") even on a Turkish device.
+    static func resolve(_ locale: Locale = Locale(identifier: Locale.preferredLanguages.first ?? "en")) -> String {
         let language = locale.language.languageCode?.identifier ?? "en"
         let region = locale.region?.identifier ?? ""
         let script = locale.language.script?.identifier ?? ""

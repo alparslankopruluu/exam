@@ -1,1 +1,1 @@
-exame,exames,estudar,estudo,testes,perguntas,flashcards,explicador,ielts,toefl,sat,revisão
+exame,nacional,estudar,perguntas,flashcards,explicador,ielts,toefl,sat,revisão,resumos,matemática

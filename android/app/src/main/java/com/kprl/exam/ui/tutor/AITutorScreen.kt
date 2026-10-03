@@ -1,5 +1,14 @@
 package com.kprl.exam.ui.tutor
 
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.kprl.exam.R
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -48,6 +57,7 @@ fun AITutorScreen(
     val scanner = remember { QuestionScanner() }
 
     var prompt by remember { mutableStateOf("") }
+    var scanning by remember { mutableStateOf(false) }
     var answer by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -150,29 +160,31 @@ fun AITutorScreen(
         }
     }
 
+    if (scanning) {
+        ScanQuestionScreen(
+            copy = copy,
+            onClose = { scanning = false },
+            onGallery = { scanning = false; photoPicker.launch("image/*") },
+            onImage = { scanning = false; solveBitmap(it, "camera") }
+        )
+        return
+    }
+
     Column(
         modifier.fillMaxSize().statusBarsPadding().padding(horizontal = 20.dp)
     ) {
-        Spacer(Modifier.height(12.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(48.dp).background(ExamColors.SoftPurple, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Rounded.AutoAwesome, null, tint = ExamColors.Purple)
-            }
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(copy.text("ai_tutor"), fontSize = 27.sp, fontWeight = FontWeight.Bold)
-                Text(
-                    copy.text("tutor_context", mapOf("exam" to setup.exam.shortName)),
-                    color = ExamColors.TextSecondary,
-                    fontSize = 12.sp
-                )
-            }
+        Spacer(Modifier.height(8.dp))
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            TutorMascot(Modifier.size(104.dp))
+            Text(copy.text("ai_tutor"), fontSize = 27.sp, fontWeight = FontWeight.Bold)
+            Text(
+                copy.text("tutor_context", mapOf("exam" to setup.exam.shortName)),
+                color = ExamColors.TextSecondary,
+                fontSize = 13.sp
+            )
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
         Text(copy.text("what_help"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
 
@@ -181,7 +193,7 @@ fun AITutorScreen(
             copy.text("solve_question"),
             copy.text("solve_question_hint"),
             ExamColors.Primary
-        ) { photoPicker.launch("image/*") }
+        ) { scanning = true }
 
         Spacer(Modifier.height(9.dp))
         TutorAction(
@@ -348,4 +360,19 @@ private fun Bitmap.toDataUrl(): String {
     compress(Bitmap.CompressFormat.JPEG, 88, stream)
     val encoded = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
     return "data:image/jpeg;base64,$encoded"
+}
+
+/** The tutor robot (design/illustrations/tutor_bot.svg) floating gently (mirrors iOS TutorMascot). */
+@Composable
+fun TutorMascot(modifier: Modifier = Modifier) {
+    val float by rememberInfiniteTransition(label = "mascot").animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(tween(1800), RepeatMode.Reverse),
+        label = "float"
+    )
+    Image(
+        painterResource(R.drawable.illu_tutor_bot), null,
+        modifier = modifier.graphicsLayer { translationY = float.dp.toPx() }
+    )
 }

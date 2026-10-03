@@ -24,13 +24,25 @@ import com.kprl.exam.ui.home.TodayScreen
 import com.kprl.exam.ui.onboarding.OnboardingScreen
 import com.kprl.exam.ui.paywall.PremiumPaywallScreen
 import com.kprl.exam.ui.theme.ExamTheme
+import com.kprl.exam.debug.ScreenshotMode
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 
 @Composable
 fun ExamApp() {
     ExamTheme {
         val context = LocalContext.current
         val setupStore = remember { StudySetupStore(context.applicationContext) }
-        var setup by remember { mutableStateOf(setupStore.load()) }
+        // Store screenshots of onboarding steps start without a saved setup.
+        var setup by remember {
+            mutableStateOf(if (ScreenshotMode.screen?.startsWith("onboarding_") == true) null else setupStore.load())
+        }
+        // The brand splash greets first-time users before onboarding.
+        var showSplash by remember { mutableStateOf(setupStore.load() == null || ScreenshotMode.screen == "splash") }
         var onboardingPaywallSeen by remember {
             mutableStateOf(setupStore.isOnboardingPaywallSeen())
         }
@@ -88,6 +100,7 @@ fun ExamApp() {
         val languageCode = setup?.languageCode ?: ExamCatalog.languageCode()
         val direction = if (AppLanguage.isRightToLeft(languageCode)) LayoutDirection.Rtl else LayoutDirection.Ltr
         CompositionLocalProvider(LocalLayoutDirection provides direction) {
+          Box(Modifier.fillMaxSize()) {
             when {
                 setup == null -> {
                     OnboardingScreen { result ->
@@ -121,6 +134,16 @@ fun ExamApp() {
                     }
                 )
             }
+            AnimatedVisibility(showSplash, exit = fadeOut(tween(500))) {
+                SplashScreen(languageCode) { showSplash = false }
+            }
+            LaunchedEffect(Unit) {
+                if (ScreenshotMode.screen != "splash") {
+                    kotlinx.coroutines.delay(1800)
+                    showSplash = false
+                }
+            }
+          }
         }
     }
 }

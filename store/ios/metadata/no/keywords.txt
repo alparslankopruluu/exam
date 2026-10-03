@@ -1,1 +1,1 @@
-eksamen,prøve,studere,lekser,leksehjelp,quiz,kortstokk,veileder,ielts,toefl,matte,øving,repetisjon
+prøve,studere,lekser,quiz,kortstokk,veileder,ielts,toefl,sat,matte,øving,repetisjon,skole,flashcards

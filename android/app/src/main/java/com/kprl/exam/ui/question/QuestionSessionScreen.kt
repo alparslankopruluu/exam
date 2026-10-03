@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -295,11 +296,33 @@ fun QuestionSessionScreen(
                 border = BorderStroke(1.dp, ExamColors.Border)
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(
-                        if (selected == question.correctIndex) copy.text("nice_work") else copy.text("almost_hint"),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
+                    val correct = selected == question.correctIndex
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            if (correct) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel, null,
+                            tint = if (correct) ExamColors.Mint else ExamColors.Coral,
+                            modifier = Modifier.size(30.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                copy.text(if (correct) "nice_work" else "not_quite"),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 17.sp,
+                                color = if (correct) ExamColors.TextPrimary else ExamColors.Coral
+                            )
+                            if (!correct) {
+                                Text(
+                                    copy.text("correct_answer_is", mapOf("letter" to ('A'.code + question.correctIndex).toChar().toString())),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = ExamColors.TextSecondary
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    Text(copy.text("explanation").uppercase(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = ExamColors.TextSecondary)
                     Spacer(Modifier.height(6.dp))
                     Text(
                         simplerExplanation ?: question.explanation,

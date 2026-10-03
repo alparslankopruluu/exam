@@ -1,1 +1,1 @@
-esame,esami,studio,studiare,test,quiz,flashcard,tutor,ripasso,ielts,toefl,sat,compiti,matematica
+esame,studiare,flashcard,ripasso,ielts,toefl,sat,compiti,matematica,ammissione,schede,esercizi

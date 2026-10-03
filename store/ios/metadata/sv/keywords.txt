@@ -1,1 +1,1 @@
-prov,tenta,plugga,studier,läxhjälp,quiz,flashcards,handledare,ielts,toefl,sat,matte,övning
+tenta,studier,quiz,flashcards,handledare,ielts,toefl,sat,matte,övning,läxor,glosor

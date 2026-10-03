@@ -99,7 +99,7 @@ struct PremiumPaywallView: View {
                             .padding(.top, 14)
                     }
 
-                    planCard(offer.annual, displayTitle: copy.text("annual"), selected: selection == .annual) {
+                    planCard(offer.annual, displayTitle: copy.text("annual"), periodKey: "per_year", selected: selection == .annual) {
                         selection = .annual
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.subscriptionPlanSelected,
@@ -108,7 +108,7 @@ struct PremiumPaywallView: View {
                     }
                     .padding(.top, 14)
 
-                    planCard(offer.monthly, displayTitle: copy.text("monthly"), selected: selection == .monthly) {
+                    planCard(offer.monthly, displayTitle: copy.text("monthly"), periodKey: "per_month", selected: selection == .monthly) {
                         selection = .monthly
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.subscriptionPlanSelected,
@@ -192,7 +192,21 @@ struct PremiumPaywallView: View {
                 .foregroundStyle(ExamPalette.textSecondary)
                 .lineSpacing(2)
                 .padding(.top, 8)
-                .padding(.bottom, 10)
+
+            HStack(spacing: 18) {
+                Button(copy.text("restore")) {
+                    Task {
+                        await StoreKitBillingService.shared.restore()
+                        if await EntitlementService().fetch().premium { onClose() }
+                    }
+                }
+                Link(copy.text("terms"), destination: LegalLinks.terms)
+                Link(copy.text("privacy"), destination: LegalLinks.privacy)
+            }
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(ExamPalette.textSecondary)
+            .padding(.top, 6)
+            .padding(.bottom, 10)
         }
         .padding(.horizontal, 20)
         .background(ExamPalette.background.ignoresSafeArea())
@@ -295,7 +309,7 @@ struct PremiumPaywallView: View {
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(presented.localizedPrice)
+                        Text(copy.text("per_year", variables: ["price": presented.localizedPrice]))
                             .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(ExamPalette.textPrimary)
                         Text(presented.regularPrice)
@@ -326,6 +340,7 @@ struct PremiumPaywallView: View {
     private func planCard(
         _ plan: StorePlanPresentation,
         displayTitle: String,
+        periodKey: String,
         selected: Bool,
         action: @escaping () -> Void
     ) -> some View {
@@ -352,8 +367,11 @@ struct PremiumPaywallView: View {
                         }
                     }
 
-                    if plan.hasTrial {
-                        Text(copy.text("paywall_trial_available"))
+                    if let days = plan.trialDays, let price = plan.localizedPrice {
+                        Text(copy.text("trial_then", variables: [
+                            "days": String(days),
+                            "price": copy.text(periodKey, variables: ["price": price])
+                        ]))
                             .font(.system(size: 11))
                             .foregroundStyle(ExamPalette.textSecondary)
                     }
@@ -361,7 +379,7 @@ struct PremiumPaywallView: View {
 
                 Spacer()
 
-                Text(plan.localizedPrice ?? "—")
+                Text(plan.localizedPrice.map { copy.text(periodKey, variables: ["price": $0]) } ?? "—")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(ExamPalette.textPrimary)
             }

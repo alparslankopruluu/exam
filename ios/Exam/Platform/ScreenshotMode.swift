@@ -3,7 +3,7 @@ import Foundation
 /// Debug-only state seeding for store screenshots, driven by launch arguments:
 ///   xcrun simctl launch <device> com.techtactoe.examly \
 ///     -screenshotLanguage tr -screenshotExam tr_yks -screenshotScreen today
-/// Screens: today, practice, tutor, library, session.
+/// Screens: today, practice, tutor, library, session, paywall, credits.
 enum ScreenshotMode {
     #if DEBUG
     static var language: String? { UserDefaults.standard.string(forKey: "screenshotLanguage") }

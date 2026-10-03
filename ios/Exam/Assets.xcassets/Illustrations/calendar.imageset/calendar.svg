@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220">
+  <defs>
+    <linearGradient id="head" gradientUnits="userSpaceOnUse" x1="74" y1="0" x2="246" y2="0">
+      <stop offset="0" stop-color="#5C6CF0"/><stop offset="1" stop-color="#7C8CFF"/>
+    </linearGradient>
+    <linearGradient id="pot" gradientUnits="userSpaceOnUse" x1="0" y1="176" x2="0" y2="206">
+      <stop offset="0" stop-color="#C9D3EA"/><stop offset="1" stop-color="#AEB9D6"/>
+    </linearGradient>
+  </defs>
+  <!-- ground shadow -->
+  <ellipse cx="160" cy="206" rx="130" ry="10" fill="#DCE4F2"/>
+  <!-- calendar body -->
+  <rect x="74" y="44" width="172" height="156" rx="16" fill="#FFFFFF"/>
+  <path d="M74 60 Q74 44 90 44 L230 44 Q246 44 246 60 L246 82 L74 82 Z" fill="url(#head)"/>
+  <!-- rings -->
+  <rect x="106" y="32" width="10" height="26" rx="5" fill="#3B4A74"/>
+  <rect x="204" y="32" width="10" height="26" rx="5" fill="#3B4A74"/>
+  <!-- grid -->
+  <g fill="#E6ECF8">
+    <rect x="92" y="96" width="22" height="18" rx="5"/><rect x="122" y="96" width="22" height="18" rx="5"/><rect x="152" y="96" width="22" height="18" rx="5"/><rect x="182" y="96" width="22" height="18" rx="5"/><rect x="212" y="96" width="22" height="18" rx="5"/>
+    <rect x="92" y="122" width="22" height="18" rx="5"/><rect x="122" y="122" width="22" height="18" rx="5"/><rect x="152" y="122" width="22" height="18" rx="5"/><rect x="212" y="122" width="22" height="18" rx="5"/>
+    <rect x="92" y="148" width="22" height="18" rx="5"/><rect x="122" y="148" width="22" height="18" rx="5"/><rect x="152" y="148" width="22" height="18" rx="5"/><rect x="182" y="148" width="22" height="18" rx="5"/><rect x="212" y="148" width="22" height="18" rx="5"/>
+    <rect x="92" y="174" width="22" height="14" rx="5"/><rect x="122" y="174" width="22" height="14" rx="5"/>
+  </g>
+  <!-- highlighted exam day -->
+  <rect x="182" y="122" width="22" height="18" rx="5" fill="#5C6CF0"/>
+  <path d="M187 131 l4 4 l8 -8" stroke="#FFFFFF" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- plant left -->
+  <path d="M30 206 L34 176 L62 176 L66 206 Z" fill="url(#pot)"/>
+  <path d="M48 176 Q46 150 34 138 Q52 142 50 170 Z" fill="#86B79E"/>
+  <path d="M48 176 Q52 146 68 136 Q66 160 50 174 Z" fill="#7AAE95"/>
+  <path d="M48 176 Q44 160 26 158 Q40 170 46 176 Z" fill="#9CC8B1"/>
+  <!-- books right -->
+  <rect x="258" y="186" width="56" height="14" rx="3" fill="#8EA2FF"/>
+  <rect x="264" y="172" width="46" height="14" rx="3" fill="#3B4A74"/>
+  <rect x="260" y="158" width="50" height="14" rx="3" fill="#C9D3EA"/>
+  <!-- sparkle -->
+  <path d="M272 70 C275 84 280 89 294 92 C280 95 275 100 272 114 C269 100 264 95 250 92 C264 89 269 84 272 70 Z" fill="#B9C6FF"/>
+</svg>

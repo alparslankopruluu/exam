@@ -1,1 +1,1 @@
-yks,lgs,kpss,ales,dgs,sınav,deneme,soru,test,ders,çalışma,planı,özel,hoca,soru çözme,tyt,ayt
+tyt,ayt,ales,dgs,sınav,deneme,test,ders,çalışma,planı,yapay,zeka,hoca,program,matematik,ödev,tekrar

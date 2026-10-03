@@ -18,7 +18,6 @@ export const APPLE_KEY_ID = defineString("APPLE_KEY_ID", { default: "" });
 export const APPLE_ISSUER_ID = defineString("APPLE_ISSUER_ID", { default: "" });
 export const APPLE_BUNDLE_ID = defineString("APPLE_BUNDLE_ID", { default: "com.techtactoe.examly" });
 export const APPLE_APP_ID = defineString("APPLE_APP_ID", { default: "0" });
-export const APPLE_ENVIRONMENT = defineString("APPLE_ENVIRONMENT", { default: "Sandbox" });
 
 export const FREE_AI_CALLS_PER_DAY = defineString("FREE_AI_CALLS_PER_DAY", { default: "5" });
 

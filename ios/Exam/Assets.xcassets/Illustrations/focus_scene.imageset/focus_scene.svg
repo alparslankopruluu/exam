@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="440" viewBox="0 0 400 440">
+  <defs>
+    <linearGradient id="sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="440">
+      <stop offset="0" stop-color="#CFE2FF"/><stop offset="1" stop-color="#EEF4FF"/>
+    </linearGradient>
+    <linearGradient id="hillBack" gradientUnits="userSpaceOnUse" x1="0" y1="280" x2="0" y2="440">
+      <stop offset="0" stop-color="#C9DFD4"/><stop offset="1" stop-color="#B7D3C5"/>
+    </linearGradient>
+    <linearGradient id="hillFront" gradientUnits="userSpaceOnUse" x1="0" y1="345" x2="0" y2="440">
+      <stop offset="0" stop-color="#A9CDB9"/><stop offset="1" stop-color="#94BFA8"/>
+    </linearGradient>
+    <linearGradient id="soil" gradientUnits="userSpaceOnUse" x1="0" y1="374" x2="0" y2="414">
+      <stop offset="0" stop-color="#A88E7C"/><stop offset="1" stop-color="#8C7364"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="440" fill="url(#sky)"/>
+  <path d="M110 60 q7-15 24-12 q9-12 24-5 q15-1 17 12 q10 3 5 12 h-70 q-10-3 0-7z" fill="#FFFFFF" opacity="0.8"/>
+  <g transform="translate(0 140)">
+  <!-- clouds -->
+  <path d="M40 70 q8-18 28-14 q10-14 28-6 q18-2 20 14 q12 4 6 14 h-82 q-12-4 0-8z" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M270 46 q6-14 22-11 q8-11 22-5 q14-1 16 11 q9 3 5 11 h-64 q-10-3-1-6z" fill="#FFFFFF" opacity="0.85"/>
+  <path d="M320 110 q4-9 14-7 q6-7 14-3 q9 0 10 7 q6 2 3 7 h-40 q-6-2-1-4z" fill="#FFFFFF" opacity="0.7"/>
+  <!-- back hills -->
+  <path d="M0 200 Q70 150 150 178 Q230 205 300 168 Q360 140 400 160 L400 300 L0 300 Z" fill="url(#hillBack)"/>
+  <!-- trees left -->
+  <rect x="44" y="168" width="7" height="34" rx="3" fill="#8E7A6C"/>
+  <ellipse cx="47" cy="160" rx="24" ry="30" fill="#86B79E"/>
+  <ellipse cx="40" cy="150" rx="12" ry="14" fill="#9CC8B1"/>
+  <rect x="82" y="182" width="5" height="22" rx="2" fill="#8E7A6C"/>
+  <ellipse cx="84" cy="176" rx="15" ry="19" fill="#7AAE95"/>
+  <!-- trees right -->
+  <rect x="336" y="160" width="8" height="40" rx="3" fill="#8E7A6C"/>
+  <ellipse cx="340" cy="148" rx="28" ry="36" fill="#7AAE95"/>
+  <ellipse cx="331" cy="136" rx="13" ry="16" fill="#92C2AA"/>
+  <rect x="300" y="178" width="5" height="24" rx="2" fill="#8E7A6C"/>
+  <ellipse cx="302" cy="172" rx="14" ry="18" fill="#86B79E"/>
+  <!-- front hill -->
+  <path d="M0 238 Q100 205 200 222 Q300 238 400 214 L400 300 L0 300 Z" fill="url(#hillFront)"/>
+  <!-- soil mound (plant is drawn natively above it) -->
+  <path d="M138 262 Q150 236 200 234 Q250 236 262 262 Q200 274 138 262 Z" fill="url(#soil)"/>
+  <ellipse cx="176" cy="250" rx="5" ry="3" fill="#BCA393"/>
+  <ellipse cx="222" cy="246" rx="4" ry="2.5" fill="#BCA393"/>
+  <ellipse cx="200" cy="256" rx="3" ry="2" fill="#7A6355"/>
+  </g>
+</svg>

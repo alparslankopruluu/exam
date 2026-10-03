@@ -255,6 +255,41 @@ class LearningRepository(private val database: LearningDatabase) {
         )
     }
 
+    /** Minutes studied on each of the last [days] days, oldest first (today is last). */
+    fun weeklyMinutes(examId: String, days: Int = 7, today: java.time.LocalDate = java.time.LocalDate.now()): List<Int> {
+        val zone = java.time.ZoneId.systemDefault()
+        val minutes = IntArray(days)
+        val since = today.minusDays(days - 1L).atStartOfDay(zone).toInstant().toEpochMilli()
+        database.readableDatabase.rawQuery(
+            "SELECT started_at, duration_seconds FROM study_sessions WHERE exam_id = ? AND started_at >= ?",
+            arrayOf(examId, since.toString())
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                val day = java.time.Instant.ofEpochMilli(cursor.getLong(0)).atZone(zone).toLocalDate()
+                val offset = java.time.temporal.ChronoUnit.DAYS.between(day, today).toInt()
+                if (offset in 0 until days) minutes[days - 1 - offset] += cursor.getInt(1) / 60
+            }
+        }
+        return minutes.toList()
+    }
+
+    /** Skills at 80%+ mastery, for the "5 topics mastered" achievement. */
+    fun masteredSkillCount(examId: String): Int =
+        database.readableDatabase.rawQuery(
+            "SELECT COUNT(*) FROM mastery WHERE exam_id = ? AND score >= 0.8", arrayOf(examId)
+        ).use { if (it.moveToFirst()) it.getInt(0) else 0 }
+
+    /**
+     * Mastery percent per content-pack section, matched by the `<examId>:<topic>` skill id
+     * answers are recorded under; null when the section has not been practised yet.
+     */
+    fun sectionMastery(examId: String, sectionTitles: List<String>): List<Int?> =
+        sectionTitles.map { title ->
+            mastery(examId + ":" + title.lowercase().replace(" ", "_"))
+                ?.takeIf { it.examId == examId }
+                ?.let { (it.score * 100).toInt().coerceIn(0, 100) }
+        }
+
     fun plan(dayKey: String): List<PlanTask> {
         val result = mutableListOf<PlanTask>()
         database.readableDatabase.query(

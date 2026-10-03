@@ -1,1 +1,1 @@
-examen,toets,studeren,leren,oefenen,quiz,flashcards,bijles,ielts,toefl,sat,huiswerk,wiskunde
+examen,toets,studeren,leren,oefenen,quiz,flashcards,ielts,toefl,sat,huiswerk,wiskunde,eindexamen

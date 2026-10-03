@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#1D2A44"/><stop offset="1" stop-color="#0A0F1C"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="#6E8BFF" stop-opacity="0.45"/><stop offset="1" stop-color="#6E8BFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.95"/><stop offset="1" stop-color="#C9D4F2" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9DB2FF"/><stop offset="1" stop-color="#5C6CF0"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#halo)"/>
+  <!-- stacked glass bars forming an E / study plan -->
+  <g filter="url(#soft)">
+    <rect x="300" y="300" width="424" height="104" rx="52" fill="url(#glass)"/>
+    <rect x="300" y="460" width="300" height="104" rx="52" fill="url(#accent)"/>
+    <rect x="300" y="620" width="424" height="104" rx="52" fill="url(#glass)"/>
+  </g>
+  <!-- top highlights -->
+  <rect x="330" y="312" width="364" height="18" rx="9" fill="#FFFFFF" opacity="0.7"/>
+  <rect x="330" y="632" width="364" height="18" rx="9" fill="#FFFFFF" opacity="0.7"/>
+  <!-- sparkle -->
+  <path d="M676 452 C684 494 698 508 740 516 C698 524 684 538 676 580 C668 538 654 524 612 516 C654 508 668 494 676 452 Z" fill="#FFFFFF"/>
+</svg>

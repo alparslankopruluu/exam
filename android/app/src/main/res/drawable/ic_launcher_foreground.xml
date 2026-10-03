@@ -1,15 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher foreground: open book with a rising star (store/icons/F_book.svg),
+     scaled into the adaptive-icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M20,35 L50,42 L50,78 L20,70 Z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M58,42 L88,35 L88,70 L58,78 Z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M78,15 L68,30 L75,30 L68,42 L85,25 L77,25 Z" />
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <group
+        android:pivotX="512"
+        android:pivotY="508"
+        android:scaleX="0.72"
+        android:scaleY="0.72">
+        <path android:pathData="M512,590 Q410,528 236,546 L236,770 Q410,752 512,820 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:type="linear"
+                    android:startX="0" android:startY="546" android:endX="0" android:endY="820"
+                    android:startColor="#FFFFFFFF" android:endColor="#FFDCE3F5" />
+            </aapt:attr>
+        </path>
+        <path android:pathData="M512,590 Q614,528 788,546 L788,770 Q614,752 512,820 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:type="linear"
+                    android:startX="0" android:startY="546" android:endX="0" android:endY="820"
+                    android:startColor="#FFFFFFFF" android:endColor="#FFDCE3F5" />
+            </aapt:attr>
+        </path>
+        <path
+            android:pathData="M512,596 L512,816"
+            android:strokeColor="#FFB4C0E0"
+            android:strokeWidth="8" />
+        <path android:pathData="M512,196 C526,300 560,334 664,348 C560,362 526,396 512,500 C498,396 464,362 360,348 C464,334 498,300 512,196 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:type="linear"
+                    android:startX="0" android:startY="196" android:endX="0" android:endY="500"
+                    android:startColor="#FFFFFFFF" android:endColor="#FFC8D3FF" />
+            </aapt:attr>
+        </path>
+    </group>
 </vector>

@@ -2,8 +2,11 @@ import SwiftUI
 @preconcurrency import FirebaseMessaging
 
 struct RootView: View {
-    @State private var setup: StudySetup? = StudySetupStore.load()
+    // Store screenshots of onboarding steps start without a saved setup.
+    @State private var setup: StudySetup? = ScreenshotMode.screen.hasPrefix("onboarding_") ? nil : StudySetupStore.load()
     @State private var onboardingPaywallSeen = StudySetupStore.onboardingPaywallSeen()
+    /// The brand splash greets first-time users before onboarding.
+    @State private var showSplash = StudySetupStore.load() == nil || ScreenshotMode.screen == "splash"
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var modelContext
 
@@ -48,6 +51,18 @@ struct RootView: View {
                         requestStudyNotifications(for: result)
                     }
                 }
+            }
+        }
+        .overlay {
+            if showSplash {
+                SplashView(languageCode: setup?.languageCode ?? ExamCatalog.languageCode)
+                    .transition(.opacity)
+                    .onTapGesture { withAnimation(.easeOut(duration: 0.35)) { showSplash = false } }
+                    .task {
+                        guard ScreenshotMode.screen != "splash" else { return }
+                        try? await Task.sleep(for: .milliseconds(1800))
+                        withAnimation(.easeOut(duration: 0.5)) { showSplash = false }
+                    }
             }
         }
         .background(ExamPalette.background)
@@ -108,3 +123,56 @@ struct RootView: View {
         }
     }
 }
+
+/// Brand splash: mark, wordmark, tagline and the student illustration.
+private struct SplashView: View {
+    let languageCode: String
+
+    @State private var appeared = false
+
+    private var copy: LocalizedCopy { LocalizedCopy.load(languageCode: languageCode) }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color(red: 0.93, green: 0.94, blue: 1.0), ExamPalette.background],
+                startPoint: .top, endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer(minLength: 40)
+                Image("app_mark")
+                    .resizable()
+                    .frame(width: 72, height: 72)
+                    .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+                    .shadow(color: ExamPalette.indigo.opacity(0.25), radius: 14, y: 6)
+                Text("Examly")
+                    .font(.system(size: 46, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color(red: 0.11, green: 0.14, blue: 0.25))
+                    .padding(.top, 14)
+                Text(copy.text("splash_tagline"))
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 6)
+                Spacer(minLength: 16)
+                Image("hero_student")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 380)
+                    .offset(y: appeared ? 0 : 24)
+                    .opacity(appeared ? 1 : 0)
+                Text(copy.text("splash_footer"))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(ExamPalette.textSecondary)
+                    .padding(.vertical, 18)
+            }
+            .padding(.horizontal, 24)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.1)) { appeared = true }
+        }
+    }
+}
+

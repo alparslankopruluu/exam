@@ -1,1 +1,1 @@
-jee,neet,cuet,परीक्षा,तैयारी,mock,test,quiz,flashcards,tutor,ielts,toefl,गणित,revision
+परीक्षा,mock,test,quiz,flashcards,ielts,toefl,गणित,revision,physics,chemistry,biology,pyq,practice

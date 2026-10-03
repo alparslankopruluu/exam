@@ -232,6 +232,35 @@ final class LearningStore {
         )
     }
 
+    /// Minutes studied on each of the last `days` days, oldest first (today is last).
+    func weeklyMinutes(examId: String, days: Int = 7, now: Date = .now) throws -> [Int] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: now)
+        var minutes = Array(repeating: 0, count: days)
+        for session in try context.fetch(FetchDescriptor<StudySessionRecord>()) where session.examId == examId {
+            let day = calendar.startOfDay(for: session.startedAt)
+            guard let offset = calendar.dateComponents([.day], from: day, to: today).day, (0..<days).contains(offset) else { continue }
+            minutes[days - 1 - offset] += session.durationSeconds / 60
+        }
+        return minutes
+    }
+
+    /// Skills at 80%+ mastery, for the "5 topics mastered" achievement.
+    func masteredSkillCount(examId: String) throws -> Int {
+        try context.fetch(FetchDescriptor<MasteryRecord>()).filter { $0.examId == examId && $0.score >= 0.8 }.count
+    }
+
+    /// Mastery percent per content-pack section, matched by the `<examId>:<topic>` skill id
+    /// that answers are recorded under; nil when the section has not been practised yet.
+    func sectionMastery(examId: String, sectionTitles: [String]) throws -> [Int?] {
+        let rows = try context.fetch(FetchDescriptor<MasteryRecord>()).filter { $0.examId == examId }
+        let byId = Dictionary(rows.map { ($0.skillId, $0) }, uniquingKeysWith: { first, _ in first })
+        return sectionTitles.map { title in
+            let skillId = examId + ":" + title.lowercased().replacingOccurrences(of: " ", with: "_")
+            return byId[skillId].map { min(100, max(0, Int($0.score * 100))) }
+        }
+    }
+
     func plan(dayKey: String) throws -> [PlanTask] {
         try context.fetch(FetchDescriptor<DailyPlanRecord>())
             .filter { $0.dayKey == dayKey }

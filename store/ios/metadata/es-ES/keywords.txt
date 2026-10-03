@@ -1,1 +1,1 @@
-selectividad,pau,ebau,examen,estudiar,estudio,quiz,tarjetas,tutor,ielts,toefl,test,repaso,deberes
+ebau,evau,examen,estudio,estudiar,quiz,tarjetas,ielts,toefl,test,repaso,deberes,matemáticas

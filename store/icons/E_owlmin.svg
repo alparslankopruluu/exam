@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6F7F9"/><stop offset="1" stop-color="#D9DEE6"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2B3445"/><stop offset="1" stop-color="#151B26"/>
+    </linearGradient>
+    <linearGradient id="iris" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C93FF"/><stop offset="1" stop-color="#3F51D6"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#1B2230" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- minimal owl: head silhouette with ear points -->
+  <g filter="url(#soft)">
+    <path d="M270 330 Q300 300 340 318 L420 350 Q512 330 604 350 L684 318 Q724 300 754 330
+             Q780 360 770 420 Q790 480 784 560 Q768 776 512 804 Q256 776 240 560 Q234 480 254 420 Q244 360 270 330 Z" fill="url(#ink)"/>
+  </g>
+  <!-- eyes: concentric rings -->
+  <circle cx="404" cy="500" r="104" fill="#F4F6FA"/>
+  <circle cx="620" cy="500" r="104" fill="#F4F6FA"/>
+  <circle cx="404" cy="500" r="58" fill="url(#iris)"/>
+  <circle cx="620" cy="500" r="58" fill="url(#iris)"/>
+  <circle cx="404" cy="500" r="26" fill="#0F141E"/>
+  <circle cx="620" cy="500" r="26" fill="#0F141E"/>
+  <circle cx="424" cy="478" r="13" fill="#FFFFFF"/>
+  <circle cx="640" cy="478" r="13" fill="#FFFFFF"/>
+  <!-- facial V (brow) -->
+  <path d="M318 372 Q412 350 512 404 Q612 350 706 372" fill="none" stroke="#3A4558" stroke-width="22" stroke-linecap="round"/>
+  <!-- beak -->
+  <path d="M492 600 L532 600 L512 640 Z" fill="#C7CFDD"/>
+</svg>

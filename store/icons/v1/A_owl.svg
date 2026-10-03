@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F7BFF"/><stop offset="1" stop-color="#5B3FE6"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E6ECFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="560" r="400" fill="#FFFFFF" opacity="0.06"/>
+  <!-- body with ear tufts -->
+  <path d="M262 330 L300 196 Q312 160 344 186 L430 262 Q512 244 594 262 L680 186 Q712 160 724 196 L762 330
+           Q820 430 812 560 Q800 800 512 840 Q224 800 212 560 Q204 430 262 330 Z" fill="url(#body)"/>
+  <!-- belly feathers -->
+  <path d="M430 700 q41 34 82 0 q41 34 82 0" fill="none" stroke="#C9D5FF" stroke-width="18" stroke-linecap="round"/>
+  <path d="M470 760 q42 30 84 0" fill="none" stroke="#C9D5FF" stroke-width="18" stroke-linecap="round"/>
+  <!-- eye discs -->
+  <circle cx="400" cy="470" r="118" fill="#EEF2FF"/>
+  <circle cx="624" cy="470" r="118" fill="#EEF2FF"/>
+  <!-- pupils -->
+  <circle cx="410" cy="480" r="70" fill="#1B2366"/>
+  <circle cx="614" cy="480" r="70" fill="#1B2366"/>
+  <circle cx="432" cy="455" r="24" fill="#FFFFFF"/>
+  <circle cx="636" cy="455" r="24" fill="#FFFFFF"/>
+  <circle cx="392" cy="505" r="9" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="596" cy="505" r="9" fill="#FFFFFF" opacity="0.8"/>
+  <!-- beak -->
+  <path d="M482 560 Q512 548 542 560 L520 606 Q512 618 504 606 Z" fill="#F5A524"/>
+  <!-- AI sparkle -->
+  <path d="M790 210 C800 262 818 280 870 290 C818 300 800 318 790 370 C780 318 762 300 710 290 C762 280 780 262 790 210 Z" fill="#FFD25E"/>
+  <path d="M868 380 C872 400 879 407 899 411 C879 415 872 422 868 442 C864 422 857 415 837 411 C857 407 864 400 868 380 Z" fill="#FFFFFF" opacity="0.9"/>
+</svg>

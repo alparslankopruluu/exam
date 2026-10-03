@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import AVFoundation
 
 struct AITutorView: View {
     let setup: StudySetup
@@ -13,6 +14,7 @@ struct AITutorView: View {
     @State private var error: String?
     @State private var loading = false
     @State private var photoItem: PhotosPickerItem?
+    @State private var scanning = false
 
     private let scanner = QuestionScanner()
 
@@ -24,28 +26,25 @@ struct AITutorView: View {
         VStack(spacing: 0) {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(ExamPalette.purple)
-                            .frame(width: 48, height: 48)
-                            .background(ExamPalette.softPurple)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(copy.text("ai_tutor"))
-                                .font(.system(size: 27, weight: .bold))
-                            Text(copy.text("tutor_context", variables: ["exam": setup.exam.shortName]))
-                                .font(.system(size: 12))
-                                .foregroundStyle(ExamPalette.textSecondary)
-                        }
+                    VStack(spacing: 4) {
+                        TutorMascot()
+                            .frame(width: 128, height: 128)
+                        Text(copy.text("ai_tutor"))
+                            .font(.system(size: 27, weight: .bold))
+                        Text(copy.text("tutor_context", variables: ["exam": setup.exam.shortName]))
+                            .font(.system(size: 13))
+                            .foregroundStyle(ExamPalette.textSecondary)
                     }
+                    .frame(maxWidth: .infinity)
 
                     Text(copy.text("what_help"))
                         .font(.system(size: 18, weight: .bold))
                         .padding(.top, 24)
 
                     VStack(spacing: 9) {
-                        PhotosPicker(selection: $photoItem, matching: .images) {
+                        Button {
+                            scanning = true
+                        } label: {
                             TutorActionRowContent(
                                 symbol: "doc.viewfinder",
                                 title: copy.text("solve_question"),
@@ -179,6 +178,12 @@ struct AITutorView: View {
                 ]
             )
         }
+        .fullScreenCover(isPresented: $scanning) {
+            ScanQuestionView(copy: copy, onClose: { scanning = false }) { data in
+                scanning = false
+                solveCapture(data)
+            }
+        }
         .onChange(of: photoItem) { _, newItem in
             guard let newItem else { return }
             solvePhoto(newItem)
@@ -256,38 +261,62 @@ struct AITutorView: View {
                 guard let data = try await item.loadTransferable(type: Data.self) else {
                     throw AIGatewayError.message("Could not load the selected image.")
                 }
-
-                let extracted = try scanner.recognize(
-                    imageData: data,
-                    languageCode: setup.languageCode
-                )
-
-                let dataURL = "data:image/jpeg;base64," + data.base64EncodedString()
-
-                answer = try await AIGatewayClient().solveQuestion(
-                    setup: setup,
-                    extractedText: extracted.isEmpty ? nil : extracted,
-                    imageDataURL: dataURL
-                )
-                AppServices.shared.analytics.event(
-                    AnalyticsEvent.scanCompleted,
-                    params: [
-                        AnalyticsParam.examId: setup.exam.id,
-                        AnalyticsParam.source: "photo_picker"
-                    ]
-                )
+                try await solveImage(data, source: "photo_picker")
             } catch {
-                let message = error.localizedDescription
-                if message.localizedCaseInsensitiveContains("Daily AI limit") {
-                    onPaywall("ai_limit")
-                } else {
-                    self.error = message
-                }
+                handle(error)
             }
-
             loading = false
             photoItem = nil
         }
+    }
+
+    private func solveCapture(_ data: Data) {
+        loading = true
+        answer = nil
+        error = nil
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.scanStarted,
+            params: [AnalyticsParam.examId: setup.exam.id, AnalyticsParam.source: "camera"]
+        )
+        Task { @MainActor in
+            do {
+                try await solveImage(data, source: "camera")
+            } catch {
+                handle(error)
+            }
+            loading = false
+        }
+    }
+
+    private func handle(_ error: Error) {
+        let message = error.localizedDescription
+        if message.localizedCaseInsensitiveContains("Daily AI limit") {
+            onPaywall("ai_limit")
+        } else {
+            self.error = message
+        }
+    }
+
+    private func solveImage(_ data: Data, source: String) async throws {
+        let extracted = try scanner.recognize(
+            imageData: data,
+            languageCode: setup.languageCode
+        )
+
+        let dataURL = "data:image/jpeg;base64," + data.base64EncodedString()
+
+        answer = try await AIGatewayClient().solveQuestion(
+            setup: setup,
+            extractedText: extracted.isEmpty ? nil : extracted,
+            imageDataURL: dataURL
+        )
+        AppServices.shared.analytics.event(
+            AnalyticsEvent.scanCompleted,
+            params: [
+                AnalyticsParam.examId: setup.exam.id,
+                AnalyticsParam.source: source
+            ]
+        )
     }
 }
 
@@ -323,3 +352,209 @@ private struct TutorActionRowContent: View {
         .examCard(radius: 18)
     }
 }
+
+/// The tutor robot (design/illustrations/tutor_bot.svg) floating gently.
+struct TutorMascot: View {
+    @State private var floating = false
+
+    var body: some View {
+        Image("tutor_bot")
+            .resizable()
+            .scaledToFit()
+            .offset(y: floating ? -5 : 5)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) { floating = true }
+            }
+    }
+}
+
+/// "Scan a question": live camera with a framing guide, a Scan/Gallery switch and a shutter.
+private struct ScanQuestionView: View {
+    let copy: LocalizedCopy
+    let onClose: () -> Void
+    let onImage: (Data) -> Void
+
+    @StateObject private var camera = QuestionCamera()
+    @State private var galleryItem: PhotosPickerItem?
+    @State private var galleryMode = false
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            CameraPreview(session: camera.session)
+                .ignoresSafeArea()
+                .opacity(camera.authorized ? 1 : 0)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 38, height: 38)
+                            .background(.white.opacity(0.18))
+                            .clipShape(Circle())
+                    }
+                    Text(copy.text("scan_title"))
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+
+                Spacer()
+                ScanFrame()
+                    .frame(width: 290, height: 220)
+                Text(copy.text(camera.authorized ? "scan_hint" : "scan_camera_denied"))
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 18)
+                    .padding(.horizontal, 32)
+                Spacer()
+
+                VStack(spacing: 22) {
+                    HStack(spacing: 4) {
+                        modeButton(copy.text("scan_mode"), selected: !galleryMode) { galleryMode = false }
+                        PhotosPicker(selection: $galleryItem, matching: .images) {
+                            modeLabel(copy.text("gallery"), selected: galleryMode)
+                        }
+                    }
+                    .padding(4)
+                    .background(.white.opacity(0.14))
+                    .clipShape(Capsule())
+
+                    Button {
+                        camera.capture { data in onImage(data) }
+                    } label: {
+                        Circle()
+                            .stroke(.white, lineWidth: 4)
+                            .frame(width: 76, height: 76)
+                            .overlay(Circle().fill(.white).padding(8))
+                    }
+                    .disabled(!camera.authorized)
+                    .opacity(camera.authorized ? 1 : 0.4)
+                }
+                .padding(.vertical, 24)
+                .frame(maxWidth: .infinity)
+                .background(Color.black.opacity(0.55).ignoresSafeArea(edges: .bottom))
+            }
+        }
+        .onAppear { camera.start() }
+        .onDisappear { camera.stop() }
+        .onChange(of: galleryItem) { _, item in
+            guard let item else { return }
+            galleryMode = true
+            Task { @MainActor in
+                if let data = try? await item.loadTransferable(type: Data.self) { onImage(data) }
+                galleryItem = nil
+            }
+        }
+    }
+
+    private func modeButton(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) { modeLabel(title, selected: selected) }
+    }
+
+    private func modeLabel(_ title: String, selected: Bool) -> some View {
+        Text(title)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(selected ? ExamPalette.textPrimary : .white)
+            .frame(width: 104, height: 36)
+            .background(selected ? Color.white : .clear)
+            .clipShape(Capsule())
+    }
+}
+
+/// Four rounded corner brackets marking where the question should sit.
+private struct ScanFrame: View {
+    var body: some View {
+        GeometryReader { proxy in
+            let w = proxy.size.width, h = proxy.size.height, arm: CGFloat = 34, r: CGFloat = 18
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: arm)); path.addLine(to: CGPoint(x: 0, y: r))
+                path.addQuadCurve(to: CGPoint(x: r, y: 0), control: .zero); path.addLine(to: CGPoint(x: arm, y: 0))
+                path.move(to: CGPoint(x: w - arm, y: 0)); path.addLine(to: CGPoint(x: w - r, y: 0))
+                path.addQuadCurve(to: CGPoint(x: w, y: r), control: CGPoint(x: w, y: 0)); path.addLine(to: CGPoint(x: w, y: arm))
+                path.move(to: CGPoint(x: w, y: h - arm)); path.addLine(to: CGPoint(x: w, y: h - r))
+                path.addQuadCurve(to: CGPoint(x: w - r, y: h), control: CGPoint(x: w, y: h)); path.addLine(to: CGPoint(x: w - arm, y: h))
+                path.move(to: CGPoint(x: arm, y: h)); path.addLine(to: CGPoint(x: r, y: h))
+                path.addQuadCurve(to: CGPoint(x: 0, y: h - r), control: CGPoint(x: 0, y: h)); path.addLine(to: CGPoint(x: 0, y: h - arm))
+            }
+            .stroke(.white, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+        }
+    }
+}
+
+/// Back camera session with photo capture; reports JPEG data.
+private final class QuestionCamera: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
+    let session = AVCaptureSession()
+    @Published var authorized = false
+
+    private let output = AVCapturePhotoOutput()
+    private let queue = DispatchQueue(label: "question.camera")
+    private var configured = false
+    private var completion: ((Data) -> Void)?
+
+    func start() {
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            DispatchQueue.main.async { self.authorized = granted }
+            guard granted else { return }
+            self.queue.async {
+                self.configureIfNeeded()
+                if !self.session.isRunning { self.session.startRunning() }
+            }
+        }
+    }
+
+    func stop() {
+        queue.async { if self.session.isRunning { self.session.stopRunning() } }
+    }
+
+    func capture(_ completion: @escaping (Data) -> Void) {
+        self.completion = completion
+        queue.async {
+            guard self.session.isRunning else { return }
+            self.output.capturePhoto(with: AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.jpeg]), delegate: self)
+        }
+    }
+
+    private func configureIfNeeded() {
+        guard !configured else { return }
+        configured = true
+        session.beginConfiguration()
+        session.sessionPreset = .photo
+        if let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+           let input = try? AVCaptureDeviceInput(device: device),
+           session.canAddInput(input) {
+            session.addInput(input)
+        }
+        if session.canAddOutput(output) { session.addOutput(output) }
+        session.commitConfiguration()
+    }
+
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        guard let data = photo.fileDataRepresentation() else { return }
+        DispatchQueue.main.async { self.completion?(data) }
+    }
+}
+
+private struct CameraPreview: UIViewRepresentable {
+    let session: AVCaptureSession
+
+    final class PreviewView: UIView {
+        override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
+        var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
+    }
+
+    func makeUIView(context: Context) -> PreviewView {
+        let view = PreviewView()
+        view.previewLayer.session = session
+        view.previewLayer.videoGravity = .resizeAspectFill
+        return view
+    }
+
+    func updateUIView(_ uiView: PreviewView, context: Context) {}
+}
+

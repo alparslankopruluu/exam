@@ -9,6 +9,24 @@ import android.net.Uri
 import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.res.painterResource
+import com.kprl.exam.R
+import com.kprl.exam.debug.ScreenshotMode
+import com.kprl.exam.content.ContentPackRepository
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -420,91 +438,226 @@ fun CreatePracticeScreen(
     }
 }
 
+private enum class FocusMode { POMODORO, DEEP_WORK }
+private enum class FocusPhase { FOCUS, SHORT_BREAK, LONG_BREAK }
+
+private fun focusMinutes(mode: FocusMode, phase: FocusPhase): Int = when (mode) {
+    FocusMode.POMODORO -> when (phase) { FocusPhase.FOCUS -> 25; FocusPhase.SHORT_BREAK -> 5; FocusPhase.LONG_BREAK -> 15 }
+    FocusMode.DEEP_WORK -> when (phase) { FocusPhase.FOCUS -> 50; FocusPhase.SHORT_BREAK -> 10; FocusPhase.LONG_BREAK -> 20 }
+}
+
 @Composable
 fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
     val context = LocalContext.current
     val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
-    var focusMinutes by remember { mutableIntStateOf(25) }
-    var remaining by remember { mutableIntStateOf(25 * 60) }
-    var running by remember { mutableStateOf(false) }
+    var mode by remember { mutableStateOf(FocusMode.POMODORO) }
+    var phase by remember { mutableStateOf(FocusPhase.FOCUS) }
+    val total = focusMinutes(mode, phase) * 60
+    // Store screenshots show a session midway, with the sapling half grown.
+    var pausedRemaining by remember { mutableStateOf<Int?>(if (ScreenshotMode.screen != null) total * 2 / 5 else null) }
+    var endAt by remember { mutableStateOf<Long?>(null) }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    LaunchedEffect(running, remaining) {
-        if (running && remaining > 0) {
-            delay(1_000)
-            remaining--
-        } else if (running && remaining == 0) {
-            running = false
-            AppServices.analytics.event(
-                AnalyticsEvents.FOCUS_COMPLETED,
-                mapOf(
-                    AnalyticsParams.EXAM_ID to setup.exam.id,
-                    AnalyticsParams.DURATION_SECONDS to focusMinutes * 60
+    val remaining = endAt?.let { maxOf(0, ((it - now + 999) / 1000).toInt()) } ?: (pausedRemaining ?: total)
+    val running = endAt != null
+    val growth = if (phase == FocusPhase.FOCUS) 1f - remaining.toFloat() / total else 1f
+
+    LaunchedEffect(endAt) {
+        while (endAt != null) {
+            now = System.currentTimeMillis()
+            if (now >= endAt!!) {
+                if (phase == FocusPhase.FOCUS) {
+                    AppServices.analytics.event(
+                        AnalyticsEvents.FOCUS_COMPLETED,
+                        mapOf(AnalyticsParams.EXAM_ID to setup.exam.id, AnalyticsParams.DURATION_SECONDS to total)
+                    )
+                }
+                sendFocusNotification(
+                    context,
+                    copy.text(if (phase == FocusPhase.FOCUS) "focus_complete" else "break_complete"),
+                    copy.text(if (phase == FocusPhase.FOCUS) "focus_break" else "break_over", mapOf("exam" to setup.exam.shortName))
                 )
-            )
-            sendFocusNotification(
-                context,
-                copy.text("focus_complete"),
-                copy.text("focus_break", mapOf("exam" to setup.exam.shortName))
-            )
+                endAt = null
+                pausedRemaining = 0
+                break
+            }
+            delay(250)
         }
     }
 
-    fun reset(minutes: Int) {
-        focusMinutes = minutes
-        remaining = minutes * 60
-        running = false
+    fun switchTo(newMode: FocusMode, newPhase: FocusPhase) {
+        mode = newMode
+        phase = newPhase
+        endAt = null
+        pausedRemaining = null
     }
 
     Column(
         Modifier.fillMaxSize().background(ExamColors.Background)
-            .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp).padding(bottom = 12.dp)
     ) {
-        ToolHeader(copy.text("focus"), copy.text("focus_pomodoro", mapOf("exam" to setup.exam.shortName)), onClose)
-        Spacer(Modifier.height(28.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(25, 40, 50).forEach { minutes ->
-                FilterChip(selected = focusMinutes == minutes, onClick = { reset(minutes) }, label = { Text("$minutes min") })
-            }
-        }
-        Spacer(Modifier.height(46.dp))
-        Box(
-            Modifier.size(230.dp).background(ExamColors.Surface, RoundedCornerShape(115.dp)),
-            contentAlignment = Alignment.Center
+        ToolHeader(copy.text("focus_mode"), null, onClose)
+
+        Row(
+            Modifier.padding(top = 8.dp).fillMaxWidth()
+                .background(ExamColors.Border.copy(alpha = 0.6f), RoundedCornerShape(50))
+                .padding(4.dp)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    "%02d:%02d".format(remaining / 60, remaining % 60),
-                    fontSize = 46.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(if (running) copy.text("stay_with_it") else copy.text("ready"), color = ExamColors.TextSecondary)
-            }
-        }
-        Spacer(Modifier.height(32.dp))
-        Button(
-            onClick = {
-                if (!running) {
-                    AppServices.analytics.event(
-                        AnalyticsEvents.FOCUS_STARTED,
-                        mapOf(
-                            AnalyticsParams.EXAM_ID to setup.exam.id,
-                            AnalyticsParams.DURATION_SECONDS to remaining
-                        )
+            FocusMode.entries.forEach { item ->
+                val selected = mode == item
+                Box(
+                    Modifier.weight(1f).height(38.dp)
+                        .shadow(if (selected) 3.dp else 0.dp, RoundedCornerShape(50))
+                        .background(if (selected) ExamColors.Surface else Color.Transparent, RoundedCornerShape(50))
+                        .clickable { switchTo(item, FocusPhase.FOCUS) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        copy.text(if (item == FocusMode.POMODORO) "pomodoro" else "deep_work"),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (selected) ExamColors.TextPrimary else ExamColors.TextSecondary
                     )
                 }
-                running = !running
-            },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(18.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary)
-        ) {
-            Icon(if (running) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, null)
-            Spacer(Modifier.width(8.dp))
-            Text(if (running) copy.text("pause") else copy.text("start_focus"), fontWeight = FontWeight.Bold)
+            }
         }
-        TextButton(onClick = { reset(focusMinutes) }) { Text(copy.text("reset")) }
+
+        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+            FocusScene(growth, Modifier.padding(top = 110.dp).fillMaxSize().clip(RoundedCornerShape(28.dp)))
+            Box(
+                Modifier.padding(top = 18.dp).size(210.dp)
+                    .shadow(16.dp, CircleShape, ambientColor = ExamColors.Primary.copy(alpha = 0.2f), spotColor = ExamColors.Primary.copy(alpha = 0.2f))
+                    .background(ExamColors.Surface, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                val sweep by animateFloatAsState(360f * (1f - remaining.toFloat() / total), tween(900), label = "ring")
+                Canvas(Modifier.fillMaxSize().padding(14.dp)) {
+                    val stroke = 10.dp.toPx()
+                    drawArc(ExamColors.SoftBlue, 0f, 360f, false, style = Stroke(stroke))
+                    drawArc(ExamColors.Primary, -90f, sweep, false, style = Stroke(stroke, cap = StrokeCap.Round))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "%02d:%02d".format(remaining / 60, remaining % 60),
+                        fontSize = 44.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ExamColors.TextPrimary
+                    )
+                    Text(
+                        copy.text(if (phase == FocusPhase.FOCUS) "focus_time" else "break_time"),
+                        fontSize = 13.sp,
+                        color = ExamColors.TextSecondary
+                    )
+                }
+            }
+        }
+
+        Button(
+            onClick = {
+                if (running) {
+                    pausedRemaining = remaining
+                    endAt = null
+                } else {
+                    if (phase == FocusPhase.FOCUS) {
+                        AppServices.analytics.event(
+                            AnalyticsEvents.FOCUS_STARTED,
+                            mapOf(AnalyticsParams.EXAM_ID to setup.exam.id, AnalyticsParams.DURATION_SECONDS to remaining)
+                        )
+                    }
+                    now = System.currentTimeMillis()
+                    endAt = now + remaining * 1000L
+                    pausedRemaining = null
+                }
+            },
+            modifier = Modifier.padding(top = 14.dp).fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = ExamColors.TextPrimary)
+        ) {
+            Text(
+                copy.text(if (running) "pause" else if (phase == FocusPhase.FOCUS) "start_focus" else "start_break"),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            FocusPhase.entries.forEach { item ->
+                val selected = phase == item
+                Column(
+                    Modifier.weight(1f)
+                        .background(if (selected) ExamColors.SoftBlue else ExamColors.Surface, RoundedCornerShape(16.dp))
+                        .border(if (selected) 1.5.dp else 1.dp, if (selected) ExamColors.Primary else ExamColors.Border, RoundedCornerShape(16.dp))
+                        .clickable { switchTo(mode, item) }
+                        .padding(vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "${focusMinutes(mode, item)}",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (selected) ExamColors.Primary else ExamColors.TextPrimary
+                    )
+                    Text(
+                        copy.text(when (item) { FocusPhase.FOCUS -> "focus"; FocusPhase.SHORT_BREAK -> "short_break"; FocusPhase.LONG_BREAK -> "long_break" }),
+                        fontSize = 11.sp,
+                        color = ExamColors.TextSecondary,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
     }
+}
+
+/**
+ * The focus illustration (design/illustrations/focus_scene.svg, 400x440) aspect-filled and
+ * centre-cropped, with a sapling on the soil mound at scene point (200, 380) that grows with [growth].
+ */
+@Composable
+private fun FocusScene(growth: Float, modifier: Modifier = Modifier) {
+    val animated by animateFloatAsState(growth, tween(800), label = "growth")
+    val scene = painterResource(R.drawable.illu_focus_scene)
+    Canvas(modifier) {
+        val scale = maxOf(size.width / 400f, size.height / 440f)
+        val origin = Offset((size.width - 400f * scale) / 2f, (size.height - 440f * scale) / 2f)
+        translate(origin.x, origin.y) {
+            with(scene) { draw(Size(400f * scale, 440f * scale)) }
+            drawSapling(animated, base = Offset(200f * scale, 380f * scale), unit = scale)
+        }
+    }
+}
+
+/** Mirrors the iOS `Sapling` view: a 120x110 sapling whose base sits at [base]. */
+private fun DrawScope.drawSapling(growth: Float, base: Offset, unit: Float) {
+    val g = growth.coerceIn(0.08f, 1f)
+    val height = 100f * unit * g
+    val stemColor = Color(0xFF5EA880)
+    val leafA = Color(0xFF7DC499)
+    val leafB = Color(0xFF6BB58A)
+    val stem = Path().apply {
+        moveTo(base.x, base.y)
+        quadraticTo(base.x + 8f * unit, base.y - height / 2f, base.x, base.y - height)
+    }
+    drawPath(stem, stemColor, style = Stroke(5f * unit, cap = StrokeCap.Round))
+
+    fun leaf(t: Float, appearAt: Float, length: Float, left: Boolean, color: Color) {
+        val p = ((g - appearAt) / 0.2f).coerceIn(0f, 1f)
+        if (p <= 0f) return
+        val y = base.y - height * t
+        val dir = if (left) -1f else 1f
+        val path = Path().apply {
+            moveTo(base.x, y)
+            quadraticTo(base.x + dir * length * 0.4f * unit * p, y - 22f * unit * p, base.x + dir * length * unit * p, y - 14f * unit * p)
+            quadraticTo(base.x + dir * length * 0.7f * unit * p, y + 4f * unit * p, base.x, y)
+        }
+        drawPath(path, color)
+    }
+    leaf(0.35f, 0.15f, 34f, true, leafB)
+    leaf(0.45f, 0.3f, 30f, false, leafA)
+    leaf(0.7f, 0.55f, 28f, true, leafA)
+    leaf(0.8f, 0.7f, 26f, false, leafB)
+    leaf(1f, 0.85f, 20f, false, leafA)
+    leaf(1f, 0.85f, 20f, true, leafB)
 }
 
 private fun sendFocusNotification(context: Context, title: String, body: String) {
@@ -529,40 +682,125 @@ private fun sendFocusNotification(context: Context, title: String, body: String)
     )
 }
 
+private val SectionColors = listOf(ExamColors.Mint, ExamColors.Amber, ExamColors.Purple, ExamColors.Primary, ExamColors.Coral)
+
 @Composable
 fun ProgressScreen(setup: StudySetup, onClose: () -> Unit) {
     val context = LocalContext.current
     val copy = remember(setup.languageCode) { LocalizedCopy.load(context, setup.languageCode) }
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
-    val progress = remember { repository.progressSummary(setup.exam.id) }
+    val demo = ScreenshotMode.screen != null
+    // Store screenshots show an established learner.
+    val progress = remember {
+        repository.progressSummary(setup.exam.id).let {
+            if (demo) it.copy(sessions = 38, questions = 412, correct = 346, studyMinutes = 335) else it
+        }
+    }
     val errorDNA = remember { repository.errorDNA(setup.exam.id) }
     val user = remember { UserProgressStore(context.applicationContext).snapshot() }
+    val fortnight = remember { repository.weeklyMinutes(setup.exam.id, days = 14) }
+    val weekly = remember { if (demo) listOf(35, 50, 20, 65, 45, 80, 40) else fortnight.takeLast(7) }
+    val lastWeekMinutes = if (demo) 260 else fortnight.take(7).sum()
+    val masteredSkills = remember { if (demo) 3 else repository.masteredSkillCount(setup.exam.id) }
+    val sections = remember {
+        val titles = ContentPackRepository.load(context, setup.exam.syllabusPackId)?.units?.take(5)?.map { it.title }.orEmpty()
+        val percents = repository.sectionMastery(setup.exam.id, titles)
+        titles.mapIndexed { index, title -> title to if (demo) listOf(76, 62, 48, 70, 55)[index % 5] else percents[index] }
+    }
     val mastery = if (progress.masteryPercent == 0) setup.diagnosticPercent else progress.masteryPercent
     val accuracy = if (progress.questions == 0) 0 else progress.correct * 100 / progress.questions
 
     LazyColumn(
         Modifier.fillMaxSize().background(ExamColors.Background)
             .statusBarsPadding().navigationBarsPadding().padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { ToolHeader(copy.text("progress"), copy.text("learning_profile", mapOf("exam" to setup.exam.shortName)), onClose) }
+        item { ToolHeader(copy.text("your_progress"), copy.text("learning_profile", mapOf("exam" to setup.exam.shortName)), onClose) }
+        item {
+            val focus = sections.filter { it.second != null }.minByOrNull { it.second ?: 0 }?.first ?: sections.firstOrNull()?.first
+            WeeklyReport(copy, weekly.sum(), lastWeekMinutes, focus)
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ProgressCard(Modifier.weight(1f), copy.text("mastery")) {
+                    Box(Modifier.size(78.dp), contentAlignment = Alignment.Center) {
+                        Canvas(Modifier.fillMaxSize().padding(4.dp)) {
+                            val stroke = 8.dp.toPx()
+                            drawArc(ExamColors.SoftMint, 0f, 360f, false, style = Stroke(stroke))
+                            drawArc(ExamColors.Mint, -90f, 360f * mastery / 100f, false, style = Stroke(stroke, cap = StrokeCap.Round))
+                        }
+                        Text("$mastery%", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = ExamColors.Mint)
+                    }
+                }
+                ProgressCard(Modifier.weight(1f), copy.text("questions_solved")) {
+                    Box(Modifier.height(78.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            "${maxOf(progress.questions, user.totalQuestions)}",
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ExamColors.Purple
+                        )
+                    }
+                }
+            }
+        }
+        item { WeeklyChart(copy, weekly, copy.text("this_week"), setup.languageCode) }
+        if (sections.isNotEmpty()) {
+            item { Text(copy.text("subject_progress"), fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp)) }
+            item {
+                Surface(color = ExamColors.Surface, shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        sections.forEachIndexed { index, (title, percent) ->
+                            SectionRow(title, percent, SectionColors[index % SectionColors.size])
+                        }
+                    }
+                }
+            }
+        }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricCard("$mastery%", copy.text("mastery"), Modifier.weight(1f))
                 MetricCard("${user.streak}", copy.text("streak"), Modifier.weight(1f))
-                MetricCard("${user.xp}", copy.text("xp"), Modifier.weight(1f))
+                MetricCard("$accuracy%", copy.text("accuracy"), Modifier.weight(1f))
+                MetricCard("${maxOf(progress.sessions, user.totalSessions)}", copy.text("sessions"), Modifier.weight(1f))
             }
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricCard("${progress.sessions}", copy.text("sessions"), Modifier.weight(1f))
-                MetricCard("$accuracy%", copy.text("accuracy"), Modifier.weight(1f))
-                MetricCard("${progress.studyMinutes}m", copy.text("study_time"), Modifier.weight(1f))
+            val questions = maxOf(progress.questions, user.totalQuestions)
+            Achievements(
+                copy,
+                listOf(
+                    BadgeSpec("badge_streak_7", Icons.Rounded.LocalFireDepartment, ExamColors.Amber, user.streak, 7),
+                    BadgeSpec("badge_streak_30", Icons.Rounded.Whatshot, ExamColors.Coral, user.streak, 30),
+                    BadgeSpec("badge_questions_100", Icons.Rounded.Verified, ExamColors.Primary, questions, 100),
+                    BadgeSpec("badge_questions_500", Icons.Rounded.Stars, ExamColors.Purple, questions, 500),
+                    BadgeSpec("badge_study_10h", Icons.Rounded.Schedule, ExamColors.Mint, progress.studyMinutes, 600),
+                    BadgeSpec("badge_mastered_5", Icons.Rounded.School, ExamColors.Indigo, masteredSkills, 5)
+                )
+            )
+        }
+        item {
+            Surface(
+                onClick = {
+                    shareProgressCard(
+                        context, copy, setup.exam.shortName, user.streak, progress.studyMinutes,
+                        maxOf(progress.questions, user.totalQuestions), mastery
+                    )
+                },
+                color = ExamColors.SoftBlue,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().height(50.dp)
+            ) {
+                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.IosShare, null, tint = ExamColors.Primary)
+                    Spacer(Modifier.width(8.dp))
+                    Text(copy.text("share_progress"), color = ExamColors.Primary, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
             }
         }
-        item { Text(copy.text("error_dna"), fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp)) }
+        item { Text(copy.text("error_dna"), fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp)) }
         if (errorDNA.isEmpty()) {
-            item { Text(copy.text("no_error_pattern"), color = ExamColors.TextSecondary) }
+            item { Text(copy.text("no_error_pattern"), fontSize = 14.sp, color = ExamColors.TextSecondary) }
         } else {
             items(errorDNA.take(8)) { item ->
                 Surface(
@@ -581,6 +819,182 @@ fun ProgressScreen(setup: StudySetup, onClose: () -> Unit) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyReport(copy: LocalizedCopy, thisWeek: Int, lastWeek: Int, focus: String?) {
+    val change = if (lastWeek == 0) null else (thisWeek - lastWeek) * 100 / lastWeek
+    Column(
+        Modifier.fillMaxWidth()
+            .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(ExamColors.Primary, ExamColors.Indigo)), RoundedCornerShape(22.dp))
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(copy.text("your_week"), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.8f))
+        Text(copy.text("duration_hm", mapOf("h" to "${thisWeek / 60}", "m" to "${thisWeek % 60}")), fontSize = 34.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        change?.let {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(if (it >= 0) Icons.Rounded.NorthEast else Icons.Rounded.SouthEast, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    copy.text("vs_last_week", mapOf("change" to (if (it >= 0) "+" else "") + "$it%")),
+                    fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White
+                )
+            }
+        }
+        focus?.let {
+            Text(copy.text("focus_next", mapOf("topic" to it)), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.85f))
+        }
+    }
+}
+
+private class BadgeSpec(val key: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val color: Color, val value: Int, val target: Int) {
+    val unlocked get() = value >= target
+}
+
+@Composable
+private fun Achievements(copy: LocalizedCopy, badges: List<BadgeSpec>) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(copy.text("achievements"), fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+        badges.chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                row.forEach { badge ->
+                    Surface(Modifier.weight(1f), color = ExamColors.Surface, shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
+                        Column(Modifier.padding(vertical = 12.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(
+                                Modifier.size(52.dp).background(if (badge.unlocked) badge.color.copy(alpha = 0.14f) else ExamColors.Background, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(badge.icon, null, tint = if (badge.unlocked) badge.color else ExamColors.Border, modifier = Modifier.size(26.dp))
+                            }
+                            Text(
+                                copy.text(badge.key), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 2,
+                                color = if (badge.unlocked) ExamColors.TextPrimary else ExamColors.TextSecondary,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                            Text(
+                                if (badge.unlocked) "✓" else "${minOf(badge.value, badge.target)}/${badge.target}",
+                                fontSize = 10.sp, fontWeight = FontWeight.Medium,
+                                color = if (badge.unlocked) badge.color else ExamColors.TextSecondary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Draws the story-sized progress card (mirrors iOS ProgressShareCard) and opens the share sheet. */
+private fun shareProgressCard(context: Context, copy: LocalizedCopy, exam: String, streak: Int, minutes: Int, questions: Int, mastery: Int) {
+    val w = 1080
+    val h = 1680
+    val bitmap = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+    paint.shader = android.graphics.LinearGradient(0f, 0f, 0f, h.toFloat(), 0xFF3A4A7A.toInt(), 0xFF1C2440.toInt(), android.graphics.Shader.TileMode.CLAMP)
+    canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), paint)
+    paint.shader = null
+
+    fun text(value: String, x: Float, y: Float, size: Float, bold: Boolean, alpha: Int = 255, align: android.graphics.Paint.Align = android.graphics.Paint.Align.CENTER) {
+        paint.color = android.graphics.Color.argb(alpha, 255, 255, 255)
+        paint.textSize = size
+        paint.typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, if (bold) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        paint.textAlign = align
+        canvas.drawText(value, x, y, paint)
+    }
+    text("🔥 $streak", w / 2f, 420f, 170f, true)
+    text(copy.text("day_streak").uppercase(), w / 2f, 520f, 46f, true, 205)
+    paint.color = android.graphics.Color.argb(36, 255, 255, 255)
+    canvas.drawRoundRect(100f, 620f, w - 100f, 1180f, 60f, 60f, paint)
+    listOf(
+        copy.text("study_time") to copy.text("duration_hm", mapOf("h" to "${minutes / 60}", "m" to "${minutes % 60}")),
+        copy.text("questions_solved") to "$questions",
+        copy.text("mastery") to "$mastery%"
+    ).forEachIndexed { index, (label, value) ->
+        val y = 780f + index * 160f
+        text(label, 160f, y, 46f, false, 220, android.graphics.Paint.Align.LEFT)
+        text(value, w - 160f, y, 60f, true, 255, android.graphics.Paint.Align.RIGHT)
+    }
+    text("Examly · $exam", w / 2f, 1420f, 50f, true)
+
+    val dir = java.io.File(context.cacheDir, "share").apply { mkdirs() }
+    val file = java.io.File(dir, "progress.png")
+    file.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+    val uri = androidx.core.content.FileProvider.getUriForFile(context, context.packageName + ".share", file)
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "image/png"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(intent, copy.text("share_progress")))
+}
+
+@Composable
+private fun ProgressCard(modifier: Modifier, label: String, content: @Composable () -> Unit) {
+    Surface(modifier = modifier, color = ExamColors.Surface, shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
+        Column(Modifier.padding(vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            content()
+            Text(label, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ExamColors.TextSecondary)
+        }
+    }
+}
+
+@Composable
+private fun WeeklyChart(copy: LocalizedCopy, weekly: List<Int>, title: String, languageCode: String) {
+    val peak = maxOf(weekly.maxOrNull() ?: 0, 1)
+    val total = weekly.sum()
+    val today = java.time.LocalDate.now()
+    val locale = java.util.Locale.forLanguageTag(languageCode)
+    Surface(color = ExamColors.Surface, shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, ExamColors.Border)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(copy.text("duration_hm", mapOf("h" to "${total / 60}", "m" to "${total % 60}")), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = ExamColors.Primary)
+            }
+            Row(Modifier.fillMaxWidth().height(146.dp), verticalAlignment = Alignment.Bottom) {
+                weekly.forEachIndexed { index, value ->
+                    val isToday = index == 6
+                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Box(
+                            Modifier.width(18.dp).height(maxOf(8f, 114f * value / peak).dp)
+                                .background(
+                                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                                        if (isToday) listOf(ExamColors.Indigo, ExamColors.Primary)
+                                        else listOf(ExamColors.Primary.copy(alpha = 0.45f), ExamColors.Primary.copy(alpha = 0.25f))
+                                    ),
+                                    RoundedCornerShape(50)
+                                )
+                        )
+                        Text(
+                            today.minusDays((6 - index).toLong()).dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale),
+                            fontSize = 11.sp,
+                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isToday) ExamColors.TextPrimary else ExamColors.TextSecondary,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionRow(title: String, percent: Int?, color: Color) {
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(28.dp).background(color.copy(alpha = 0.16f), CircleShape), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(12.dp).border(2.dp, color, CircleShape))
+            }
+            Spacer(Modifier.width(10.dp))
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.weight(1f))
+            Text(percent?.let { "$it%" } ?: "—", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = ExamColors.TextSecondary)
+        }
+        Box(Modifier.padding(start = 38.dp).fillMaxWidth().height(7.dp).background(ExamColors.Border, RoundedCornerShape(50))) {
+            Box(Modifier.fillMaxWidth((percent ?: 0) / 100f).fillMaxHeight().background(color, RoundedCornerShape(50)))
         }
     }
 }

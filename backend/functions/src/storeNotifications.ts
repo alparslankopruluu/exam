@@ -6,7 +6,6 @@ import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import {
   APPLE_APP_ID,
   APPLE_BUNDLE_ID,
-  APPLE_ENVIRONMENT,
   APPLE_IAP_PRIVATE_KEY,
   APPLE_ROOT_CERTS_B64_JSON
 } from "./config.js";
@@ -33,11 +32,9 @@ async function updatePremium(args: {
   }, { merge: true });
 }
 
-async function appleVerifier(): Promise<any> {
+async function appleVerifier(sandbox: boolean): Promise<any> {
   const apple: any = await import("@apple/app-store-server-library");
-  const environment = APPLE_ENVIRONMENT.value().toLowerCase() === "production"
-    ? apple.Environment.PRODUCTION
-    : apple.Environment.SANDBOX;
+  const environment = sandbox ? apple.Environment.SANDBOX : apple.Environment.PRODUCTION;
 
   const rootsJson = JSON.parse(APPLE_ROOT_CERTS_B64_JSON.value()) as string[];
   const roots = rootsJson.map(value => Buffer.from(value, "base64"));
@@ -71,8 +68,15 @@ export const appleStoreNotifications = onRequest(
     }
 
     try {
-      const verifier = await appleVerifier();
-      const notification = await verifier.verifyAndDecodeNotification(signedPayload);
+      // Production and sandbox notifications share this endpoint; the verifier is environment-bound.
+      let verifier = await appleVerifier(false);
+      let notification: any;
+      try {
+        notification = await verifier.verifyAndDecodeNotification(signedPayload);
+      } catch {
+        verifier = await appleVerifier(true);
+        notification = await verifier.verifyAndDecodeNotification(signedPayload);
+      }
       const signedTransaction = notification?.data?.signedTransactionInfo;
 
       if (!signedTransaction) {

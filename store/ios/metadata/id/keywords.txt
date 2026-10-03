@@ -1,1 +1,1 @@
-ujian,tryout,belajar,soal,latihan,kuis,flashcard,tutor,ielts,toefl,sat,matematika,pr,bimbel
+tryout,kuis,flashcard,ielts,toefl,sat,matematika,pr,bimbel,pelajaran,sekolah,ringkasan,tes,les

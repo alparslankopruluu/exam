@@ -326,8 +326,26 @@ struct QuestionSessionView: View {
 
     private func feedbackCard(_ question: StudyQuestion) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(selected == question.correctIndex ? copy.text("nice_work") : copy.text("almost_hint"))
-                .font(.system(size: 16, weight: .bold))
+            let correct = selected == question.correctIndex
+            HStack(spacing: 12) {
+                Image(systemName: correct ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundStyle(correct ? ExamPalette.mint : ExamPalette.coral)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(copy.text(correct ? "nice_work" : "not_quite"))
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(correct ? ExamPalette.textPrimary : ExamPalette.coral)
+                    if !correct {
+                        Text(copy.text("correct_answer_is", variables: ["letter": String(UnicodeScalar(65 + question.correctIndex)!)]))
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(ExamPalette.textSecondary)
+                    }
+                }
+            }
+            Text(copy.text("explanation").uppercased())
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(ExamPalette.textSecondary)
+                .padding(.top, 14)
             Text(simplerExplanation ?? question.explanation)
                 .font(.system(size: 13))
                 .foregroundStyle(ExamPalette.textSecondary)

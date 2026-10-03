@@ -1,1 +1,1 @@
-abitur,prüfung,lernen,lernplan,nachhilfe,karteikarten,quiz,test,ielts,toefl,schule,mathe,übung
+abi,lernplaner,nachhilfe,karteikarten,quiz,test,übung,mathe,ielts,toefl,hausaufgaben,klausur,lernapp

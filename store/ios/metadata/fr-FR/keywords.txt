@@ -1,1 +1,1 @@
-bac,examen,révision,révisions,planning,quiz,fiches,prof,soutien,ielts,toefl,sat,maths,exercices
+révision,planning,quiz,fiches,soutien,scolaire,ielts,toefl,sat,maths,exercices,devoirs,cours,qcm

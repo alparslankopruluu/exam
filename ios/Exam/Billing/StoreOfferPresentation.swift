@@ -4,8 +4,11 @@ struct StorePlanPresentation: Hashable {
     let productId: String
     let title: String
     let localizedPrice: String?
-    let hasTrial: Bool
+    /// Length of the free trial in days, when the account is eligible for one.
+    let trialDays: Int?
     let recommended: Bool
+
+    var hasTrial: Bool { trialDays != nil }
 }
 
 struct StoreOfferPresentation: Hashable {
@@ -17,14 +20,14 @@ struct StoreOfferPresentation: Hashable {
             productId: "premium_annual",
             title: "Annual",
             localizedPrice: nil,
-            hasTrial: false,
+            trialDays: nil,
             recommended: true
         ),
         monthly: StorePlanPresentation(
             productId: "premium_monthly",
             title: "Monthly",
             localizedPrice: nil,
-            hasTrial: false,
+            trialDays: nil,
             recommended: false
         )
     )
@@ -42,4 +45,10 @@ struct OfferPresentation: Hashable {
     let offer: ActiveOffer
     let localizedPrice: String
     let regularPrice: String
+}
+
+/// Hosted legal pages (store/legal/build.py), linked from the paywall as App Review requires.
+enum LegalLinks {
+    static let terms = URL(string: "https://examly-study.web.app/terms")!
+    static let privacy = URL(string: "https://examly-study.web.app/privacy")!
 }

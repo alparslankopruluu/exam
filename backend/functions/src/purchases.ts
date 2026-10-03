@@ -5,7 +5,6 @@ import { google } from "googleapis";
 import {
   APPLE_APP_ID,
   APPLE_BUNDLE_ID,
-  APPLE_ENVIRONMENT,
   APPLE_IAP_PRIVATE_KEY,
   APPLE_ISSUER_ID,
   APPLE_KEY_ID,
@@ -148,20 +147,29 @@ async function verifyApple(data: any): Promise<VerifiedPurchase> {
   const requestedProductId = asString(data.productId, "productId", 300);
   const apple: any = await import("@apple/app-store-server-library");
 
-  const environment = APPLE_ENVIRONMENT.value().toLowerCase() === "production"
-    ? apple.Environment.PRODUCTION
-    : apple.Environment.SANDBOX;
-
-  const client = new apple.AppStoreServerAPIClient(
-    APPLE_IAP_PRIVATE_KEY.value(),
-    APPLE_KEY_ID.value(),
-    APPLE_ISSUER_ID.value(),
-    APPLE_BUNDLE_ID.value(),
-    environment
-  );
-
-  const response = await client.getTransactionInfo(transactionId);
-  const signedTransaction = response.signedTransactionInfo;
+  // Apple's guidance: look the transaction up in production first and fall back
+  // to sandbox, so App Review and TestFlight purchases verify on the live backend.
+  let environment: any;
+  let signedTransaction: string | undefined;
+  let lastError: unknown;
+  for (const candidate of [apple.Environment.PRODUCTION, apple.Environment.SANDBOX]) {
+    const client = new apple.AppStoreServerAPIClient(
+      APPLE_IAP_PRIVATE_KEY.value(),
+      APPLE_KEY_ID.value(),
+      APPLE_ISSUER_ID.value(),
+      APPLE_BUNDLE_ID.value(),
+      candidate
+    );
+    try {
+      const response = await client.getTransactionInfo(transactionId);
+      environment = candidate;
+      signedTransaction = response.signedTransactionInfo;
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!environment) throw lastError;
   if (!signedTransaction) {
     return { verified: false, externalId: transactionId, storeOriginalId: transactionId };
   }

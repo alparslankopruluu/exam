@@ -176,19 +176,31 @@ final class StoreKitBillingService {
                 productId: recommended ? ProductId.annual : ProductId.monthly,
                 title: title,
                 localizedPrice: nil,
-                hasTrial: false,
+                trialDays: nil,
                 recommended: recommended
             )
         }
 
-        let hasTrial = product.subscription?.introductoryOffer?.paymentMode == .freeTrial
+        let trialDays = product.subscription?.introductoryOffer
+            .flatMap { $0.paymentMode == .freeTrial ? $0.period : nil }
+            .map(Self.days)
 
         return StorePlanPresentation(
             productId: product.id,
             title: title,
             localizedPrice: product.displayPrice,
-            hasTrial: hasTrial,
+            trialDays: trialDays,
             recommended: recommended
         )
+    }
+
+    private static func days(_ period: Product.SubscriptionPeriod) -> Int {
+        switch period.unit {
+        case .day: period.value
+        case .week: period.value * 7
+        case .month: period.value * 30
+        case .year: period.value * 365
+        @unknown default: period.value
+        }
     }
 }

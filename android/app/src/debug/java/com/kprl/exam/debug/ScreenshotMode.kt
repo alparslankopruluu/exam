@@ -11,17 +11,25 @@ import java.time.LocalDate
  * Debug-only state seeding for store screenshots, driven by intent extras:
  *   adb shell am start -n com.techtactoe.examly/com.kprl.exam.MainActivity \
  *     --es screenshotLanguage tr --es screenshotExam tr_yks --es screenshotScreen today
- * Screens: today, practice, tutor, library, session.
+ * Screens: today, practice, tutor, library, session, paywall, credits, focus, progress,
+ * splash, onboarding_date, onboarding_analysis, onboarding_dna, onboarding_plan.
  */
 object ScreenshotMode {
     var screen: String? = null
         private set
+    var examId: String? = null
+        private set
+    /** App language for the run, so onboarding screens render in the captured language. */
+    var language: String? = null
+        private set
 
     fun prepare(context: Context, intent: Intent?) {
         val language = intent?.getStringExtra("screenshotLanguage") ?: return
+        this.language = language
         val exam = ExamCatalog.findExam(intent.getStringExtra("screenshotExam") ?: "intl_ielts") ?: return
         val country = ExamCatalog.findCountry(exam.countryCode ?: "OTHER") ?: return
         screen = intent.getStringExtra("screenshotScreen") ?: "today"
+        examId = exam.id
 
         val setupStore = StudySetupStore(context)
         setupStore.save(

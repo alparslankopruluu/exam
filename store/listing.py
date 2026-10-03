@@ -26,6 +26,8 @@ LOCALES = {
     "ru": ("ru", "ru-RU"), "ar": ("ar-SA", "ar"), "hi": ("hi", "hi-IN"),
     "id": ("id", "id"), "ja": ("ja", "ja-JP"), "ko": ("ko", "ko-KR"),
     "zh-Hans": ("zh-Hans", "zh-CN"), "zh-Hant": ("zh-Hant", "zh-TW"),
+    # Extra storefront locales for keyword reach: en-GB (UK), es-MX (also indexed in the US store).
+    "en-GB": ("en-GB", "en-GB"), "es-MX": ("es-MX", "es-419"),
 }
 
 LIMITS = {"name": 30, "subtitle": 30, "keywords": 100, "promotional_text": 170,
@@ -34,10 +36,10 @@ LIMITS = {"name": 30, "subtitle": 30, "keywords": 100, "promotional_text": 170,
 L = {}
 
 L["en"] = dict(
-    name="Examly: AI Study Planner",
-    sub="Exam prep with an AI tutor",
-    kw="exam,prep,sat,ielts,toefl,study,planner,quiz,flashcards,tutor,homework,test,revision,pomodoro",
-    promo="Your personal exam plan in 2 minutes: adaptive practice, mistake review and an AI tutor that explains until it clicks.",
+    name="Examly: AI Tutor & Exam Prep",
+    sub="SAT, ACT & AP Study Planner",
+    kw="homework,helper,ielts,toefl,flashcard,practice,test,quiz,math,scan,solver,question,ib,revision,score",
+    promo="Your personal exam plan in 2 minutes: adaptive practice, mistake review and an AI tutor that explains until it clicks. Premium Yearly starts with 7 days free.",
     short="Adaptive exam prep: daily plan, practice, mistake review and an AI tutor.",
     intro="Examly turns exam prep into a short, clear plan for every day. Pick your exam, take a 5-question diagnostic, and get a personal study week that adapts as you learn.",
     feats=[
@@ -55,10 +57,10 @@ L["en"] = dict(
 )
 
 L["tr"] = dict(
-    name="Examly: Sınav Hazırlık & AI",
-    sub="Yapay zekâ destekli çalışma",
-    kw="yks,lgs,kpss,ales,dgs,sınav,deneme,soru,test,ders,çalışma,planı,özel,hoca,soru çözme,tyt,ayt",
-    promo="2 dakikada kişisel sınav planın hazır: uyarlanabilir sorular, hata tekrarı ve anlayana kadar anlatan yapay zekâ öğretmen.",
+    name="Examly: YKS LGS KPSS Hazırlık",
+    sub="Soru Çözme & AI Özel Öğretmen",
+    kw="tyt,ayt,ales,dgs,sınav,deneme,test,ders,çalışma,planı,yapay,zeka,hoca,program,matematik,ödev,tekrar",
+    promo="2 dakikada kişisel YKS, LGS, KPSS planın hazır: uyarlanabilir sorular, hata tekrarı ve anlayana kadar anlatan AI öğretmen. Yıllık Premium 7 gün ücretsiz.",
     short="YKS, LGS, KPSS ve daha fazlası için kişisel plan, soru ve AI öğretmen.",
     intro="Examly sınava hazırlığı her gün için kısa ve net bir plana dönüştürür. Sınavını seç, 5 soruluk seviye testini çöz ve öğrendikçe kendini güncelleyen kişisel çalışma haftanı al.",
     feats=[
@@ -76,9 +78,9 @@ L["tr"] = dict(
 )
 
 L["de"] = dict(
-    name="Examly: KI-Lernplaner",
-    sub="Prüfungsvorbereitung mit KI",
-    kw="abitur,prüfung,lernen,lernplan,nachhilfe,karteikarten,quiz,test,ielts,toefl,schule,mathe,übung",
+    name="Examly: Abitur & KI-Lernplan",
+    sub="Prüfung lernen mit KI-Tutor",
+    kw="abi,lernplaner,nachhilfe,karteikarten,quiz,test,übung,mathe,ielts,toefl,hausaufgaben,klausur,lernapp",
     promo="Dein persönlicher Prüfungsplan in 2 Minuten: adaptive Übungen, Fehleranalyse und ein KI-Tutor, der erklärt, bis es klick macht.",
     short="Adaptive Prüfungsvorbereitung: Tagesplan, Übungen, Fehleranalyse, KI-Tutor.",
     intro="Examly macht aus Prüfungsvorbereitung einen kurzen, klaren Plan für jeden Tag. Wähle deine Prüfung, mach einen Einstufungstest mit 5 Fragen und erhalte eine persönliche Lernwoche, die sich mit dir weiterentwickelt.",
@@ -97,9 +99,9 @@ L["de"] = dict(
 )
 
 L["fr"] = dict(
-    name="Examly : révisions avec IA",
-    sub="Prépa d’examens avec tuteur IA",
-    kw="bac,examen,révision,révisions,planning,quiz,fiches,prof,soutien,ielts,toefl,sat,maths,exercices",
+    name="Examly : Bac & Révisions IA",
+    sub="Prépa examen avec un prof IA",
+    kw="révision,planning,quiz,fiches,soutien,scolaire,ielts,toefl,sat,maths,exercices,devoirs,cours,qcm",
     promo="Ton plan de révision personnel en 2 minutes : exercices adaptatifs, analyse des erreurs et un tuteur IA qui explique jusqu’à ce que tu comprennes.",
     short="Révisions adaptatives : plan du jour, exercices, erreurs et tuteur IA.",
     intro="Examly transforme la préparation d’un examen en un plan court et clair pour chaque jour. Choisis ton examen, fais un test de niveau de 5 questions et obtiens une semaine de révision qui s’adapte à tes progrès.",
@@ -118,9 +120,9 @@ L["fr"] = dict(
 )
 
 L["es"] = dict(
-    name="Examly: planificador con IA",
-    sub="Prepara exámenes con tutor IA",
-    kw="selectividad,pau,ebau,examen,estudiar,estudio,quiz,tarjetas,tutor,ielts,toefl,test,repaso,deberes",
+    name="Examly: Selectividad con IA",
+    sub="Prepara la PAU con tutor IA",
+    kw="ebau,evau,examen,estudio,estudiar,quiz,tarjetas,ielts,toefl,test,repaso,deberes,matemáticas",
     promo="Tu plan de estudio personal en 2 minutos: práctica adaptativa, repaso de errores y un tutor IA que explica hasta que lo entiendas.",
     short="Preparación adaptativa: plan diario, práctica, errores y tutor con IA.",
     intro="Examly convierte la preparación de un examen en un plan breve y claro para cada día. Elige tu examen, haz un diagnóstico de 5 preguntas y recibe una semana de estudio personal que se adapta a medida que aprendes.",
@@ -139,9 +141,9 @@ L["es"] = dict(
 )
 
 L["it"] = dict(
-    name="Examly: studio con IA",
-    sub="Prepara gli esami con l’IA",
-    kw="esame,esami,studio,studiare,test,quiz,flashcard,tutor,ripasso,ielts,toefl,sat,compiti,matematica",
+    name="Examly: Tutor IA per Esami",
+    sub="Piano di studio, quiz e test",
+    kw="esame,studiare,flashcard,ripasso,ielts,toefl,sat,compiti,matematica,ammissione,schede,esercizi",
     promo="Il tuo piano di studio personale in 2 minuti: esercizi adattivi, ripasso degli errori e un tutor IA che spiega finché non è chiaro.",
     short="Preparazione adattiva: piano del giorno, esercizi, errori e tutor IA.",
     intro="Examly trasforma la preparazione agli esami in un piano breve e chiaro per ogni giorno. Scegli il tuo esame, fai un test diagnostico di 5 domande e ricevi una settimana di studio personale che si adatta ai tuoi progressi.",
@@ -160,9 +162,9 @@ L["it"] = dict(
 )
 
 L["pt"] = dict(
-    name="Examly: estudos com IA",
-    sub="Prepare-se com um tutor de IA",
-    kw="enem,vestibular,prova,simulado,estudar,estudo,questões,flashcards,tutor,redação,ielts,toefl,revisão",
+    name="Examly: ENEM e Vestibular IA",
+    sub="Simulado, questões e tutor IA",
+    kw="prova,estudar,estudo,flashcards,redação,ielts,toefl,revisão,cronograma,resumo,exercícios,matemática",
     promo="Seu plano de estudo pessoal em 2 minutos: questões adaptativas, revisão de erros e um tutor de IA que explica até você entender.",
     short="Estudo adaptativo: plano do dia, questões, revisão de erros e tutor com IA.",
     intro="O Examly transforma a preparação para provas em um plano curto e claro para cada dia. Escolha sua prova, faça um diagnóstico de 5 questões e receba uma semana de estudo personalizada que se adapta enquanto você aprende.",
@@ -181,9 +183,9 @@ L["pt"] = dict(
 )
 
 L["pt-PT"] = dict(
-    name="Examly: estudo com IA",
-    sub="Prepara-te com um tutor de IA",
-    kw="exame,exames,estudar,estudo,testes,perguntas,flashcards,explicador,ielts,toefl,sat,revisão",
+    name="Examly: Exames com Tutor IA",
+    sub="Plano de estudo e testes",
+    kw="exame,nacional,estudar,perguntas,flashcards,explicador,ielts,toefl,sat,revisão,resumos,matemática",
     promo="O teu plano de estudo pessoal em 2 minutos: prática adaptativa, revisão de erros e um tutor de IA que explica até perceberes.",
     short="Estudo adaptativo: plano do dia, prática, revisão de erros e tutor com IA.",
     intro="O Examly transforma a preparação para exames num plano curto e claro para cada dia. Escolhe o teu exame, faz um diagnóstico de 5 perguntas e recebe uma semana de estudo pessoal que se adapta à medida que aprendes.",
@@ -202,9 +204,9 @@ L["pt-PT"] = dict(
 )
 
 L["nl"] = dict(
-    name="Examly: AI-studieplanner",
-    sub="Examens voorbereiden met AI",
-    kw="examen,toets,studeren,leren,oefenen,quiz,flashcards,bijles,ielts,toefl,sat,huiswerk,wiskunde",
+    name="Examly: AI Examentraining",
+    sub="Studieplanner en AI-bijles",
+    kw="examen,toets,studeren,leren,oefenen,quiz,flashcards,ielts,toefl,sat,huiswerk,wiskunde,eindexamen",
     promo="Je persoonlijke studieplan in 2 minuten: adaptief oefenen, fouten herhalen en een AI-tutor die uitlegt tot het klikt.",
     short="Adaptieve examentraining: dagplan, oefenen, foutenanalyse en AI-tutor.",
     intro="Examly maakt van examenvoorbereiding een kort, duidelijk plan voor elke dag. Kies je examen, doe een instaptoets van 5 vragen en krijg een persoonlijke studieweek die meegroeit terwijl je leert.",
@@ -223,9 +225,9 @@ L["nl"] = dict(
 )
 
 L["sv"] = dict(
-    name="Examly: AI-studieplanerare",
-    sub="Plugga till prov med AI",
-    kw="prov,tenta,plugga,studier,läxhjälp,quiz,flashcards,handledare,ielts,toefl,sat,matte,övning",
+    name="Examly: Plugga till prov – AI",
+    sub="Studieplan och AI-läxhjälp",
+    kw="tenta,studier,quiz,flashcards,handledare,ielts,toefl,sat,matte,övning,läxor,glosor",
     promo="Din personliga pluggplan på 2 minuter: adaptiva övningar, genomgång av misstag och en AI-handledare som förklarar tills det sitter.",
     short="Adaptiv provträning: dagsplan, övningar, misstag och AI-handledare.",
     intro="Examly gör provförberedelser till en kort och tydlig plan för varje dag. Välj ditt prov, gör ett diagnostiskt test med 5 frågor och få en personlig pluggvecka som anpassas medan du lär dig.",
@@ -244,9 +246,9 @@ L["sv"] = dict(
 )
 
 L["nb"] = dict(
-    name="Examly: KI-studieplanlegger",
-    sub="Eksamensforberedelse med KI",
-    kw="eksamen,prøve,studere,lekser,leksehjelp,quiz,kortstokk,veileder,ielts,toefl,matte,øving,repetisjon",
+    name="Examly: Eksamen og KI-hjelp",
+    sub="Studieplan og leksehjelp",
+    kw="prøve,studere,lekser,quiz,kortstokk,veileder,ielts,toefl,sat,matte,øving,repetisjon,skole,flashcards",
     promo="Den personlige studieplanen din på 2 minutter: tilpasset øving, gjennomgang av feil og en KI-veileder som forklarer til det sitter.",
     short="Tilpasset eksamensøving: dagsplan, øving, feilanalyse og KI-veileder.",
     intro="Examly gjør eksamensforberedelser om til en kort og tydelig plan for hver dag. Velg eksamen, ta en kartlegging med 5 spørsmål og få en personlig studieuke som tilpasses mens du lærer.",
@@ -265,9 +267,9 @@ L["nb"] = dict(
 )
 
 L["pl"] = dict(
-    name="Examly: planer nauki z AI",
-    sub="Do egzaminów z tutorem AI",
-    kw="egzamin,egzaminy,nauka,uczyć,quiz,fiszki,korepetycje,ielts,toefl,sat,matematyka,testy,powtórka",
+    name="Examly: Egzaminy z tutorem AI",
+    sub="Plan nauki, quizy i fiszki",
+    kw="egzamin,nauka,uczyć,korepetycje,ielts,toefl,sat,matematyka,testy,powtórka,ćwiczenia,zadania,lekcje",
     promo="Twój osobisty plan nauki w 2 minuty: adaptacyjne ćwiczenia, powtórka błędów i tutor AI, który tłumaczy, aż zrozumiesz.",
     short="Adaptacyjne przygotowanie: plan dnia, ćwiczenia, błędy i tutor AI.",
     intro="Examly zamienia przygotowania do egzaminu w krótki, jasny plan na każdy dzień. Wybierz egzamin, rozwiąż diagnozę z 5 pytań i otrzymaj osobisty tydzień nauki, który dopasowuje się do Twoich postępów.",
@@ -286,9 +288,9 @@ L["pl"] = dict(
 )
 
 L["ru"] = dict(
-    name="Examly: ИИ-план подготовки",
-    sub="Подготовка к экзаменам с ИИ",
-    kw="экзамен,подготовка,тесты,репетитор,карточки,учёба,ielts,toefl,sat,математика,задачи,повторение",
+    name="Examly: ИИ-репетитор, экзамены",
+    sub="План подготовки и тесты",
+    kw="экзамен,подготовка,карточки,учёба,ielts,toefl,sat,математика,задачи,повторение,домашка,английский",
     promo="Личный план подготовки за 2 минуты: адаптивная практика, разбор ошибок и ИИ-репетитор, который объясняет, пока не станет понятно.",
     short="Адаптивная подготовка: план на день, практика, ошибки и ИИ-репетитор.",
     intro="Examly превращает подготовку к экзамену в короткий и понятный план на каждый день. Выберите экзамен, пройдите диагностику из 5 вопросов и получите личную учебную неделю, которая подстраивается под ваш прогресс.",
@@ -307,9 +309,9 @@ L["ru"] = dict(
 )
 
 L["ar"] = dict(
-    name="Examly: مخطط دراسة ذكي",
-    sub="استعد للاختبارات مع معلم ذكي",
-    kw="اختبار,امتحان,دراسة,مذاكرة,أسئلة,بطاقات,معلم,ielts,toefl,sat,رياضيات,مراجعة,واجبات",
+    name="Examly: معلم ذكي للاختبارات",
+    sub="خطة دراسة وأسئلة وبطاقات",
+    kw="اختبار,امتحان,مذاكرة,مراجعة,واجبات,رياضيات,ielts,toefl,sat,ib,تمارين,حل,ملخص,تحضير,اختبارات,تعلم",
     promo="خطتك الدراسية الشخصية في دقيقتين: تدريب متكيّف ومراجعة للأخطاء ومعلم ذكي يشرح حتى تفهم.",
     short="استعداد متكيّف للاختبارات: خطة يومية وتدريب ومراجعة أخطاء ومعلم ذكي.",
     intro="يحوّل Examly الاستعداد للاختبار إلى خطة قصيرة وواضحة لكل يوم. اختر اختبارك، وأجب عن اختبار تشخيصي من 5 أسئلة، واحصل على أسبوع دراسي شخصي يتكيّف مع تقدمك.",
@@ -328,9 +330,9 @@ L["ar"] = dict(
 )
 
 L["hi"] = dict(
-    name="Examly: AI स्टडी प्लानर",
-    sub="AI ट्यूटर से परीक्षा की तैयारी",
-    kw="jee,neet,cuet,परीक्षा,तैयारी,mock,test,quiz,flashcards,tutor,ielts,toefl,गणित,revision",
+    name="Examly: JEE NEET AI Tutor",
+    sub="CUET तैयारी और स्टडी प्लानर",
+    kw="परीक्षा,mock,test,quiz,flashcards,ielts,toefl,गणित,revision,physics,chemistry,biology,pyq,practice",
     promo="2 मिनट में आपका पर्सनल स्टडी प्लान: अडैप्टिव प्रैक्टिस, गलतियों का रिव्यू और एक AI ट्यूटर जो समझ आने तक समझाए।",
     short="JEE, NEET, CUET और अन्य परीक्षाओं के लिए पर्सनल प्लान, प्रैक्टिस और AI ट्यूटर।",
     intro="Examly परीक्षा की तैयारी को हर दिन के लिए छोटे और साफ़ प्लान में बदल देता है। अपनी परीक्षा चुनें, 5 सवालों का डायग्नॉस्टिक दें और एक पर्सनल स्टडी वीक पाएँ जो आपकी प्रगति के साथ बदलता है।",
@@ -349,9 +351,9 @@ L["hi"] = dict(
 )
 
 L["id"] = dict(
-    name="Examly: Perencana Belajar AI",
-    sub="Siap ujian bersama tutor AI",
-    kw="ujian,tryout,belajar,soal,latihan,kuis,flashcard,tutor,ielts,toefl,sat,matematika,pr,bimbel",
+    name="Examly: Tutor AI & Belajar",
+    sub="Latihan soal & perencana ujian",
+    kw="tryout,kuis,flashcard,ielts,toefl,sat,matematika,pr,bimbel,pelajaran,sekolah,ringkasan,tes,les",
     promo="Rencana belajar pribadimu dalam 2 menit: latihan adaptif, ulasan kesalahan, dan tutor AI yang menjelaskan sampai kamu paham.",
     short="Persiapan ujian adaptif: rencana harian, latihan, kesalahan, dan tutor AI.",
     intro="Examly mengubah persiapan ujian menjadi rencana singkat dan jelas setiap hari. Pilih ujianmu, kerjakan tes diagnostik 5 soal, dan dapatkan minggu belajar pribadi yang menyesuaikan progresmu.",
@@ -370,9 +372,9 @@ L["id"] = dict(
 )
 
 L["ja"] = dict(
-    name="Examly: AI学習プランナー",
-    sub="AI家庭教師で試験対策",
-    kw="共通テスト,受験,試験,勉強,計画,問題集,単語帳,暗記,ielts,toefl,sat,数学,模試,復習",
+    name="Examly: 共通テスト対策 AI家庭教師",
+    sub="受験勉強の計画と問題集",
+    kw="受験,試験,単語帳,暗記,ielts,toefl,sat,数学,模試,復習,大学受験,過去問,学習管理,タイマー,解説,写真,宿題,ノート,要約,クイズ,センター試験,自習,勉強アプリ",
     promo="2分であなただけの学習プラン。適応型の演習、ミスの復習、わかるまで説明するAI家庭教師。",
     short="適応型の試験対策:毎日のプラン、演習、ミス復習、AI家庭教師。",
     intro="Examlyは試験対策を、毎日の短くわかりやすいプランに変えます。試験を選び、5問の診断テストを受けるだけで、学習に合わせて変わるあなた専用の1週間プランが完成します。",
@@ -391,9 +393,9 @@ L["ja"] = dict(
 )
 
 L["ko"] = dict(
-    name="Examly: AI 학습 플래너",
-    sub="AI 과외 선생님과 시험 준비",
-    kw="수능,모의고사,시험,공부,계획,문제,단어장,암기,ielts,toefl,sat,수학,복습,과외,인강",
+    name="Examly: 수능 AI 과외 선생님",
+    sub="모의고사·문제 풀이·학습 플래너",
+    kw="수능공부,시험,공부,계획,단어장,암기,ielts,toefl,sat,수학,복습,인강,오답노트,기출,문제집,스터디,타이머,요약,숙제,영어,공부앱,영단어,문제풀이앱,플래너앱,자습,시간표",
     promo="2분 만에 나만의 학습 계획: 맞춤형 문제 풀이, 오답 복습, 이해될 때까지 설명하는 AI 선생님.",
     short="맞춤형 시험 준비: 매일 계획, 문제 풀이, 오답 복습, AI 선생님.",
     intro="Examly는 시험 준비를 매일의 짧고 명확한 계획으로 바꿔 줍니다. 시험을 고르고 5문항 진단 테스트를 풀면, 실력에 맞춰 바뀌는 나만의 한 주 계획이 완성됩니다.",
@@ -412,9 +414,9 @@ L["ko"] = dict(
 )
 
 L["zh-Hans"] = dict(
-    name="Examly:AI 学习规划",
-    sub="AI 导师助你备考",
-    kw="考试,备考,刷题,错题本,单词,记忆卡,学习计划,雅思,托福,ielts,toefl,sat,数学,模考,复习",
+    name="Examly:AI 导师·备考刷题",
+    sub="学习计划、错题本与模考",
+    kw="考试,单词,记忆卡,雅思,托福,ielts,toefl,sat,数学,复习,题库,拍照搜题,作业,解题,笔记,总结,自习,番茄钟,学霸,ib,ap,学习,背单词,刷题神器,学习打卡,计时器,高中",
     promo="2 分钟生成你的专属备考计划:自适应练习、错题复盘,还有讲到你懂为止的 AI 导师。",
     short="自适应备考:每日计划、练习、错题复盘和 AI 导师。",
     intro="Examly 把备考变成每天简短清晰的计划。选择你的考试,完成 5 道题的诊断测试,就能得到一份随学习进度调整的专属学习周计划。",
@@ -433,9 +435,9 @@ L["zh-Hans"] = dict(
 )
 
 L["zh-Hant"] = dict(
-    name="Examly:AI 讀書計畫",
-    sub="AI 家教陪你準備考試",
-    kw="考試,準備,題庫,錯題,單字,記憶卡,讀書計畫,雅思,托福,ielts,toefl,sat,數學,模擬考,複習",
+    name="Examly:AI 家教・考試準備",
+    sub="讀書計畫、錯題本與模擬考",
+    kw="題庫,單字,記憶卡,雅思,托福,ielts,toefl,sat,數學,複習,拍照解題,作業,筆記,摘要,自習,番茄鐘,ib,ap,讀書,學習,背單字,考試,計時器,高中,讀書計劃,打卡",
     promo="2 分鐘產生你的專屬讀書計畫:自適應練習、錯題檢討,還有講到你懂為止的 AI 家教。",
     short="自適應備考:每日計畫、練習、錯題檢討和 AI 家教。",
     intro="Examly 把準備考試變成每天簡短清楚的計畫。選擇你的考試,完成 5 題診斷測驗,就能得到一份會隨學習進度調整的專屬讀書週計畫。",
@@ -453,6 +455,23 @@ L["zh-Hant"] = dict(
     notes="歡迎使用 Examly!專屬讀書計畫、自適應練習、AI 家教、主畫面小工具,支援 20 種語言。",
 )
 
+
+L["en-GB"] = dict(L["en"],
+    name="Examly: AI Revision & Tutor",
+    sub="GCSE, A Level & IB Exam Prep",
+    kw="revise,planner,timetable,homework,help,flashcard,quiz,practice,maths,igcse,cambridge,ielts,mock",
+    promo="Your personal revision plan in 2 minutes: GCSE and A Level practice, mistake review and an AI tutor that explains until it clicks.",
+    short="GCSE & A Level revision: daily plan, practice, mistake review and an AI tutor.",
+)
+L["en-GB"]["feats"] = [f.replace("Personalized", "Personalised") for f in L["en"]["feats"]]
+
+L["es-MX"] = dict(L["es"],
+    name="Examly: Tutor IA para Exámenes",
+    sub="Estudia para SAT, IELTS y más",
+    kw="examen,guía,estudiar,tarea,matemáticas,quiz,simulacro,toefl,cambridge,inglés,repaso,homework,math",
+    promo="Tu plan de estudio personal en 2 minutos: práctica adaptativa, repaso de errores y un tutor IA que explica hasta que lo entiendes.",
+)
+L["es-MX"]["feats"] = [f.replace("como la PAU/EBAU, IELTS, TOEFL y SAT", "como SAT, ACT, AP, IELTS, TOEFL e IB") for f in L["es"]["feats"]]
 
 def description(d):
     bullets = "\n".join(f"• {f}" for f in d["feats"])

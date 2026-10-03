@@ -1,1 +1,1 @@
-exam,prep,sat,ielts,toefl,study,planner,quiz,flashcards,tutor,homework,test,revision,pomodoro
+homework,helper,ielts,toefl,flashcard,practice,test,quiz,math,scan,solver,question,ib,revision,score
