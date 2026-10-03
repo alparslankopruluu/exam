@@ -48,6 +48,8 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Examly uses the camera to scan exam questions so your tutor can explain them.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

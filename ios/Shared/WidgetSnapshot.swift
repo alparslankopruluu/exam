@@ -89,3 +89,19 @@ struct WidgetSnapshot: Codable, Equatable {
         updatedAt: .now
     )
 }
+
+#if canImport(ActivityKit)
+import ActivityKit
+
+/// Live Activity for a running focus session (lock screen and Dynamic Island).
+struct FocusActivityAttributes: ActivityAttributes {
+    struct ContentState: Codable, Hashable {
+        /// When the phase ends; the system counts down to it without app updates.
+        let endsAt: Date
+    }
+
+    /// Localized phase label, e.g. "Focus time".
+    let title: String
+    let exam: String
+}
+#endif

@@ -23,6 +23,11 @@ struct QuestionSessionView: View {
     @State private var tutorAnswer: String?
     @State private var helperLoading = false
     @State private var remainingSeconds = 0
+    /// Mock exams hide feedback until the end: answers and flags per question index.
+    @State private var mockAnswers: [Int: Int] = [:]
+    @State private var flagged: Set<Int> = []
+
+    private var isMock: Bool { timeLimitSeconds != nil }
 
     private var copy: LocalizedCopy {
         LocalizedCopy.load(languageCode: setup.languageCode)
@@ -106,23 +111,34 @@ struct QuestionSessionView: View {
                 }
                 .frame(height: 6)
 
-                if timeLimitSeconds != nil {
-                    Text(String(format: "%02d:%02d", remainingSeconds / 60, remainingSeconds % 60))
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundStyle(remainingSeconds <= 60 ? ExamPalette.coral : ExamPalette.textSecondary)
+                if isMock {
+                    Label(String(format: "%02d:%02d", remainingSeconds / 60, remainingSeconds % 60), systemImage: "clock.fill")
+                        .font(.system(size: 13, weight: .bold).monospacedDigit())
+                        .foregroundStyle(ExamPalette.coral)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(ExamPalette.coral.opacity(0.1))
+                        .clipShape(Capsule())
+                } else {
+                    Text("\(index + 1)/\(questions.count)")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ExamPalette.textSecondary)
                 }
+            }
 
-                Text("\(index + 1)/\(questions.count)")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(ExamPalette.textSecondary)
+            if isMock {
+                mockTopicTabs
+                    .padding(.top, 12)
             }
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(question.topic.uppercased())
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(ExamPalette.primary)
-                        .padding(.top, 28)
+                    Text(isMock
+                         ? copy.text("question_n_of", variables: ["n": String(index + 1), "total": String(questions.count)])
+                         : question.topic.uppercased())
+                        .font(.system(size: isMock ? 13 : 11, weight: .bold))
+                        .foregroundStyle(isMock ? ExamPalette.textSecondary : ExamPalette.primary)
+                        .padding(.top, isMock ? 18 : 28)
 
                     Text(question.prompt)
                         .font(.system(size: 24, weight: .bold))
@@ -136,14 +152,17 @@ struct QuestionSessionView: View {
                     }
                     .padding(.top, 24)
 
-                    if selected != nil {
+                    if selected != nil && !isMock {
                         feedbackCard(question)
                             .padding(.top, 18)
                     }
                 }
             }
 
-            if selected != nil {
+            if isMock {
+                mockControls
+                    .padding(.top, 12)
+            } else if selected != nil {
                 Button {
                     if index == questions.count - 1 {
                         finishSession()
@@ -175,6 +194,7 @@ struct QuestionSessionView: View {
     @MainActor
     private func finishSession() {
         guard !completed else { return }
+        if isMock { scoreMock() }
         let completedAt = Date()
         try? LearningStore(context: modelContext).saveSession(
             examId: setup.exam.id,
@@ -244,6 +264,119 @@ struct QuestionSessionView: View {
     }
 
     private func optionRow(question: StudyQuestion, index optionIndex: Int, option: String) -> some View {
+        if isMock {
+            return AnyView(mockOptionRow(index: optionIndex, option: option))
+        }
+        return AnyView(answerOptionRow(question: question, index: optionIndex, option: option))
+    }
+
+    /// Mock option: selectable and changeable, no correctness shown until the end.
+    private func mockOptionRow(index optionIndex: Int, option: String) -> some View {
+        let chosen = mockAnswers[index] == optionIndex
+        return Button {
+            mockAnswers[index] = optionIndex
+        } label: {
+            HStack(spacing: 10) {
+                Text(String(UnicodeScalar(65 + optionIndex)!))
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(chosen ? .white : ExamPalette.textSecondary)
+                    .frame(width: 28, height: 28)
+                    .background(chosen ? ExamPalette.primary : ExamPalette.background)
+                    .clipShape(Circle())
+                Text(option)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(ExamPalette.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(15)
+            .background(chosen ? ExamPalette.softBlue : ExamPalette.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(chosen ? ExamPalette.primary : ExamPalette.border, lineWidth: chosen ? 1.5 : 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// One chip per topic in question order; tapping jumps to that topic's first question.
+    private var mockTopicTabs: some View {
+        let topics = questions.map(\.topic).reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(topics, id: \.self) { topic in
+                    let current = questions[index].topic == topic
+                    Button {
+                        if let first = questions.firstIndex(where: { $0.topic == topic }) { index = first }
+                    } label: {
+                        Text(topic)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(current ? ExamPalette.primary : ExamPalette.textSecondary)
+                            .padding(.horizontal, 14)
+                            .frame(height: 34)
+                            .background(current ? ExamPalette.softBlue : ExamPalette.surface)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(current ? ExamPalette.primary.opacity(0.4) : ExamPalette.border))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var mockControls: some View {
+        let last = index == questions.count - 1
+        return HStack(spacing: 10) {
+            Button {
+                if flagged.contains(index) { flagged.remove(index) } else { flagged.insert(index) }
+            } label: {
+                Label(copy.text("mark"), systemImage: flagged.contains(index) ? "flag.fill" : "flag")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(flagged.contains(index) ? ExamPalette.amber : ExamPalette.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .examCard(radius: 18)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                if last { finishSession() } else { index += 1 }
+            } label: {
+                Text(copy.text(last ? "finish_session" : "next"))
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(ExamPalette.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    /// Records every mock answer once the exam ends (on finish or when time runs out).
+    @MainActor
+    private func scoreMock() {
+        let store = LearningStore(context: modelContext)
+        correctCount = 0
+        for (questionIndex, question) in questions.enumerated() {
+            guard let answer = mockAnswers[questionIndex] else { continue }
+            let correct = answer == question.correctIndex
+            if correct { correctCount += 1 }
+            try? store.recordAnswer(
+                examId: setup.exam.id,
+                skillId: setup.exam.id + ":" + question.topic.lowercased().replacingOccurrences(of: " ", with: "_"),
+                questionId: question.id,
+                correct: correct,
+                responseTimeMs: 0,
+                selectedAnswer: question.options[answer],
+                correctAnswer: question.options[question.correctIndex],
+                errorType: correct ? "none" : "concept"
+            )
+        }
+    }
+
+    private func answerOptionRow(question: StudyQuestion, index optionIndex: Int, option: String) -> some View {
         let isSelected = selected == optionIndex
         let isCorrect = selected != nil && optionIndex == question.correctIndex
 

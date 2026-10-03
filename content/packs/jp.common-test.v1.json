@@ -9,27 +9,27 @@
   "sections": [
     {
       "id": "domain_1",
-      "title": "Japanese"
+      "title": "国語"
     },
     {
       "id": "domain_2",
-      "title": "Geography / History / Civics"
+      "title": "地理歴史・公民"
     },
     {
       "id": "domain_3",
-      "title": "Mathematics"
+      "title": "数学"
     },
     {
       "id": "domain_4",
-      "title": "Science"
+      "title": "理科"
     },
     {
       "id": "domain_5",
-      "title": "Foreign Languages"
+      "title": "外国語"
     },
     {
       "id": "domain_6",
-      "title": "Information"
+      "title": "情報"
     }
   ],
   "diagnostic": {

@@ -340,7 +340,8 @@ fun TodayScreen(
                 onMistakes = { toolRoute = ToolRoute.MISTAKES },
                 onFlashcards = { toolRoute = ToolRoute.FLASHCARDS },
                 onCreatePractice = { toolRoute = ToolRoute.CREATE_PRACTICE },
-                onFocus = { toolRoute = ToolRoute.FOCUS }
+                onFocus = { toolRoute = ToolRoute.FOCUS },
+                onLibrary = { selectedTab = 3 }
             )
 
             2 -> AITutorScreen(

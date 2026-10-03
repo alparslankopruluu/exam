@@ -1,11 +1,13 @@
 import SwiftUI
 import WidgetKit
+import ActivityKit
 
 @main
 struct ExamWidgetBundle: WidgetBundle {
     var body: some Widget {
         StudyProgressWidget()
         DailyQuestionWidget()
+        FocusLiveActivity()
     }
 }
 
@@ -49,3 +51,57 @@ struct SnapshotProvider: TimelineProvider {
         return SnapshotEntry(date: .now, snapshot: snapshot, answer: answer)
     }
 }
+
+/// Lock screen and Dynamic Island countdown for a focus session.
+struct FocusLiveActivity: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: FocusActivityAttributes.self) { context in
+            HStack(spacing: 14) {
+                Image(systemName: "leaf.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(Color(red: 0.37, green: 0.66, blue: 0.50))
+                    .frame(width: 44, height: 44)
+                    .background(Color(red: 0.91, green: 0.97, blue: 0.93))
+                    .clipShape(Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(context.attributes.title)
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Examly · \(context.attributes.exam)")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text(timerInterval: Date.now...context.state.endsAt, countsDown: true)
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 110)
+            }
+            .padding(16)
+            .activityBackgroundTint(Color.white)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Image(systemName: "leaf.fill").foregroundStyle(.green)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    Text(timerInterval: Date.now...context.state.endsAt, countsDown: true)
+                        .monospacedDigit()
+                        .frame(width: 64)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    Text(context.attributes.title).font(.system(size: 13, weight: .semibold))
+                }
+            } compactLeading: {
+                Image(systemName: "leaf.fill").foregroundStyle(.green)
+            } compactTrailing: {
+                Text(timerInterval: Date.now...context.state.endsAt, countsDown: true)
+                    .monospacedDigit()
+                    .frame(width: 44)
+            } minimal: {
+                Image(systemName: "leaf.fill").foregroundStyle(.green)
+            }
+        }
+    }
+}
+

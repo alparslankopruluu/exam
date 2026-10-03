@@ -26,6 +26,10 @@ class UserProgressStore(context: Context) {
     /** ISO local date (yyyy-MM-dd) of the last completed study session. */
     fun lastStudyDay(): String? = prefs.getString("last_study_day", null)
 
+    /** The monthly streak shield is unused for the current month. */
+    fun shieldAvailable(today: LocalDate = LocalDate.now()): Boolean =
+        prefs.getString("shield_month", null) != java.time.YearMonth.from(today).toString()
+
     fun recordSession(correct: Int, total: Int, durationSeconds: Int): UserProgressSnapshot {
         val previousDay = prefs.getString("last_study_day", null)
         val today = LocalDate.now()
@@ -39,6 +43,11 @@ class UserProgressStore(context: Context) {
                 oldDate == null -> 1
                 oldDate == today -> oldStreak.coerceAtLeast(1)
                 ChronoUnit.DAYS.between(oldDate, today) == 1L -> oldStreak + 1
+                // One missed day is forgiven once a month by the streak shield.
+                ChronoUnit.DAYS.between(oldDate, today) == 2L && shieldAvailable(today) -> {
+                    prefs.edit().putString("shield_month", java.time.YearMonth.from(today).toString()).apply()
+                    oldStreak + 1
+                }
                 else -> 1
             }
         }

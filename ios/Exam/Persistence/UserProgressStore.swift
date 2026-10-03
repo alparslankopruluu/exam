@@ -43,6 +43,10 @@ struct UserProgressStore {
                 streak = max(oldStreak, 1)
             } else if days == 1 {
                 streak = oldStreak + 1
+            } else if days == 2 && shieldAvailable() {
+                // One missed day is forgiven once a month by the streak shield.
+                streak = oldStreak + 1
+                defaults.set(Self.monthKey(today), forKey: "progress.shieldMonth")
             } else {
                 streak = 1
             }
@@ -64,6 +68,16 @@ struct UserProgressStore {
         return snapshot()
     }
 
+    /// The monthly streak shield is unused for the current month.
+    func shieldAvailable(now: Date = .now) -> Bool {
+        defaults.string(forKey: "progress.shieldMonth") != Self.monthKey(now)
+    }
+
+    private static func monthKey(_ date: Date) -> String {
+        let parts = Calendar.current.dateComponents([.year, .month], from: date)
+        return "\(parts.year ?? 0)-\(parts.month ?? 0)"
+    }
+
     func setReminderHour(_ hour: Int) {
         defaults.set(min(max(hour, 0), 23), forKey: "progress.reminderHour")
     }
@@ -75,7 +89,8 @@ struct UserProgressStore {
             "progress.sessions",
             "progress.questions",
             "progress.lastStudyDay",
-            "progress.reminderHour"
+            "progress.reminderHour",
+            "progress.shieldMonth"
         ].forEach(defaults.removeObject(forKey:))
     }
 }

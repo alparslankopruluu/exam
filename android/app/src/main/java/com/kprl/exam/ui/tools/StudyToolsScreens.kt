@@ -477,6 +477,7 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
                     copy.text(if (phase == FocusPhase.FOCUS) "focus_complete" else "break_complete"),
                     copy.text(if (phase == FocusPhase.FOCUS) "focus_break" else "break_over", mapOf("exam" to setup.exam.shortName))
                 )
+                cancelFocusOngoing(context)
                 endAt = null
                 pausedRemaining = 0
                 break
@@ -486,6 +487,7 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
     }
 
     fun switchTo(newMode: FocusMode, newPhase: FocusPhase) {
+        cancelFocusOngoing(context)
         mode = newMode
         phase = newPhase
         endAt = null
@@ -557,6 +559,7 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
                 if (running) {
                     pausedRemaining = remaining
                     endAt = null
+                    cancelFocusOngoing(context)
                 } else {
                     if (phase == FocusPhase.FOCUS) {
                         AppServices.analytics.event(
@@ -567,6 +570,12 @@ fun FocusScreen(setup: StudySetup, onClose: () -> Unit) {
                     now = System.currentTimeMillis()
                     endAt = now + remaining * 1000L
                     pausedRemaining = null
+                    showFocusOngoing(
+                        context,
+                        copy.text(if (phase == FocusPhase.FOCUS) "focus_time" else "break_time"),
+                        setup.exam.shortName,
+                        endAt!!
+                    )
                 }
             },
             modifier = Modifier.padding(top = 14.dp).fillMaxWidth().height(56.dp),
@@ -682,6 +691,36 @@ private fun sendFocusNotification(context: Context, title: String, body: String)
     )
 }
 
+private const val FOCUS_ONGOING_ID = 4202
+
+/** Ongoing countdown notification for a running focus phase (Android's lock-screen timer). */
+private fun showFocusOngoing(context: Context, title: String, exam: String, endAt: Long) {
+    val manager = context.getSystemService(NotificationManager::class.java)
+    val channelId = "focus_ongoing"
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        manager.createNotificationChannel(NotificationChannel(channelId, title, NotificationManager.IMPORTANCE_LOW))
+    }
+    val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        android.app.Notification.Builder(context, channelId)
+    } else android.app.Notification.Builder(context)
+    manager.notify(
+        FOCUS_ONGOING_ID,
+        builder.setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle(title)
+            .setContentText("Examly · $exam")
+            .setWhen(endAt)
+            .setShowWhen(true)
+            .setUsesChronometer(true)
+            .setChronometerCountDown(true)
+            .setOngoing(true)
+            .build()
+    )
+}
+
+private fun cancelFocusOngoing(context: Context) {
+    context.getSystemService(NotificationManager::class.java).cancel(FOCUS_ONGOING_ID)
+}
+
 private val SectionColors = listOf(ExamColors.Mint, ExamColors.Amber, ExamColors.Purple, ExamColors.Primary, ExamColors.Coral)
 
 @Composable
@@ -760,7 +799,8 @@ fun ProgressScreen(setup: StudySetup, onClose: () -> Unit) {
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricCard("${user.streak}", copy.text("streak"), Modifier.weight(1f))
+                val shieldReady = remember { UserProgressStore(context.applicationContext).shieldAvailable() }
+                MetricCard("${user.streak}", copy.text("streak") + " · " + copy.text(if (shieldReady) "shield_ready" else "shield_used"), Modifier.weight(1f))
                 MetricCard("$accuracy%", copy.text("accuracy"), Modifier.weight(1f))
                 MetricCard("${maxOf(progress.sessions, user.totalSessions)}", copy.text("sessions"), Modifier.weight(1f))
             }
@@ -1258,6 +1298,16 @@ fun ProfileSettingsScreen(
                         }
                     )
                 }
+            }
+        }
+        item {
+            SettingsRow(Icons.Rounded.GroupAdd, copy.text("invite_friend"), copy.text("invite_hint")) {
+                val link = "https://play.google.com/store/apps/details?id=" + context.packageName
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, copy.text("invite_message", mapOf("exam" to setup.exam.shortName)) + "\n" + link)
+                }
+                context.startActivity(Intent.createChooser(intent, copy.text("invite_friend")))
             }
         }
         item {

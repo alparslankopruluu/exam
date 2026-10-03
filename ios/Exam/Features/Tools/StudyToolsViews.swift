@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import ActivityKit
 @preconcurrency import FirebaseMessaging
 
 private struct ToolHeader: View {
@@ -493,6 +494,7 @@ struct FocusView: View {
     @State private var now = Date()
 
     private static let notificationId = "focus_session_end"
+    @State private var activity: Activity<FocusActivityAttributes>?
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     private var copy: LocalizedCopy {
@@ -639,6 +641,7 @@ struct FocusView: View {
 
     private func switchTo(mode: Mode, phase: Phase) {
         cancelNotification()
+        endLiveActivity()
         self.mode = mode
         self.phase = phase
         endDate = nil
@@ -656,12 +659,33 @@ struct FocusView: View {
         endDate = now.addingTimeInterval(TimeInterval(remaining))
         pausedRemaining = nil
         scheduleNotification(after: remaining)
+        startLiveActivity()
+    }
+
+    /// Shows the countdown on the lock screen and in the Dynamic Island.
+    private func startLiveActivity() {
+        guard let endDate, ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        endLiveActivity()
+        activity = try? Activity.request(
+            attributes: FocusActivityAttributes(
+                title: copy.text(phase == .focus ? "focus_time" : "break_time"),
+                exam: setup.exam.shortName
+            ),
+            content: ActivityContent(state: .init(endsAt: endDate), staleDate: endDate)
+        )
+    }
+
+    private func endLiveActivity() {
+        guard let current = activity else { return }
+        activity = nil
+        Task { await current.end(nil, dismissalPolicy: .immediate) }
     }
 
     private func pause() {
         pausedRemaining = remaining
         endDate = nil
         cancelNotification()
+        endLiveActivity()
     }
 
     private func complete() {
@@ -673,6 +697,7 @@ struct FocusView: View {
         }
         endDate = nil
         pausedRemaining = 0
+        endLiveActivity()
     }
 
     /// Scheduled up front so the reminder also fires while the app is in the background.
@@ -857,7 +882,7 @@ struct StudyProgressView: View {
                 }
 
                 HStack(spacing: 8) {
-                    metric("\(user.streak)", copy.text("streak"))
+                    metric("\(user.streak)", copy.text("streak") + " · " + copy.text(UserProgressStore().shieldAvailable() ? "shield_ready" : "shield_used"))
                     metric("\(progress.questions == 0 ? 0 : progress.correct * 100 / progress.questions)%", copy.text("accuracy"))
                     metric("\(max(progress.sessions, user.totalSessions))", copy.text("sessions"))
                 }
@@ -1470,6 +1495,14 @@ struct ProfileSettingsView: View {
                 .padding(14)
                 .examCard(radius: 18)
 
+                ShareLink(
+                    item: URL(string: "https://apps.apple.com/app/id6817641143")!,
+                    message: Text(copy.text("invite_message", variables: ["exam": setup.exam.shortName]))
+                ) {
+                    settingsRowContent("person.2.fill", copy.text("invite_friend"), copy.text("invite_hint"))
+                }
+                .buttonStyle(.plain)
+
                 settingsRow("arrow.clockwise", copy.text("restore_purchases"), copy.text("restore_hint")) {
                     Task { @MainActor in
                         await StoreKitBillingService.shared.restore()
@@ -1534,24 +1567,28 @@ struct ProfileSettingsView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                ExamIconBadge(symbol: symbol, accent: ExamPalette.primary, size: 34)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(ExamPalette.textPrimary)
-                    Text(subtitle)
-                        .font(.system(size: 11))
-                        .foregroundStyle(ExamPalette.textSecondary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(ExamPalette.textSecondary)
-            }
-            .padding(14)
-            .examCard(radius: 18)
+            settingsRowContent(symbol, title, subtitle)
         }
         .buttonStyle(.plain)
+    }
+
+    private func settingsRowContent(_ symbol: String, _ title: String, _ subtitle: String) -> some View {
+        HStack(spacing: 12) {
+            ExamIconBadge(symbol: symbol, accent: ExamPalette.primary, size: 34)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(ExamPalette.textPrimary)
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundStyle(ExamPalette.textSecondary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundStyle(ExamPalette.textSecondary)
+        }
+        .padding(14)
+        .examCard(radius: 18)
     }
 }
 

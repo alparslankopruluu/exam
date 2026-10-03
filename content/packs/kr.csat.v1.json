@@ -9,27 +9,27 @@
   "sections": [
     {
       "id": "domain_1",
-      "title": "Korean"
+      "title": "국어"
     },
     {
       "id": "domain_2",
-      "title": "Mathematics"
+      "title": "수학"
     },
     {
       "id": "domain_3",
-      "title": "English"
+      "title": "영어"
     },
     {
       "id": "domain_4",
-      "title": "Korean History"
+      "title": "한국사"
     },
     {
       "id": "domain_5",
-      "title": "Inquiry"
+      "title": "탐구"
     },
     {
       "id": "domain_6",
-      "title": "Second Foreign Language / Classical Chinese"
+      "title": "제2외국어/한문"
     }
   ],
   "diagnostic": {

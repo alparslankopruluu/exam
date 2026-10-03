@@ -288,6 +288,9 @@ struct TodayView: View {
                         },
                         onFocus: {
                             toolRoute = .focus
+                        },
+                        onLibrary: {
+                            selectedTab = .library
                         }
                     )
 

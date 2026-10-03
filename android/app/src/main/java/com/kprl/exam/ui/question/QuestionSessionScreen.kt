@@ -9,6 +9,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Cancel
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.material.icons.rounded.OutlinedFlag
+import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -66,6 +75,30 @@ fun QuestionSessionScreen(
     var remainingSeconds by remember(timeLimitSeconds) {
         mutableIntStateOf(timeLimitSeconds ?: 0)
     }
+    // Mock exams hide feedback until the end: answers and flags per question index.
+    val isMock = timeLimitSeconds != null
+    val mockAnswers = remember { mutableStateMapOf<Int, Int>() }
+    val flagged = remember { mutableStateListOf<Int>() }
+
+    /** Records every mock answer once the exam ends (on finish or when time runs out). */
+    fun scoreMock() {
+        correctCount = 0
+        questions.forEachIndexed { questionIndex, question ->
+            val answer = mockAnswers[questionIndex] ?: return@forEachIndexed
+            val correct = answer == question.correctIndex
+            if (correct) correctCount++
+            repository.recordAnswer(
+                examId = setup.exam.id,
+                skillId = setup.exam.id + ":" + question.topic.lowercase().replace(" ", "_"),
+                questionId = question.id,
+                correct = correct,
+                responseTimeMs = 0,
+                selectedAnswer = question.options[answer],
+                correctAnswer = question.options[question.correctIndex],
+                errorType = if (correct) "none" else "concept"
+            )
+        }
+    }
 
     LaunchedEffect(Unit) {
         AppServices.analytics.event(
@@ -95,6 +128,7 @@ fun QuestionSessionScreen(
 
     fun finishSession() {
         if (completed) return
+        if (isMock) scoreMock()
         val completedAt = System.currentTimeMillis()
         repository.saveSession(
             examId = setup.exam.id,
@@ -205,25 +239,77 @@ fun QuestionSessionScreen(
                 trackColor = ExamColors.Border
             )
             Spacer(Modifier.width(10.dp))
-            if (timeLimitSeconds != null) {
-                Text(
-                    "%02d:%02d".format(remainingSeconds / 60, remainingSeconds % 60),
-                    color = if (remainingSeconds <= 60) ExamColors.Coral else ExamColors.TextSecondary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.width(8.dp))
+            if (isMock) {
+                Row(
+                    Modifier.background(ExamColors.Coral.copy(alpha = 0.1f), RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.Schedule, null, tint = ExamColors.Coral, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        "%02d:%02d".format(remainingSeconds / 60, remainingSeconds % 60),
+                        color = ExamColors.Coral, fontSize = 13.sp, fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Text("${index + 1}/${questions.size}", color = ExamColors.TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
-            Text("${index + 1}/${questions.size}", color = ExamColors.TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
 
-        Spacer(Modifier.height(28.dp))
-        Text(question.topic.uppercase(), color = ExamColors.Primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        if (isMock) {
+            // One chip per topic in question order; tapping jumps to that topic's first question.
+            val topics = questions.map { it.topic }.distinct()
+            Row(Modifier.padding(top = 12.dp).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                topics.forEach { topic ->
+                    val current = question.topic == topic
+                    Box(
+                        Modifier.height(34.dp)
+                            .background(if (current) ExamColors.SoftBlue else ExamColors.Surface, RoundedCornerShape(50))
+                            .border(1.dp, if (current) ExamColors.Primary.copy(alpha = 0.4f) else ExamColors.Border, RoundedCornerShape(50))
+                            .clickable { questions.indexOfFirst { it.topic == topic }.takeIf { it >= 0 }?.let { index = it } }
+                            .padding(horizontal = 14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(topic, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (current) ExamColors.Primary else ExamColors.TextSecondary)
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(if (isMock) 18.dp else 28.dp))
+        Text(
+            if (isMock) copy.text("question_n_of", mapOf("n" to "${index + 1}", "total" to "${questions.size}")) else question.topic.uppercase(),
+            color = if (isMock) ExamColors.TextSecondary else ExamColors.Primary,
+            fontSize = if (isMock) 13.sp else 11.sp,
+            fontWeight = FontWeight.Bold
+        )
         Spacer(Modifier.height(10.dp))
         Text(question.prompt, fontSize = 24.sp, lineHeight = 31.sp, fontWeight = FontWeight.Bold)
 
         Spacer(Modifier.height(24.dp))
         question.options.forEachIndexed { optionIndex, option ->
+            if (isMock) {
+                // Mock option: selectable and changeable, no correctness shown until the end.
+                val chosen = mockAnswers[index] == optionIndex
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp).clickable { mockAnswers[index] = optionIndex },
+                    shape = RoundedCornerShape(18.dp),
+                    color = if (chosen) ExamColors.SoftBlue else ExamColors.Surface,
+                    border = BorderStroke(if (chosen) 1.5.dp else 1.dp, if (chosen) ExamColors.Primary else ExamColors.Border)
+                ) {
+                    Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(28.dp).background(if (chosen) ExamColors.Primary else ExamColors.Background, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(('A'.code + optionIndex).toChar().toString(), color = if (chosen) Color.White else ExamColors.TextSecondary, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        Text(option, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
+                    }
+                }
+                return@forEachIndexed
+            }
             val isSelected = selected == optionIndex
             val isCorrect = selected != null && optionIndex == question.correctIndex
             val border = when {
@@ -288,7 +374,38 @@ fun QuestionSessionScreen(
             }
         }
 
-        if (selected != null) {
+        if (isMock) {
+            Spacer(Modifier.weight(1f))
+            val last = index == questions.lastIndex
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val isFlagged = index in flagged
+                Surface(
+                    onClick = { if (isFlagged) flagged.remove(index) else flagged.add(index) },
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    color = ExamColors.Surface,
+                    border = BorderStroke(1.dp, ExamColors.Border)
+                ) {
+                    Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        Icon(if (isFlagged) Icons.Rounded.Flag else Icons.Rounded.OutlinedFlag, null, tint = if (isFlagged) ExamColors.Amber else ExamColors.TextPrimary)
+                        Spacer(Modifier.width(6.dp))
+                        Text(copy.text("mark"), fontWeight = FontWeight.Bold, color = if (isFlagged) ExamColors.Amber else ExamColors.TextPrimary)
+                    }
+                }
+                Button(
+                    onClick = { if (last) finishSession() else index++ },
+                    modifier = Modifier.weight(1f).height(56.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ExamColors.Primary),
+                    elevation = ButtonDefaults.buttonElevation(0.dp)
+                ) {
+                    Text(copy.text(if (last) "finish_session" else "next"), fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+
+        if (selected != null && !isMock) {
             Spacer(Modifier.height(18.dp))
             Surface(
                 color = ExamColors.Surface,
