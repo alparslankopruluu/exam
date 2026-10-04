@@ -7,7 +7,7 @@
 - Store contact details.
 
 Safe to re-run: existing products are left as they are.
-Usage: python store/play_products.py ~/.examly/play-service-account.json
+Usage: python store/play_products.py ~/.examly/play-service-account.json [subscriptions|consumables]
 """
 import sys
 
@@ -28,9 +28,11 @@ session.headers["Authorization"] = f"Bearer {creds.token}"
 
 def call(method, path, **kwargs):
     response = session.request(method, API + path, **kwargs)
-    if response.status_code >= 400:
-        return response.status_code, response.json() if response.content else {}
-    return response.status_code, response.json() if response.content else {}
+    try:
+        body = response.json() if response.content else {}
+    except ValueError:
+        body = {"error": {"message": response.text[:300]}}
+    return response.status_code, body
 
 
 def money(currency, amount):
@@ -140,7 +142,8 @@ def consumable(sku, title, description, usd, tr_price):
         }],
     }
     status, result = call("PATCH", f"/onetimeproducts/{sku}",
-                          params={"allowMissing": "true", **REGIONS_VERSION}, json=product)
+                          params={"allowMissing": "true", "updateMask": "listings,purchaseOptions",
+                                  **REGIONS_VERSION}, json=product)
     print(sku, status, result.get("error", {}).get("message", "saved"))
     status, result = call("POST", f"/onetimeproducts/{sku}/purchaseOptions:batchUpdateStates", json={
         "requests": [{"activatePurchaseOptionRequest": {
@@ -162,16 +165,21 @@ def contact_details():
 
 
 
-regions = subscription("premium_annual", "Examly Premium (Annual)",
-                       "Unlimited AI tutor, mock exams, voice tutor and study tools.",
-                       "annual", "P1Y", 49.99, 899.99)
-offer("premium_annual", "annual", "trial", free_week, regions, new_customers_only=True)
-offer("premium_annual", "annual", "welcome", discount_year(0.4), regions)
-offer("premium_annual", "annual", "winback", discount_year(0.5), regions)
-subscription("premium_monthly", "Examly Premium (Monthly)",
-             "Unlimited AI tutor, mock exams, voice tutor and study tools.",
-             "monthly", "P1M", 7.99, 149.99)
+ONLY = sys.argv[2] if len(sys.argv) > 2 else None
 
-consumable("ai_credits_small", "50 AI credits", "Credits for AI image and video lessons", 2.99, 49.99)
-consumable("ai_credits_medium", "150 AI credits", "Credits for AI image and video lessons", 6.99, 129.99)
-consumable("ai_credits_large", "500 AI credits", "Credits for AI image and video lessons", 19.99, 349.99)
+if ONLY in (None, "subscriptions"):
+    regions = subscription("premium_annual", "Examly Premium (Annual)",
+                           "Unlimited AI tutor, mock exams, voice tutor and study tools.",
+                           "annual", "P1Y", 49.99, 899.99)
+    offer("premium_annual", "annual", "trial", free_week, regions, new_customers_only=True)
+    offer("premium_annual", "annual", "welcome", discount_year(0.4), regions)
+    offer("premium_annual", "annual", "winback", discount_year(0.5), regions)
+    subscription("premium_monthly", "Examly Premium (Monthly)",
+                 "Unlimited AI tutor, mock exams, voice tutor and study tools.",
+                 "monthly", "P1M", 7.99, 149.99)
+
+
+if ONLY in (None, "consumables"):
+    consumable("ai_credits_small", "50 AI credits", "Credits for AI image and video lessons", 2.99, 49.99)
+    consumable("ai_credits_medium", "150 AI credits", "Credits for AI image and video lessons", 6.99, 129.99)
+    consumable("ai_credits_large", "500 AI credits", "Credits for AI image and video lessons", 19.99, 349.99)
