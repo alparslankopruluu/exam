@@ -147,7 +147,7 @@ fun LibraryScreen(
                         is GatewayResult.Success -> {
                             val questions = parseMaterialQuestions(result.value)
                             if (questions.isEmpty()) {
-                                error = "Could not create a valid quiz from this material."
+                                error = copy.text("error_quiz_invalid")
                             } else {
                                 AppServices.analytics.event(
                                     AnalyticsEvents.QUIZ_GENERATED,

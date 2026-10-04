@@ -18,6 +18,7 @@ export {
 export { verifyStorePurchase } from "./purchases.js";
 
 export { getActiveOffer } from "./offers.js";
+export { spinGiftWheel } from "./wheel.js";
 
 export { registerPushToken, sendStudyReminders } from "./push.js";
 

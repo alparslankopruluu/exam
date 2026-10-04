@@ -120,7 +120,7 @@ fun AITutorScreen(
             context.contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream)
         }.getOrNull()
 
-        if (bitmap == null) error = "Could not read the selected image."
+        if (bitmap == null) error = copy.text("error_image_load")
         else solveBitmap(bitmap, "gallery")
     }
 
@@ -202,7 +202,7 @@ fun AITutorScreen(
             copy.text("explain_concept_hint"),
             ExamColors.Amber
         ) {
-            prompt = "Explain this concept simply: "
+            prompt = copy.text("explain_prefill") + " "
         }
 
         Spacer(Modifier.height(9.dp))

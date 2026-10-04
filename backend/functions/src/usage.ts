@@ -46,6 +46,8 @@ export async function consumeCredits(uid: string, amount: number): Promise<void>
     const snapshot = await tx.get(ref);
     const credits = Number(snapshot.data()?.credits ?? 0);
     if (credits < amount) {
+      // Remembered so the offer engine can send a credit bonus later.
+      tx.set(ref, { creditShortfallAt: FieldValue.serverTimestamp() }, { merge: true });
       throw new HttpsError("resource-exhausted", "Not enough credits.", {
         reason: "credits",
         required: amount,

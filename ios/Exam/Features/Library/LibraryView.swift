@@ -357,7 +357,7 @@ private struct MaterialChatView: View {
                         )
                     }
                     if questions.isEmpty {
-                        error = "Could not create a valid quiz from this material."
+                        error = copy.text("error_quiz_invalid")
                     } else {
                         AppServices.shared.analytics.event(
                             AnalyticsEvent.quizGenerated,

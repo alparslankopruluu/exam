@@ -1094,6 +1094,11 @@ fun CreditStoreScreen(setup: StudySetup, onClose: () -> Unit) {
                     }
                 }
             }
+            com.kprl.exam.billing.OfferService.creditBoost
+                ?.takeIf { it.expiresAtMillis > System.currentTimeMillis() }
+                ?.let { boost ->
+                    item { com.kprl.exam.ui.home.CreditBoostBanner(copy, boost.bonusPercent, boost.expiresAtMillis) }
+                }
             if (packs.isEmpty()) {
                 item { Text(copy.text("loading_price"), color = ExamColors.TextSecondary, fontSize = 13.sp) }
             }

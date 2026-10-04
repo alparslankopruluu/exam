@@ -60,7 +60,7 @@ struct AITutorView: View {
                             copy.text("explain_concept_hint"),
                             ExamPalette.amber
                         ) {
-                            prompt = "Explain this concept simply: "
+                            prompt = copy.text("explain_prefill") + " "
                         }
 
                         tutorRow(
@@ -259,7 +259,7 @@ struct AITutorView: View {
         Task { @MainActor in
             do {
                 guard let data = try await item.loadTransferable(type: Data.self) else {
-                    throw AIGatewayError.message("Could not load the selected image.")
+                    throw AIGatewayError.message(copy.text("error_image_load"))
                 }
                 try await solveImage(data, source: "photo_picker")
             } catch {

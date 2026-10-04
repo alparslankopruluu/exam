@@ -1,6 +1,6 @@
 // Localized reminder copy. Placeholders: {exam}, {streak}, {count}.
 
-export type ReminderKind = "daily" | "streak_at_risk" | "review_due" | "comeback" | "offer_expiring";
+export type ReminderKind = "daily" | "streak_at_risk" | "review_due" | "comeback" | "offer_expiring" | "offer_new" | "credit_bonus" | "wheel_ready";
 
 type Copy = { title: string; body: string };
 
@@ -114,6 +114,72 @@ export const REMINDER_COPY: Record<ReminderKind, Record<string, Copy>> = {
     "zh-Hans": { title: "{count}% 优惠即将结束", body: "首年优惠的 Premium,只剩几个小时。" },
     "zh-Hant": { title: "{count}% 優惠即將結束", body: "首年優惠的 Premium,只剩幾個小時。" },
     id: { title: "Penawaran {count}% segera berakhir", body: "Premium dengan diskon tahun pertama, tinggal beberapa jam." }
+  },
+  offer_new: {
+    en: { title: "🎁 {count}% off Premium for 24 hours", body: "Your personal plan with the full AI tutor, now at a special price." },
+    tr: { title: "🎁 Premium'da 24 saatlik %{count} indirim", body: "Tüm AI öğretmen özellikleriyle kişisel planın şimdi özel fiyatla." },
+    de: { title: "🎁 {count} % auf Premium – 24 Stunden", body: "Dein persönlicher Plan mit KI-Tutor jetzt zum Sonderpreis." },
+    fr: { title: "🎁 -{count} % sur Premium pendant 24 h", body: "Ton plan personnalisé avec le tuteur IA, à prix spécial." },
+    es: { title: "🎁 {count} % de descuento en Premium 24 h", body: "Tu plan personal con el tutor IA, ahora a precio especial." },
+    it: { title: "🎁 Premium scontato del {count}% per 24 ore", body: "Il tuo piano personale con il tutor IA, ora a prezzo speciale." },
+    pt: { title: "🎁 {count}% off no Premium por 24 horas", body: "Seu plano pessoal com o tutor de IA, agora com preço especial." },
+    "pt-PT": { title: "🎁 {count}% de desconto no Premium durante 24 h", body: "O teu plano pessoal com o tutor de IA, agora a preço especial." },
+    nl: { title: "🎁 {count}% korting op Premium, 24 uur", body: "Je persoonlijke plan met AI-tutor nu voor een speciale prijs." },
+    sv: { title: "🎁 {count} % rabatt på Premium i 24 timmar", body: "Din personliga plan med AI-handledare till specialpris." },
+    nb: { title: "🎁 {count} % rabatt på Premium i 24 timer", body: "Den personlige planen med KI-veileder til spesialpris." },
+    pl: { title: "🎁 Premium taniej o {count}% przez 24 godziny", body: "Twój plan z tutorem AI teraz w specjalnej cenie." },
+    ru: { title: "🎁 Скидка {count}% на Premium на 24 часа", body: "Персональный план с ИИ-репетитором по специальной цене." },
+    ar: { title: "🎁 خصم {count}% على Premium لمدة 24 ساعة", body: "خطتك الشخصية مع المعلم الذكي بسعر خاص الآن." },
+    hi: { title: "🎁 24 घंटे के लिए Premium पर {count}% छूट", body: "AI ट्यूटर के साथ आपका पर्सनल प्लान, अब खास कीमत पर।" },
+    id: { title: "🎁 Diskon {count}% Premium selama 24 jam", body: "Rencana pribadimu dengan tutor AI, sekarang harga spesial." },
+    ja: { title: "🎁 Premiumが24時間限定{count}%オフ", body: "AI家庭教師つきの学習プランを特別価格で。" },
+    ko: { title: "🎁 24시간 한정 프리미엄 {count}% 할인", body: "AI 선생님과 함께하는 맞춤 계획을 특별가로." },
+    "zh-Hans": { title: "🎁 Premium 限时 24 小时 {count}% 优惠", body: "含 AI 导师的专属计划，现在特价。" },
+    "zh-Hant": { title: "🎁 Premium 限時 24 小時 {count}% 優惠", body: "含 AI 家教的專屬計畫，現在特價。" }
+  },
+  credit_bonus: {
+    en: { title: "⚡ +{count}% bonus credits for 48 hours", body: "Get extra AI credits on any credit pack while the bonus lasts." },
+    tr: { title: "⚡ 48 saat boyunca +%{count} bonus kredi", body: "Bonus süresince her kredi paketinde ekstra AI kredisi kazan." },
+    de: { title: "⚡ +{count} % Bonus-Credits für 48 Stunden", body: "Extra-KI-Credits auf jedes Credit-Paket, solange der Bonus läuft." },
+    fr: { title: "⚡ +{count} % de crédits bonus pendant 48 h", body: "Des crédits IA en plus sur chaque pack tant que le bonus dure." },
+    es: { title: "⚡ +{count} % de créditos extra durante 48 h", body: "Créditos de IA adicionales en cualquier paquete mientras dure." },
+    it: { title: "⚡ +{count}% di crediti bonus per 48 ore", body: "Crediti IA extra su ogni pacchetto finché dura il bonus." },
+    pt: { title: "⚡ +{count}% de créditos bônus por 48 horas", body: "Créditos de IA extras em qualquer pacote enquanto durar." },
+    "pt-PT": { title: "⚡ +{count}% de créditos bónus durante 48 h", body: "Créditos de IA extra em qualquer pacote enquanto durar." },
+    nl: { title: "⚡ +{count}% bonuscredits, 48 uur", body: "Extra AI-credits bij elk creditpakket zolang de bonus loopt." },
+    sv: { title: "⚡ +{count} % bonuskrediter i 48 timmar", body: "Extra AI-krediter på alla paket så länge bonusen gäller." },
+    nb: { title: "⚡ +{count} % bonuskreditter i 48 timer", body: "Ekstra KI-kreditter på alle pakker mens bonusen varer." },
+    pl: { title: "⚡ +{count}% kredytów bonusowych przez 48 godzin", body: "Dodatkowe kredyty AI w każdym pakiecie, póki trwa bonus." },
+    ru: { title: "⚡ +{count}% бонусных кредитов на 48 часов", body: "Дополнительные ИИ-кредиты к любому пакету, пока действует бонус." },
+    ar: { title: "⚡ رصيد إضافي +{count}% لمدة 48 ساعة", body: "احصل على رصيد ذكاء اصطناعي إضافي مع أي باقة طوال مدة العرض." },
+    hi: { title: "⚡ 48 घंटे के लिए +{count}% बोनस क्रेडिट", body: "बोनस रहते हर क्रेडिट पैक पर अतिरिक्त AI क्रेडिट पाएँ।" },
+    id: { title: "⚡ Bonus kredit +{count}% selama 48 jam", body: "Dapatkan kredit AI ekstra di paket mana pun selama bonus berlaku." },
+    ja: { title: "⚡ 48時間限定 +{count}%ボーナスクレジット", body: "期間中はどのクレジットパックにもAIクレジットを上乗せ。" },
+    ko: { title: "⚡ 48시간 동안 +{count}% 보너스 크레딧", body: "보너스 기간에는 모든 크레딧 팩에 AI 크레딧을 더 드려요." },
+    "zh-Hans": { title: "⚡ 48 小时内额外 +{count}% 点数", body: "活动期间购买任意点数包都送额外 AI 点数。" },
+    "zh-Hant": { title: "⚡ 48 小時內額外 +{count}% 點數", body: "活動期間購買任一點數包都加贈 AI 點數。" }
+  },
+  wheel_ready: {
+    en: { title: "🎡 Your daily gift wheel is ready", body: "Nice work today! Spin for free credits or a Premium discount." },
+    tr: { title: "🎡 Günlük hediye çarkın hazır", body: "Bugün harika çalıştın! Ücretsiz kredi veya Premium indirimi için çevir." },
+    de: { title: "🎡 Dein tägliches Glücksrad ist bereit", body: "Gut gemacht heute! Dreh für Gratis-Credits oder Premium-Rabatt." },
+    fr: { title: "🎡 Ta roue cadeau du jour est prête", body: "Beau travail ! Tourne pour des crédits gratuits ou une remise Premium." },
+    es: { title: "🎡 Tu ruleta de regalo diaria está lista", body: "¡Buen trabajo hoy! Gira por créditos gratis o un descuento Premium." },
+    it: { title: "🎡 La tua ruota regalo di oggi è pronta", body: "Ottimo lavoro! Gira per crediti gratis o uno sconto Premium." },
+    pt: { title: "🎡 Sua roleta de presentes do dia chegou", body: "Mandou bem hoje! Gire para ganhar créditos ou desconto no Premium." },
+    "pt-PT": { title: "🎡 A tua roleta de prémios do dia está pronta", body: "Bom trabalho hoje! Roda para créditos grátis ou desconto Premium." },
+    nl: { title: "🎡 Je dagelijkse cadeaurad staat klaar", body: "Goed gedaan vandaag! Draai voor gratis credits of Premium-korting." },
+    sv: { title: "🎡 Ditt dagliga lyckohjul är redo", body: "Bra jobbat idag! Snurra för gratis krediter eller Premium-rabatt." },
+    nb: { title: "🎡 Det daglige lykkehjulet er klart", body: "Godt jobbet i dag! Snurr for gratis kreditter eller Premium-rabatt." },
+    pl: { title: "🎡 Twoje dzienne koło nagród czeka", body: "Dobra robota! Zakręć po darmowe kredyty lub zniżkę na Premium." },
+    ru: { title: "🎡 Ежедневное колесо подарков готово", body: "Отличная работа! Крутите за бесплатные кредиты или скидку на Premium." },
+    ar: { title: "🎡 عجلة الهدايا اليومية جاهزة", body: "عمل رائع اليوم! أدرها لتربح رصيدًا مجانيًا أو خصمًا على Premium." },
+    hi: { title: "🎡 आपका रोज़ का गिफ्ट व्हील तैयार है", body: "आज बढ़िया पढ़ाई! फ्री क्रेडिट या Premium छूट के लिए घुमाएँ।" },
+    id: { title: "🎡 Roda hadiah harianmu siap", body: "Kerja bagus hari ini! Putar untuk kredit gratis atau diskon Premium." },
+    ja: { title: "🎡 今日のギフトホイールが回せます", body: "今日もお疲れさま！無料クレジットやPremium割引が当たります。" },
+    ko: { title: "🎡 오늘의 선물 룰렛이 준비됐어요", body: "오늘도 수고했어요! 무료 크레딧이나 프리미엄 할인을 받아 보세요." },
+    "zh-Hans": { title: "🎡 今日礼物转盘已就绪", body: "今天学得很棒！转一转，赢免费点数或 Premium 优惠。" },
+    "zh-Hant": { title: "🎡 今日禮物轉盤已就緒", body: "今天讀得很棒！轉一轉，贏免費點數或 Premium 優惠。" }
   }
 };
 
@@ -122,7 +188,10 @@ export const REMINDER_ROUTE: Record<ReminderKind, string> = {
   streak_at_risk: "today",
   review_due: "review",
   comeback: "today",
-  offer_expiring: "paywall"
+  offer_expiring: "paywall",
+  offer_new: "paywall",
+  credit_bonus: "credits",
+  wheel_ready: "wheel"
 };
 
 /** Maps a device locale tag (e.g. "pt-PT", "zh-Hant-TW", "nn") to a copy key. */

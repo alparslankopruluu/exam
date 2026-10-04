@@ -163,7 +163,7 @@ struct VoiceTutorView: View {
 
         Task { @MainActor in
             guard await service.requestPermission() else {
-                error = "Microphone permission is required for Voice Tutor."
+                error = copy.text("error_mic_permission")
                 return
             }
 

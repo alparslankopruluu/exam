@@ -80,6 +80,9 @@ fun TodayScreen(
     var sessionTimeLimit by remember { mutableStateOf<Int?>(null) }
     var dashboardRefresh by remember { mutableIntStateOf(0) }
     var entitlement by remember { mutableStateOf(EntitlementSnapshot()) }
+    var giftWheelOpen by remember { mutableStateOf(false) }
+    var homeOffer by remember { mutableStateOf<com.kprl.exam.billing.ActiveOffer?>(null) }
+    var creditBoost by remember { mutableStateOf<com.kprl.exam.billing.CreditBoost?>(null) }
 
     val context = LocalContext.current
     val entitlementService = remember { EntitlementService() }
@@ -99,7 +102,14 @@ fun TodayScreen(
 
     LaunchedEffect(premiumPlacement, dashboardRefresh) {
         if (premiumPlacement == null) {
-            entitlementService.fetch { entitlement = it }
+            entitlementService.fetch { snapshot ->
+                entitlement = snapshot
+                // Also lets the server issue this week's offer (max two a week).
+                com.kprl.exam.billing.OfferService.fetch(StudySetupStore(context.applicationContext).daysToExam()) { offer ->
+                    homeOffer = if (snapshot.premium) null else offer
+                    creditBoost = com.kprl.exam.billing.OfferService.creditBoost
+                }
+            }
         }
     }
 
@@ -113,6 +123,7 @@ fun TodayScreen(
             "credits" -> toolRoute = ToolRoute.CREDITS
             "focus" -> toolRoute = ToolRoute.FOCUS
             "progress" -> toolRoute = ToolRoute.PROGRESS
+            "wheel" -> giftWheelOpen = true
         }
     }
 
@@ -131,6 +142,16 @@ fun TodayScreen(
                 premiumPlacement = null
                 toolRoute = null
                 selectedTab = 0
+            }
+            "wheel" -> {
+                premiumPlacement = null
+                toolRoute = null
+                selectedTab = 0
+                giftWheelOpen = true
+            }
+            "credits" -> {
+                premiumPlacement = null
+                toolRoute = ToolRoute.CREDITS
             }
         }
     }
@@ -174,6 +195,23 @@ fun TodayScreen(
                     premiumPlacement = placement
                 },
                 timeLimitSeconds = sessionTimeLimit
+            )
+            return
+        }
+
+        giftWheelOpen -> {
+            val closeWheel: () -> Unit = {
+                giftWheelOpen = false
+                dashboardRefresh++
+            }
+            GiftWheelScreen(
+                copy = copy,
+                onClose = closeWheel,
+                onClaimOffer = {
+                    closeWheel()
+                    premiumPlacement = "wheel"
+                },
+                onCreditsWon = closeWheel
             )
             return
         }
@@ -329,7 +367,12 @@ fun TodayScreen(
                 onTutor = { selectedTab = 2 },
                 onProgress = { toolRoute = ToolRoute.PROGRESS },
                 onFocus = { toolRoute = ToolRoute.FOCUS },
-                onOffer = { premiumPlacement = "winback" }
+                onOffer = { premiumPlacement = "winback" },
+                homeOffer = homeOffer,
+                creditBoost = creditBoost,
+                onHomeOffer = { premiumPlacement = it },
+                onCredits = { toolRoute = ToolRoute.CREDITS },
+                onWheel = { giftWheelOpen = true }
             )
 
             1 -> PracticeScreen(
@@ -383,7 +426,12 @@ private fun TodayContent(
     onTutor: () -> Unit,
     onProgress: () -> Unit,
     onFocus: () -> Unit,
-    onOffer: () -> Unit
+    onOffer: () -> Unit,
+    homeOffer: com.kprl.exam.billing.ActiveOffer? = null,
+    creditBoost: com.kprl.exam.billing.CreditBoost? = null,
+    onHomeOffer: (String) -> Unit = {},
+    onCredits: () -> Unit = {},
+    onWheel: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val repository = remember { LearningRepository(LearningDatabase(context.applicationContext)) }
@@ -514,8 +562,35 @@ private fun TodayContent(
             )
         }
 
+        if (homeOffer != null && !homeOffer.isExpired) {
+            Spacer(Modifier.height(14.dp))
+            TimedOfferHomeCard(
+                title = copy.text("offer_title_" + homeOffer.kind),
+                subtitle = copy.text("home_offer_subtitle", mapOf("percent" to homeOffer.discountPercent.toString())),
+                icon = if (homeOffer.kind == "wheel") OfferGiftIcon else OfferBoltIcon,
+                colors = listOf(Color(0xFF8C5CF5), Color(0xFF5C5CF5)),
+                expiresAtMillis = homeOffer.expiresAtMillis,
+                onClick = { onHomeOffer(homeOffer.kind) }
+            )
+        }
+        if (creditBoost != null && creditBoost.expiresAtMillis > System.currentTimeMillis()) {
+            Spacer(Modifier.height(14.dp))
+            TimedOfferHomeCard(
+                title = copy.text("credit_boost_title", mapOf("percent" to creditBoost.bonusPercent.toString())),
+                subtitle = copy.text("credit_boost_subtitle"),
+                icon = OfferSparkIcon,
+                colors = listOf(Color(0xFF21B89E), Color(0xFF3B6BF5)),
+                expiresAtMillis = creditBoost.expiresAtMillis,
+                onClick = onCredits
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+        val wheelContext = LocalContext.current
+        val spunToday = remember(refreshKey) { com.kprl.exam.billing.OfferService.spunToday(wheelContext) }
+        GiftWheelHomeCard(copy, spunToday, onWheel)
+
         val expiry = AppServices.flags.snapshot.limitedOfferExpiryEpochSeconds
-        if (expiry > System.currentTimeMillis() / 1000L) {
+        if (homeOffer == null && expiry > System.currentTimeMillis() / 1000L) {
             Spacer(Modifier.height(14.dp))
             LimitedOfferBanner(
                 expiryEpochSeconds = expiry,

@@ -53,7 +53,7 @@ fun VoiceTutorScreen(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) beginRecording()
-        else error = "Microphone permission is required for Voice Tutor."
+        else error = copy.text("error_mic_permission")
     }
 
     fun requestStart() {

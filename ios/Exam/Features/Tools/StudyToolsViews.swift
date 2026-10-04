@@ -1242,6 +1242,32 @@ struct CreditStoreView: View {
                     .padding(20)
                     .examCard(radius: 24)
 
+                    if let boost = OfferService.shared.creditBoost, boost.expiresAt > Date() {
+                        HStack(spacing: 10) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundStyle(.white)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(copy.text("credit_boost_title", variables: ["percent": String(boost.bonusPercent)]))
+                                    .font(.system(size: 14, weight: .heavy))
+                                Text(copy.text("credit_boost_subtitle"))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .opacity(0.85)
+                            }
+                            .foregroundStyle(.white)
+                            Spacer(minLength: 0)
+                            TimelineView(.periodic(from: .now, by: 1)) { context in
+                                let left = max(0, Int(boost.expiresAt.timeIntervalSince(context.date)))
+                                Text(String(format: "%02d:%02d:%02d", left / 3600, (left % 3600) / 60, left % 60))
+                                    .font(.system(size: 12, weight: .heavy).monospacedDigit())
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .padding(14)
+                        .background(LinearGradient(colors: [Color(red: 0.13, green: 0.72, blue: 0.62), Color(red: 0.23, green: 0.42, blue: 0.96)], startPoint: .leading, endPoint: .trailing))
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    }
+
                     if packs.isEmpty {
                         Text(copy.text("loading_price"))
                             .font(.system(size: 13))

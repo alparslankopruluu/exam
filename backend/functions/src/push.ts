@@ -6,6 +6,8 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { REMINDER_IMAGE_URL } from "./config.js";
 import { asString, requireUid } from "./auth.js";
 import { REMINDER_ROUTE, ReminderKind, reminderText } from "./pushCopy.js";
+import { issueWeeklyOffer } from "./offers.js";
+import { spunOn } from "./wheel.js";
 
 const db = getFirestore();
 
@@ -73,6 +75,8 @@ async function expiringOffer(uid: string): Promise<{ id: string; percent: number
   for (const doc of offers.docs) {
     const data = doc.data();
     const expiresAt = (data.expiresAt as Timestamp | undefined)?.toMillis() ?? 0;
+    // The expiring copy is about Premium; credit bonuses have their own announcement.
+    if ((data.kind ?? doc.id) === "credit_boost") continue;
     if (expiresAt > now && expiresAt - now <= 24 * 3_600_000 && !data.reminderSentAt) {
       const percent = Number(data.discountPercent ?? 0);
       if (!percent) continue;
@@ -99,12 +103,26 @@ async function reminderFor(doc: QueryDocumentSnapshot): Promise<{ kind: Reminder
     count: String(dueReviews)
   };
 
-  const offer = data.uid ? await expiringOffer(String(data.uid)) : null;
+  const uid = data.uid ? String(data.uid) : null;
+  const offer = uid ? await expiringOffer(uid) : null;
   if (offer) {
     return { kind: "offer_expiring", vars: { ...vars, count: String(offer.percent) }, offerId: offer.id };
   }
 
-  if (daysSince === 0) return null;
+  // At most twice a week a fresh offer replaces the day's reminder.
+  const fresh = uid ? await issueWeeklyOffer(uid) : null;
+  if (fresh) {
+    return {
+      kind: fresh.kind === "credit_boost" ? "credit_bonus" : "offer_new",
+      vars: { ...vars, count: String(fresh.percent) },
+      offerId: fresh.id
+    };
+  }
+
+  // Learners who already studied today get their gift wheel instead of a nudge.
+  if (daysSince === 0) {
+    return uid && !(await spunOn(uid, today)) ? { kind: "wheel_ready", vars } : null;
+  }
   if (daysSince !== null && daysSince >= 3) {
     return COMEBACK_DAYS.has(daysSince) ? { kind: "comeback", vars } : null;
   }

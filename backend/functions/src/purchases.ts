@@ -11,6 +11,7 @@ import {
   APPLE_ROOT_CERTS_B64_JSON
 } from "./config.js";
 import { CREDIT_PACKS, PREMIUM_PRODUCTS } from "./catalog.js";
+import { activeCreditBoost } from "./offers.js";
 import { asString, requireUid } from "./auth.js";
 
 const db = getFirestore();
@@ -39,11 +40,15 @@ async function grantVerifiedPurchase(
 
   const creditAmount = CREDIT_PACKS[productId];
   if (creditAmount) {
-    const amount = creditAmount;
+    // A live credit-boost offer adds its bonus share once, then is used up.
+    const boost = await activeCreditBoost(uid);
+    const bonus = boost ? Math.round(creditAmount * 0.5) : 0;
+    const amount = creditAmount + bonus;
 
     await db.runTransaction(async tx => {
       const existing = await tx.get(ledgerRef);
       if (existing.exists) return;
+      if (boost) tx.set(db.doc(`users/${uid}/offers/${boost.id}`), { redeemed: true }, { merge: true });
 
       tx.set(db.doc(`users/${uid}`), {
         credits: FieldValue.increment(amount),
