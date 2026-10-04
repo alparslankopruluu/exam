@@ -79,7 +79,7 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Voice Tutor uses the microphone only while you are asking a spoken study question."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CURRENT_PROJECT_VERSION: 3
+        CURRENT_PROJECT_VERSION: 8
         MARKETING_VERSION: 1.0.0
     postBuildScripts:
       - name: Firebase Crashlytics Symbols
@@ -110,7 +110,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: ExamNotificationService/Info.plist
-        CURRENT_PROJECT_VERSION: 3
+        CURRENT_PROJECT_VERSION: 8
         MARKETING_VERSION: 1.0.0
         SKIP_INSTALL: YES
 
@@ -133,7 +133,7 @@ targets:
         # The design system is light-only; keep it in dark mode too (Android uses a Light theme).
         INFOPLIST_KEY_UIUserInterfaceStyle: Light
         INFOPLIST_FILE: ExamWidget/Info.plist
-        CURRENT_PROJECT_VERSION: 3
+        CURRENT_PROJECT_VERSION: 8
         MARKETING_VERSION: 1.0.0
         SKIP_INSTALL: YES
 
