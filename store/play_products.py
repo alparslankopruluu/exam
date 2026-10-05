@@ -141,11 +141,11 @@ def consumable(sku, title, description, usd, tr_price):
                                  "availability": "AVAILABLE"},
         }],
     }
-    status, result = call("PATCH", f"/onetimeproducts/{sku}",
+    status, result = call("PATCH", f"/oneTimeProducts/{sku}",
                           params={"allowMissing": "true", "updateMask": "listings,purchaseOptions",
                                   **REGIONS_VERSION}, json=product)
     print(sku, status, result.get("error", {}).get("message", "saved"))
-    status, result = call("POST", f"/onetimeproducts/{sku}/purchaseOptions:batchUpdateStates", json={
+    status, result = call("POST", f"/oneTimeProducts/{sku}/purchaseOptions:batchUpdateStates", json={
         "requests": [{"activatePurchaseOptionRequest": {
             "packageName": PKG, "productId": sku, "purchaseOptionId": "buy"}}]})
     print(f"  activate {sku}", status, result.get("error", {}).get("message", "ok"))
